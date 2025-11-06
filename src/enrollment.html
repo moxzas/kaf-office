@@ -58,7 +58,7 @@
 <body>
     <div class="header">
         <h1>🎨 Kids Art Fun</h1>
-        <p class="subtitle">Student Enrollment Form</p>
+        <p class="subtitle" id="formSubtitle">Student Enrollment Form</p>
     </div>
 
     <div class="container">
@@ -389,6 +389,109 @@
         // Store parent and student record IDs for progressive saving
         let parentRecordId = null;
         let studentRecordIds = [];
+        let isEditMode = false;
+
+        // Check if we're in edit mode (URL has parent record ID)
+        const urlParams = new URLSearchParams(window.location.search);
+        const parentIdFromUrl = urlParams.get('parent');
+
+        if (parentIdFromUrl) {
+            parentRecordId = parentIdFromUrl;
+            isEditMode = true;
+            console.log('Edit mode: Loading existing enrollment for', parentRecordId);
+
+            // Update UI to show edit mode
+            document.getElementById('formSubtitle').textContent = 'Update Your Enrollment';
+            survey.description = 'Update your enrollment details. Changes are saved automatically as you go.';
+
+            loadExistingEnrollment(parentRecordId);
+        }
+
+        // Load existing enrollment data for editing
+        async function loadExistingEnrollment(recordId) {
+            try {
+                // Fetch parent record
+                const parentResponse = await fetch(
+                    `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Parents/${recordId}`,
+                    {
+                        headers: {
+                            'Authorization': `Bearer ${AIRTABLE_API_KEY}`
+                        }
+                    }
+                );
+
+                if (!parentResponse.ok) {
+                    showStatus('❌ Could not load enrollment. Please check your link.', 'error');
+                    return;
+                }
+
+                const parentData = await parentResponse.json();
+                console.log('Loaded parent:', parentData);
+
+                // Parse name into first/last
+                const nameParts = (parentData.fields.Name || '').split(' ');
+                const firstName = nameParts[0] || '';
+                const lastName = nameParts.slice(1).join(' ') || '';
+
+                // Pre-fill parent data
+                const formData = {
+                    parentFirstName: firstName,
+                    parentLastName: lastName,
+                    parentEmail: parentData.fields.Email || '',
+                    parentMobile: parentData.fields.Mobile || '',
+                    parentPhone: parentData.fields.Phone || '',
+                    parentAddress: parentData.fields.Address || '',
+                    parentSuburb: parentData.fields.Suburb || '',
+                    parentPostcode: parentData.fields.Postcode || '',
+                    parentAuthorizedPickup: parentData.fields['Authorized for Pickup'] || false,
+                    interestCategories: parentData.fields['Interest Categories'] || [],
+                    interestNotes: parentData.fields['Interest Notes'] || ''
+                };
+
+                // Fetch linked students if any
+                const studentIds = parentData.fields.Students || [];
+                if (studentIds.length > 0) {
+                    const studentsData = [];
+
+                    for (const studentId of studentIds) {
+                        const studentResponse = await fetch(
+                            `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Students/${studentId}`,
+                            {
+                                headers: {
+                                    'Authorization': `Bearer ${AIRTABLE_API_KEY}`
+                                }
+                            }
+                        );
+
+                        if (studentResponse.ok) {
+                            const student = await studentResponse.json();
+                            studentsData.push({
+                                studentName: student.fields.Name || '',
+                                studentDOB: student.fields['Date of Birth'] || '',
+                                studentSchool: student.fields.School || '',
+                                studentYearClass: student.fields['Year/Class'] || '',
+                                studentMedicalNotes: student.fields['Medical Notes'] || '',
+                                studentDietaryNotes: student.fields['Dietary Notes'] || '',
+                                studentSpecialNeeds: student.fields['Special Needs'] || ''
+                            });
+                            studentRecordIds.push(studentId);
+                        }
+                    }
+
+                    if (studentsData.length > 0) {
+                        formData.students = studentsData;
+                    }
+                }
+
+                // Set form data
+                survey.data = formData;
+                console.log('✓ Form pre-filled with existing data');
+
+            } catch (error) {
+                console.error('Error loading enrollment:', error);
+                showStatus('❌ Error loading enrollment data. Please try again.', 'error');
+            }
+        }
 
         // Save progress after each page
         survey.onCurrentPageChanged.add(async function (sender, options) {
@@ -399,11 +502,12 @@
 
             try {
                 // Page 1: Save essential parent info + interests immediately
-                if (currentPage.name === 'parentInfo' && !parentRecordId) {
-                    console.log('Saving parent (page 1)...');
+                if (currentPage.name === 'parentInfo') {
+                    if (isEditMode) {
+                        // Update existing parent
+                        console.log('Updating parent (page 1)...');
 
-                    const parentData = {
-                        records: [{
+                        const updateData = {
                             fields: {
                                 "Name": `${formData.parentFirstName} ${formData.parentLastName}`,
                                 "Email": formData.parentEmail,
@@ -411,26 +515,57 @@
                                 "Interest Categories": formData.interestCategories || [],
                                 "Interest Notes": formData.interestNotes || ""
                             }
-                        }]
-                    };
+                        };
 
-                    const response = await fetch(
-                        `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Parents`,
-                        {
-                            method: 'POST',
-                            headers: {
-                                'Authorization': `Bearer ${AIRTABLE_API_KEY}`,
-                                'Content-Type': 'application/json'
-                            },
-                            body: JSON.stringify(parentData)
+                        const response = await fetch(
+                            `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Parents/${parentRecordId}`,
+                            {
+                                method: 'PATCH',
+                                headers: {
+                                    'Authorization': `Bearer ${AIRTABLE_API_KEY}`,
+                                    'Content-Type': 'application/json'
+                                },
+                                body: JSON.stringify(updateData)
+                            }
+                        );
+
+                        if (response.ok) {
+                            console.log('✓ Parent updated');
                         }
-                    );
+                    } else {
+                        // Create new parent
+                        console.log('Creating parent (page 1)...');
 
-                    if (response.ok) {
-                        const result = await response.json();
-                        parentRecordId = result.records[0].id;
-                        console.log('✓ Parent created:', parentRecordId);
-                        console.log('Resume link:', `http://kaf.sonzai.com/enrol/${parentRecordId}`);
+                        const parentData = {
+                            records: [{
+                                fields: {
+                                    "Name": `${formData.parentFirstName} ${formData.parentLastName}`,
+                                    "Email": formData.parentEmail,
+                                    "Mobile": formData.parentMobile,
+                                    "Interest Categories": formData.interestCategories || [],
+                                    "Interest Notes": formData.interestNotes || ""
+                                }
+                            }]
+                        };
+
+                        const response = await fetch(
+                            `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Parents`,
+                            {
+                                method: 'POST',
+                                headers: {
+                                    'Authorization': `Bearer ${AIRTABLE_API_KEY}`,
+                                    'Content-Type': 'application/json'
+                                },
+                                body: JSON.stringify(parentData)
+                            }
+                        );
+
+                        if (response.ok) {
+                            const result = await response.json();
+                            parentRecordId = result.records[0].id;
+                            console.log('✓ Parent created:', parentRecordId);
+                            console.log('Resume link:', `http://app.sonzai.com/kaf/enrollment.html?parent=${parentRecordId}`);
+                        }
                     }
                 }
 
@@ -469,41 +604,92 @@
                 if (currentPage.name === 'studentsPage' && parentRecordId && formData.students) {
                     console.log('Saving students...');
 
-                    studentRecordIds = [];
-                    for (const student of formData.students) {
-                        const studentData = {
-                            records: [{
-                                fields: {
-                                    "Name": student.studentName,
-                                    "Date of Birth": student.studentDOB,
-                                    "School": student.studentSchool,
-                                    "Year/Class": student.studentYearClass || "",
-                                    "Medical Notes": student.studentMedicalNotes || "",
-                                    "Dietary Notes": student.studentDietaryNotes || "",
-                                    "Special Needs": student.studentSpecialNeeds || "",
-                                    "Parents": [parentRecordId]
-                                }
-                            }]
+                    const newStudentRecordIds = [];
+
+                    for (let i = 0; i < formData.students.length; i++) {
+                        const student = formData.students[i];
+                        const existingStudentId = studentRecordIds[i];
+
+                        const studentFields = {
+                            "Name": student.studentName,
+                            "Date of Birth": student.studentDOB,
+                            "School": student.studentSchool,
+                            "Year/Class": student.studentYearClass || "",
+                            "Medical Notes": student.studentMedicalNotes || "",
+                            "Dietary Notes": student.studentDietaryNotes || "",
+                            "Special Needs": student.studentSpecialNeeds || "",
+                            "Parents": [parentRecordId]
                         };
 
-                        const response = await fetch(
-                            `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Students`,
-                            {
-                                method: 'POST',
-                                headers: {
-                                    'Authorization': `Bearer ${AIRTABLE_API_KEY}`,
-                                    'Content-Type': 'application/json'
-                                },
-                                body: JSON.stringify(studentData)
-                            }
-                        );
+                        if (existingStudentId) {
+                            // Update existing student
+                            console.log('Updating student:', existingStudentId);
 
-                        if (response.ok) {
-                            const result = await response.json();
-                            studentRecordIds.push(result.records[0].id);
-                            console.log('✓ Student created:', result.records[0].id);
+                            const response = await fetch(
+                                `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Students/${existingStudentId}`,
+                                {
+                                    method: 'PATCH',
+                                    headers: {
+                                        'Authorization': `Bearer ${AIRTABLE_API_KEY}`,
+                                        'Content-Type': 'application/json'
+                                    },
+                                    body: JSON.stringify({ fields: studentFields })
+                                }
+                            );
+
+                            if (response.ok) {
+                                newStudentRecordIds.push(existingStudentId);
+                                console.log('✓ Student updated:', existingStudentId);
+                            }
+                        } else {
+                            // Create new student
+                            console.log('Creating new student...');
+
+                            const studentData = {
+                                records: [{
+                                    fields: studentFields
+                                }]
+                            };
+
+                            const response = await fetch(
+                                `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Students`,
+                                {
+                                    method: 'POST',
+                                    headers: {
+                                        'Authorization': `Bearer ${AIRTABLE_API_KEY}`,
+                                        'Content-Type': 'application/json'
+                                    },
+                                    body: JSON.stringify(studentData)
+                                }
+                            );
+
+                            if (response.ok) {
+                                const result = await response.json();
+                                newStudentRecordIds.push(result.records[0].id);
+                                console.log('✓ Student created:', result.records[0].id);
+                            }
                         }
                     }
+
+                    // Delete removed students (if user removed any from the form)
+                    if (isEditMode) {
+                        for (const oldStudentId of studentRecordIds) {
+                            if (!newStudentRecordIds.includes(oldStudentId)) {
+                                console.log('Deleting removed student:', oldStudentId);
+                                await fetch(
+                                    `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Students/${oldStudentId}`,
+                                    {
+                                        method: 'DELETE',
+                                        headers: {
+                                            'Authorization': `Bearer ${AIRTABLE_API_KEY}`
+                                        }
+                                    }
+                                );
+                            }
+                        }
+                    }
+
+                    studentRecordIds = newStudentRecordIds;
                 }
 
             } catch (error) {
@@ -520,12 +706,21 @@
 
             // TODO: Create enrollments, send confirmation email, etc.
 
-            showStatus(`✅ Success! Your enrollment is complete.
+            const message = isEditMode
+                ? `✅ Success! Your enrollment has been updated.
 
 Your link to view/edit anytime:
-http://kaf.sonzai.com/enrol/${parentRecordId}
+http://app.sonzai.com/kaf/enrollment.html?parent=${parentRecordId}
 
-We'll send this link to ${sender.data.parentEmail}`, 'success');
+Changes saved: ${new Date().toLocaleString()}`
+                : `✅ Success! Your enrollment is complete.
+
+Your link to view/edit anytime:
+http://app.sonzai.com/kaf/enrollment.html?parent=${parentRecordId}
+
+We'll send this link to ${sender.data.parentEmail}`;
+
+            showStatus(message, 'success');
         });
 
         // Render the survey
