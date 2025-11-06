@@ -1,0 +1,1203 @@
+{
+  "tables": [
+    {
+      "id": "tblXhMi6CoPsglJrN",
+      "name": "Parents",
+      "primaryFieldId": "fldeP6wrXlhnW16zt",
+      "fields": [
+        {
+          "type": "singleLineText",
+          "id": "fldeP6wrXlhnW16zt",
+          "name": "Name"
+        },
+        {
+          "type": "email",
+          "id": "fldGMje0R67iz3Jwo",
+          "name": "Email"
+        },
+        {
+          "type": "phoneNumber",
+          "id": "fld6xuBCzfAMW9Pb0",
+          "name": "Phone"
+        },
+        {
+          "type": "phoneNumber",
+          "id": "fldgr3dgreTv1RGcJ",
+          "name": "Mobile"
+        },
+        {
+          "type": "checkbox",
+          "options": {
+            "icon": "check",
+            "color": "greenBright"
+          },
+          "id": "fldlO7vFhg3F96YRb",
+          "name": "Authorized for Pickup"
+        },
+        {
+          "type": "multipleSelects",
+          "options": {
+            "choices": [
+              {
+                "id": "selbqDhMfcZtWerSs",
+                "name": "Pottery",
+                "color": "grayLight2"
+              },
+              {
+                "id": "selToR8wFNFBsVpBH",
+                "name": "Painting",
+                "color": "grayLight2"
+              },
+              {
+                "id": "selnhx4xZ8nbKaN7Y",
+                "name": "Drawing",
+                "color": "grayLight2"
+              },
+              {
+                "id": "selyDHaRolntreaV0",
+                "name": "Sculpture",
+                "color": "grayLight2"
+              },
+              {
+                "id": "sel2mVgbWqPiV4hTM",
+                "name": "Mixed Media",
+                "color": "grayLight2"
+              },
+              {
+                "id": "selMx12SZrVwaaL6G",
+                "name": "Holiday Programs",
+                "color": "grayLight2"
+              },
+              {
+                "id": "selpLBsrdHttaIT2c",
+                "name": "After School Programs",
+                "color": "grayLight2"
+              }
+            ]
+          },
+          "id": "fldPjvdgWAEvQn8IH",
+          "name": "Interest Categories"
+        },
+        {
+          "type": "multilineText",
+          "id": "fldV3lhYbG7ygdNdE",
+          "name": "Interest Notes"
+        },
+        {
+          "type": "multilineText",
+          "id": "fldbmeAVuAHRsqxnH",
+          "name": "Communication Log"
+        },
+        {
+          "type": "multipleRecordLinks",
+          "options": {
+            "linkedTableId": "tblYkTEqcc8fO2EsW",
+            "isReversed": false,
+            "prefersSingleRecordLink": false,
+            "inverseLinkFieldId": "fld3mVwwxRW7EQKxV"
+          },
+          "id": "fld2g98SyyAa3Y7zC",
+          "name": "Students"
+        },
+        {
+          "type": "multipleRecordLinks",
+          "options": {
+            "linkedTableId": "tblqMqimwUyGexmj2",
+            "isReversed": false,
+            "prefersSingleRecordLink": false,
+            "inverseLinkFieldId": "flduwfr2Yu4zQyLZ8"
+          },
+          "id": "fld0bWJeP1xmjMcjf",
+          "name": "Attendance"
+        },
+        {
+          "type": "singleLineText",
+          "id": "fld8sELRMz60MJwGl",
+          "name": "Address"
+        },
+        {
+          "type": "singleLineText",
+          "id": "fldL9Xt0HdwwM3t8w",
+          "name": "Suburb"
+        },
+        {
+          "type": "singleLineText",
+          "id": "fldSjXIZIW682jMmY",
+          "name": "Postcode"
+        }
+      ],
+      "views": [
+        {
+          "id": "viwAxAWbLXosrBHAg",
+          "name": "Grid view",
+          "type": "grid"
+        }
+      ]
+    },
+    {
+      "id": "tblYkTEqcc8fO2EsW",
+      "name": "Students",
+      "primaryFieldId": "fldCiKNjpG1Zeqmkx",
+      "fields": [
+        {
+          "type": "singleLineText",
+          "id": "fldCiKNjpG1Zeqmkx",
+          "name": "Name"
+        },
+        {
+          "type": "autoNumber",
+          "id": "fldMvjy0RmDlnNRno",
+          "name": "Student ID Number"
+        },
+        {
+          "type": "formula",
+          "options": {
+            "isValid": true,
+            "formula": "\"STU-\" & RIGHT(\"000\" & {fldMvjy0RmDlnNRno}, 3)",
+            "referencedFieldIds": [
+              "fldMvjy0RmDlnNRno"
+            ],
+            "result": {
+              "type": "singleLineText"
+            }
+          },
+          "id": "fldkmcT0Xibehvu0X",
+          "name": "Student ID"
+        },
+        {
+          "type": "singleSelect",
+          "options": {
+            "choices": [
+              {
+                "id": "selh2x4X7cXwyYYXr",
+                "name": "Chapel Hill Art Studio",
+                "color": "grayLight2"
+              },
+              {
+                "id": "selU3xN5W72YvJiUk",
+                "name": "Ironside State School",
+                "color": "grayLight2"
+              },
+              {
+                "id": "selJAk4kNc4LlUjGg",
+                "name": "St Lucia Kindergarten",
+                "color": "grayLight2"
+              },
+              {
+                "id": "selOyr3atnOGeFVle",
+                "name": "Yeronga State School",
+                "color": "grayLight2"
+              },
+              {
+                "id": "sel0DA7cADtDTu5Em",
+                "name": "Good News Lutheran School",
+                "color": "grayLight2"
+              },
+              {
+                "id": "selyrf1k2MF09lgjV",
+                "name": "Other",
+                "color": "grayLight2"
+              }
+            ]
+          },
+          "id": "fldxzxC0rztIHzwUs",
+          "name": "School"
+        },
+        {
+          "type": "singleLineText",
+          "id": "fldbprdqFe9xQBuOP",
+          "name": "Year/Class"
+        },
+        {
+          "type": "multilineText",
+          "id": "fldjFn6dI9BpLc7e7",
+          "name": "Medical Notes"
+        },
+        {
+          "type": "multilineText",
+          "id": "fldpcnUKrkKJzdr4f",
+          "name": "Dietary Notes"
+        },
+        {
+          "type": "multilineText",
+          "id": "fldhFfZEhUFfPa1uz",
+          "name": "Special Needs"
+        },
+        {
+          "type": "multipleAttachments",
+          "options": {
+            "isReversed": false
+          },
+          "id": "fldz7BYy1NUy1qhbm",
+          "name": "Student Photo"
+        },
+        {
+          "type": "multilineText",
+          "id": "flduXFarVPDng4FWT",
+          "name": "General Notes"
+        },
+        {
+          "type": "date",
+          "options": {
+            "dateFormat": {
+              "name": "local",
+              "format": "l"
+            }
+          },
+          "id": "fldSdAapdaSTAD2MC",
+          "name": "Date of Birth"
+        },
+        {
+          "type": "formula",
+          "options": {
+            "isValid": true,
+            "formula": "DATETIME_DIFF(TODAY(), {fldSdAapdaSTAD2MC}, 'years')",
+            "referencedFieldIds": [
+              "fldSdAapdaSTAD2MC"
+            ],
+            "result": {
+              "type": "number",
+              "options": {
+                "precision": 0
+              }
+            }
+          },
+          "id": "fld8csnIVDkbZtHsL",
+          "name": "Age"
+        },
+        {
+          "type": "multipleRecordLinks",
+          "options": {
+            "linkedTableId": "tblXhMi6CoPsglJrN",
+            "isReversed": false,
+            "prefersSingleRecordLink": false,
+            "inverseLinkFieldId": "fld2g98SyyAa3Y7zC"
+          },
+          "id": "fld3mVwwxRW7EQKxV",
+          "name": "Parents"
+        },
+        {
+          "type": "multipleRecordLinks",
+          "options": {
+            "linkedTableId": "tblNqOjJsR1M1E4Dl",
+            "isReversed": false,
+            "prefersSingleRecordLink": false,
+            "inverseLinkFieldId": "fldJFc2KMlpVPsE0V"
+          },
+          "id": "fldQRBjGIRRW8S7ft",
+          "name": "Enrollments"
+        },
+        {
+          "type": "multipleLookupValues",
+          "options": {
+            "isValid": true,
+            "recordLinkFieldId": "fld3mVwwxRW7EQKxV",
+            "fieldIdInLinkedTable": "fld8sELRMz60MJwGl",
+            "result": {
+              "type": "singleLineText"
+            }
+          },
+          "id": "fldY9IFRn1UuExiKp",
+          "name": "Address"
+        },
+        {
+          "type": "multipleLookupValues",
+          "options": {
+            "isValid": true,
+            "recordLinkFieldId": "fld3mVwwxRW7EQKxV",
+            "fieldIdInLinkedTable": "fldL9Xt0HdwwM3t8w",
+            "result": {
+              "type": "singleLineText"
+            }
+          },
+          "id": "fldPB03NpYWQUBAiD",
+          "name": "Suburb"
+        },
+        {
+          "type": "multipleLookupValues",
+          "options": {
+            "isValid": true,
+            "recordLinkFieldId": "fld3mVwwxRW7EQKxV",
+            "fieldIdInLinkedTable": "fldSjXIZIW682jMmY",
+            "result": {
+              "type": "singleLineText"
+            }
+          },
+          "id": "fldWolWaPtq2VP8JM",
+          "name": "Postcode"
+        }
+      ],
+      "views": [
+        {
+          "id": "viwYKjEsnOwXXcNSO",
+          "name": "Grid view",
+          "type": "grid"
+        }
+      ]
+    },
+    {
+      "id": "tblrHM8EcFdnrJsEo",
+      "name": "Venues",
+      "primaryFieldId": "fldHwI0WJLJGqHq1X",
+      "fields": [
+        {
+          "type": "singleLineText",
+          "id": "fldHwI0WJLJGqHq1X",
+          "name": "Name"
+        },
+        {
+          "type": "singleSelect",
+          "options": {
+            "choices": [
+              {
+                "id": "sel3JzRQr9cvKMZsh",
+                "name": "School Rental",
+                "color": "grayLight2"
+              },
+              {
+                "id": "selW1iL0pIXQTWEH4",
+                "name": "Home Studio",
+                "color": "grayLight2"
+              }
+            ]
+          },
+          "id": "fldrYB4x7NtPJL47w",
+          "name": "Type"
+        },
+        {
+          "type": "multilineText",
+          "id": "fldKpbnAeAbOpJTjq",
+          "name": "Address"
+        },
+        {
+          "type": "singleLineText",
+          "id": "fldy74P14twRbf4Z5",
+          "name": "Suburb"
+        },
+        {
+          "type": "number",
+          "options": {
+            "precision": 0
+          },
+          "id": "fldrOJ2bmZNZvoFlV",
+          "name": "Capacity"
+        },
+        {
+          "type": "multilineText",
+          "id": "fldI8NxeDJBTMuc77",
+          "name": "Contact/Access Notes"
+        },
+        {
+          "type": "multipleRecordLinks",
+          "options": {
+            "linkedTableId": "tblWoYZ5SbnxHSbPZ",
+            "isReversed": false,
+            "prefersSingleRecordLink": false,
+            "inverseLinkFieldId": "fldOUlfzrqCXJcy3Z"
+          },
+          "id": "fldfPO49AmYJDzGEF",
+          "name": "Classes"
+        }
+      ],
+      "views": [
+        {
+          "id": "viwYyEzj0N7PMo8i7",
+          "name": "Grid view",
+          "type": "grid"
+        }
+      ]
+    },
+    {
+      "id": "tblMIGFcTcJMy2jIN",
+      "name": "Teachers",
+      "primaryFieldId": "fldzfcX7XOWgWOYO9",
+      "fields": [
+        {
+          "type": "singleLineText",
+          "id": "fldzfcX7XOWgWOYO9",
+          "name": "Name"
+        },
+        {
+          "type": "email",
+          "id": "fldjXhkdtqMVYCgBg",
+          "name": "Email"
+        },
+        {
+          "type": "phoneNumber",
+          "id": "fldRMwM779MDMNNS1",
+          "name": "Phone"
+        },
+        {
+          "type": "multilineText",
+          "id": "fldPGtOD4C1nGKjUv",
+          "name": "Notes"
+        },
+        {
+          "type": "multipleRecordLinks",
+          "options": {
+            "linkedTableId": "tblWoYZ5SbnxHSbPZ",
+            "isReversed": false,
+            "prefersSingleRecordLink": false,
+            "inverseLinkFieldId": "fldbMDijWmW8e1YRC"
+          },
+          "id": "fldT8NTscmC9LF2bg",
+          "name": "Classes"
+        },
+        {
+          "type": "singleLineText",
+          "id": "fldpPRaswB84Zn7YU",
+          "name": "Address"
+        },
+        {
+          "type": "singleLineText",
+          "id": "fldsA5gaKUAW2Wghq",
+          "name": "Suburb"
+        },
+        {
+          "type": "singleLineText",
+          "id": "fldBCS99IX80ZT93i",
+          "name": "Postcode"
+        }
+      ],
+      "views": [
+        {
+          "id": "viwWuPxX0Z1gZgzKC",
+          "name": "Grid view",
+          "type": "grid"
+        }
+      ]
+    },
+    {
+      "id": "tblWoYZ5SbnxHSbPZ",
+      "name": "Classes",
+      "primaryFieldId": "fldMD8YC6KAI23WA2",
+      "fields": [
+        {
+          "type": "singleLineText",
+          "id": "fldMD8YC6KAI23WA2",
+          "name": "Name"
+        },
+        {
+          "type": "singleSelect",
+          "options": {
+            "choices": [
+              {
+                "id": "sell4e5EKjdAr8Yq2",
+                "name": "Term",
+                "color": "grayLight2"
+              },
+              {
+                "id": "selHRpWZmyS3iCdQt",
+                "name": "Holiday",
+                "color": "grayLight2"
+              }
+            ]
+          },
+          "id": "fldyUCHtBfnB2bPUY",
+          "name": "Type"
+        },
+        {
+          "type": "singleSelect",
+          "options": {
+            "choices": [
+              {
+                "id": "selJOjrLtrlbWeC59",
+                "name": "Pottery",
+                "color": "grayLight2"
+              },
+              {
+                "id": "selbRk2brHJUjIhAk",
+                "name": "Painting",
+                "color": "grayLight2"
+              },
+              {
+                "id": "selIRaGDXTgojlGbQ",
+                "name": "Drawing",
+                "color": "grayLight2"
+              },
+              {
+                "id": "selBJuwG4p9MqsS3r",
+                "name": "Sculpture",
+                "color": "grayLight2"
+              },
+              {
+                "id": "sel9ywWD9VeOBTxCp",
+                "name": "Mixed Media",
+                "color": "grayLight2"
+              },
+              {
+                "id": "sel2ercqlAB0ZDN6Z",
+                "name": "General Craft",
+                "color": "grayLight2"
+              }
+            ]
+          },
+          "id": "fldzdKzdwkFnVz38l",
+          "name": "Category"
+        },
+        {
+          "type": "singleSelect",
+          "options": {
+            "choices": [
+              {
+                "id": "seliszzBlaSVKWS6Z",
+                "name": "Monday",
+                "color": "grayLight2"
+              },
+              {
+                "id": "selilY3VMfoKlF7aR",
+                "name": "Tuesday",
+                "color": "grayLight2"
+              },
+              {
+                "id": "sels9LZ1X48RnkK0U",
+                "name": "Wednesday",
+                "color": "grayLight2"
+              },
+              {
+                "id": "selqoDge8b6na9dB1",
+                "name": "Thursday",
+                "color": "grayLight2"
+              },
+              {
+                "id": "selIIUBEhpIDQxhwJ",
+                "name": "Friday",
+                "color": "grayLight2"
+              },
+              {
+                "id": "sel8YJj6DTZGQ1gTi",
+                "name": "Saturday",
+                "color": "grayLight2"
+              },
+              {
+                "id": "selD5Z4oy7Fet4S6C",
+                "name": "Sunday",
+                "color": "grayLight2"
+              }
+            ]
+          },
+          "id": "fldpwuihfSx19bge6",
+          "name": "Day of Week"
+        },
+        {
+          "type": "singleLineText",
+          "id": "fldrcACIZqCHPX701",
+          "name": "Start Time"
+        },
+        {
+          "type": "number",
+          "options": {
+            "precision": 0
+          },
+          "id": "fld2CFGLUDfV9i0MM",
+          "name": "Duration (mins)"
+        },
+        {
+          "type": "number",
+          "options": {
+            "precision": 0
+          },
+          "id": "fldqAkHcPfdOpNrba",
+          "name": "Sessions in Term"
+        },
+        {
+          "type": "currency",
+          "options": {
+            "precision": 2,
+            "symbol": "$"
+          },
+          "id": "fldGIRH9ODRdzPdjO",
+          "name": "Price"
+        },
+        {
+          "type": "number",
+          "options": {
+            "precision": 0
+          },
+          "id": "fld72TK3L7sgIFqyS",
+          "name": "Capacity"
+        },
+        {
+          "type": "singleSelect",
+          "options": {
+            "choices": [
+              {
+                "id": "selCuT9IygBXhVQlh",
+                "name": "Active",
+                "color": "grayLight2"
+              },
+              {
+                "id": "selQceEXsZrsx4EKR",
+                "name": "Inactive",
+                "color": "grayLight2"
+              },
+              {
+                "id": "selZ2zX0wJyVLYT1A",
+                "name": "Full",
+                "color": "grayLight2"
+              },
+              {
+                "id": "seluv3eviBL2HBb4x",
+                "name": "Cancelled",
+                "color": "grayLight2"
+              }
+            ]
+          },
+          "id": "fld050kLW5FBUAQmO",
+          "name": "Status"
+        },
+        {
+          "type": "date",
+          "options": {
+            "dateFormat": {
+              "name": "local",
+              "format": "l"
+            }
+          },
+          "id": "fldG8Yl2oy1CoYDdX",
+          "name": "Term Start Date"
+        },
+        {
+          "type": "date",
+          "options": {
+            "dateFormat": {
+              "name": "local",
+              "format": "l"
+            }
+          },
+          "id": "fldj43U3KLuvRgzEU",
+          "name": "Term End Date"
+        },
+        {
+          "type": "multipleRecordLinks",
+          "options": {
+            "linkedTableId": "tblrHM8EcFdnrJsEo",
+            "isReversed": false,
+            "prefersSingleRecordLink": true,
+            "inverseLinkFieldId": "fldfPO49AmYJDzGEF"
+          },
+          "id": "fldOUlfzrqCXJcy3Z",
+          "name": "Venue"
+        },
+        {
+          "type": "multipleRecordLinks",
+          "options": {
+            "linkedTableId": "tblMIGFcTcJMy2jIN",
+            "isReversed": false,
+            "prefersSingleRecordLink": false,
+            "inverseLinkFieldId": "fldT8NTscmC9LF2bg"
+          },
+          "id": "fldbMDijWmW8e1YRC",
+          "name": "Teachers"
+        },
+        {
+          "type": "multipleRecordLinks",
+          "options": {
+            "linkedTableId": "tblNqOjJsR1M1E4Dl",
+            "isReversed": false,
+            "prefersSingleRecordLink": false,
+            "inverseLinkFieldId": "fldXVArROOQKLnplr"
+          },
+          "id": "flduPyx40JCygkanm",
+          "name": "Enrollments"
+        },
+        {
+          "type": "count",
+          "options": {
+            "isValid": true,
+            "recordLinkFieldId": "flduPyx40JCygkanm"
+          },
+          "id": "fldqBI5u4imcrP49T",
+          "name": "Current Enrollment"
+        },
+        {
+          "type": "formula",
+          "options": {
+            "isValid": true,
+            "formula": "{fld72TK3L7sgIFqyS} - IF({fldqBI5u4imcrP49T}, {fldqBI5u4imcrP49T}, 0)",
+            "referencedFieldIds": [
+              "fld72TK3L7sgIFqyS",
+              "fldqBI5u4imcrP49T"
+            ],
+            "result": {
+              "type": "number",
+              "options": {
+                "precision": 0
+              }
+            }
+          },
+          "id": "fld1lnQqtmrBD9d59",
+          "name": "Spots Remaining"
+        }
+      ],
+      "views": [
+        {
+          "id": "viw6Sj4LILowxnI1W",
+          "name": "Grid view",
+          "type": "grid"
+        }
+      ]
+    },
+    {
+      "id": "tblNqOjJsR1M1E4Dl",
+      "name": "Enrollments",
+      "primaryFieldId": "fldiGcXhJxkLK53LD",
+      "fields": [
+        {
+          "type": "formula",
+          "options": {
+            "isValid": true,
+            "formula": "ARRAYJOIN({fldJFc2KMlpVPsE0V}, \"\") & \" \u2192 \" & ARRAYJOIN({fldXVArROOQKLnplr}, \"\")",
+            "referencedFieldIds": [
+              "fldJFc2KMlpVPsE0V",
+              "fldXVArROOQKLnplr"
+            ],
+            "result": {
+              "type": "singleLineText"
+            }
+          },
+          "id": "fldiGcXhJxkLK53LD",
+          "name": "Enrollment Name"
+        },
+        {
+          "type": "autoNumber",
+          "id": "fldXLH7pP4zhgP04k",
+          "name": "Enrollment ID"
+        },
+        {
+          "type": "singleSelect",
+          "options": {
+            "choices": [
+              {
+                "id": "selqb7LKrQ9FPcL6h",
+                "name": "Paid",
+                "color": "grayLight2"
+              },
+              {
+                "id": "selgLSRo9WzyEmYPD",
+                "name": "Pending",
+                "color": "grayLight2"
+              },
+              {
+                "id": "sel7928O1zFSUTdPh",
+                "name": "Partial",
+                "color": "grayLight2"
+              },
+              {
+                "id": "selvZTI9rlbPNn6x2",
+                "name": "Overdue",
+                "color": "grayLight2"
+              },
+              {
+                "id": "sel9qzDBEe0IjdvVC",
+                "name": "Refunded",
+                "color": "grayLight2"
+              }
+            ]
+          },
+          "id": "fldORW91d5W9a8OiB",
+          "name": "Payment Status"
+        },
+        {
+          "type": "currency",
+          "options": {
+            "precision": 2,
+            "symbol": "$"
+          },
+          "id": "fldvC3IXfZckwXJXi",
+          "name": "Amount Paid"
+        },
+        {
+          "type": "number",
+          "options": {
+            "precision": 0
+          },
+          "id": "flds19jDWeEYMgU3E",
+          "name": "Sessions Included"
+        },
+        {
+          "type": "singleLineText",
+          "id": "fld8t5gvkmdwWRG9D",
+          "name": "Emergency Contact 1 Name"
+        },
+        {
+          "type": "singleLineText",
+          "id": "fldBTnw2YhxMJrOnd",
+          "name": "Emergency Contact 1 Relationship"
+        },
+        {
+          "type": "phoneNumber",
+          "id": "fld3DWURxsqN7bIvl",
+          "name": "Emergency Contact 1 Phone"
+        },
+        {
+          "type": "singleLineText",
+          "id": "fldMtZFx3AnLoTsqv",
+          "name": "Emergency Contact 2 Name"
+        },
+        {
+          "type": "singleLineText",
+          "id": "fldZKFtGbUyKbZjQZ",
+          "name": "Emergency Contact 2 Relationship"
+        },
+        {
+          "type": "phoneNumber",
+          "id": "fldWAfTb0E6WXsdDD",
+          "name": "Emergency Contact 2 Phone"
+        },
+        {
+          "type": "singleSelect",
+          "options": {
+            "choices": [
+              {
+                "id": "sel8tFDuNn3NQBPxv",
+                "name": "Yes - child & artwork",
+                "color": "grayLight2"
+              },
+              {
+                "id": "selAKBa53HXxL7ZxI",
+                "name": "Yes - artwork only",
+                "color": "grayLight2"
+              },
+              {
+                "id": "selvuPvDgDnbBzym2",
+                "name": "No photos",
+                "color": "grayLight2"
+              }
+            ]
+          },
+          "id": "fld5gnCWlnqcmomg3",
+          "name": "Photo Permission"
+        },
+        {
+          "type": "multilineText",
+          "id": "fldUX0qNY8hdjeId1",
+          "name": "Approved Pickup People"
+        },
+        {
+          "type": "singleSelect",
+          "options": {
+            "choices": [
+              {
+                "id": "selUxbwSzrJ47NBCN",
+                "name": "Facebook",
+                "color": "grayLight2"
+              },
+              {
+                "id": "selVc2emOHhDFmJN0",
+                "name": "Google",
+                "color": "grayLight2"
+              },
+              {
+                "id": "seldoladDdfpB4MFn",
+                "name": "Instagram",
+                "color": "grayLight2"
+              },
+              {
+                "id": "selzZMCo36oly1hsD",
+                "name": "Friend Referral",
+                "color": "grayLight2"
+              },
+              {
+                "id": "selB0bp2YLQYLl5yb",
+                "name": "Flyer",
+                "color": "grayLight2"
+              },
+              {
+                "id": "sel1iLmqPt25Fmu13",
+                "name": "School Newsletter",
+                "color": "grayLight2"
+              },
+              {
+                "id": "selEm9EHzNwqUDQro",
+                "name": "Kidsbook",
+                "color": "grayLight2"
+              },
+              {
+                "id": "selCm8FccRM5i7xSu",
+                "name": "Other",
+                "color": "grayLight2"
+              }
+            ]
+          },
+          "id": "fld4I0HkWtUWBxvCJ",
+          "name": "Marketing Source"
+        },
+        {
+          "type": "multilineText",
+          "id": "fldloyEhF8CwXAIzI",
+          "name": "Special Requests"
+        },
+        {
+          "type": "multilineText",
+          "id": "fldTjl5oBXF7MsE2i",
+          "name": "Additional Notes"
+        },
+        {
+          "type": "multipleRecordLinks",
+          "options": {
+            "linkedTableId": "tblYkTEqcc8fO2EsW",
+            "isReversed": false,
+            "prefersSingleRecordLink": true,
+            "inverseLinkFieldId": "fldQRBjGIRRW8S7ft"
+          },
+          "id": "fldJFc2KMlpVPsE0V",
+          "name": "Student"
+        },
+        {
+          "type": "multipleRecordLinks",
+          "options": {
+            "linkedTableId": "tblWoYZ5SbnxHSbPZ",
+            "isReversed": false,
+            "prefersSingleRecordLink": true,
+            "inverseLinkFieldId": "flduPyx40JCygkanm"
+          },
+          "id": "fldXVArROOQKLnplr",
+          "name": "Class"
+        },
+        {
+          "type": "date",
+          "options": {
+            "dateFormat": {
+              "name": "local",
+              "format": "l"
+            }
+          },
+          "id": "fldOco0UuEJBRI2ye",
+          "name": "Enrollment Date"
+        },
+        {
+          "type": "checkbox",
+          "options": {
+            "icon": "check",
+            "color": "greenBright"
+          },
+          "id": "fldxGesRMj0a6QNJt",
+          "name": "OSHC Collection"
+        },
+        {
+          "type": "multipleRecordLinks",
+          "options": {
+            "linkedTableId": "tblqMqimwUyGexmj2",
+            "isReversed": false,
+            "prefersSingleRecordLink": false,
+            "inverseLinkFieldId": "fldeUQsYwFzDzuicK"
+          },
+          "id": "fld5KnhgArroaUjy1",
+          "name": "Attendance Records"
+        },
+        {
+          "type": "rollup",
+          "options": {
+            "isValid": true,
+            "recordLinkFieldId": "fld5KnhgArroaUjy1",
+            "fieldIdInLinkedTable": "fldWUqy8eeAd0CZbW",
+            "referencedFieldIds": [],
+            "result": {
+              "type": "number",
+              "options": {
+                "precision": 0
+              }
+            }
+          },
+          "id": "fldar8jdu4o2Kexa1",
+          "name": "Sessions Attended"
+        },
+        {
+          "type": "formula",
+          "options": {
+            "isValid": true,
+            "formula": "MAX(0, {flds19jDWeEYMgU3E} - {fldar8jdu4o2Kexa1})",
+            "referencedFieldIds": [
+              "flds19jDWeEYMgU3E",
+              "fldar8jdu4o2Kexa1"
+            ],
+            "result": {
+              "type": "number",
+              "options": {
+                "precision": 0
+              }
+            }
+          },
+          "id": "fldE8v9ehlggkE83Y",
+          "name": "Sessions Remaining"
+        },
+        {
+          "type": "formula",
+          "options": {
+            "isValid": true,
+            "formula": "IF({flds19jDWeEYMgU3E} > 0, ROUND({fldar8jdu4o2Kexa1} / {flds19jDWeEYMgU3E} * 100, 1) & \"%\", \"N/A\")",
+            "referencedFieldIds": [
+              "flds19jDWeEYMgU3E",
+              "fldar8jdu4o2Kexa1"
+            ],
+            "result": {
+              "type": "singleLineText"
+            }
+          },
+          "id": "fldrS3ChH5XyDGoOo",
+          "name": "Attendance Rate"
+        }
+      ],
+      "views": [
+        {
+          "id": "viwAdk148vnEmdv9W",
+          "name": "Grid view",
+          "type": "grid"
+        }
+      ]
+    },
+    {
+      "id": "tblqMqimwUyGexmj2",
+      "name": "Attendance",
+      "primaryFieldId": "fldy6qE8t384Th2hs",
+      "fields": [
+        {
+          "type": "autoNumber",
+          "id": "fldy6qE8t384Th2hs",
+          "name": "Attendance ID"
+        },
+        {
+          "type": "singleSelect",
+          "options": {
+            "choices": [
+              {
+                "id": "selrQZNfrvIFYnw8t",
+                "name": "Present",
+                "color": "grayLight2"
+              },
+              {
+                "id": "selhoK6z5niwNBiAJ",
+                "name": "Absent",
+                "color": "grayLight2"
+              },
+              {
+                "id": "sel3Sf6AjNfJodQW2",
+                "name": "Late",
+                "color": "grayLight2"
+              },
+              {
+                "id": "selDNpuxK034Pjp44",
+                "name": "Excused",
+                "color": "grayLight2"
+              }
+            ]
+          },
+          "id": "fldWUqy8eeAd0CZbW",
+          "name": "Status"
+        },
+        {
+          "type": "multilineText",
+          "id": "fld2pj1hTJLXcqJsp",
+          "name": "Notes"
+        },
+        {
+          "type": "multipleRecordLinks",
+          "options": {
+            "linkedTableId": "tblNqOjJsR1M1E4Dl",
+            "isReversed": false,
+            "prefersSingleRecordLink": true,
+            "inverseLinkFieldId": "fld5KnhgArroaUjy1"
+          },
+          "id": "fldeUQsYwFzDzuicK",
+          "name": "Enrollment"
+        },
+        {
+          "type": "date",
+          "options": {
+            "dateFormat": {
+              "name": "local",
+              "format": "l"
+            }
+          },
+          "id": "fldUYdeQDdWayT76J",
+          "name": "Date"
+        },
+        {
+          "type": "dateTime",
+          "options": {
+            "dateFormat": {
+              "name": "local",
+              "format": "l"
+            },
+            "timeFormat": {
+              "name": "24hour",
+              "format": "HH:mm"
+            },
+            "timeZone": "client"
+          },
+          "id": "fld44ypYMKP4whLLH",
+          "name": "Sign-in Time"
+        },
+        {
+          "type": "dateTime",
+          "options": {
+            "dateFormat": {
+              "name": "local",
+              "format": "l"
+            },
+            "timeFormat": {
+              "name": "12hour",
+              "format": "h:mma"
+            },
+            "timeZone": "client"
+          },
+          "id": "fldHP2H8scUC9WzRJ",
+          "name": "Sign-out Time"
+        },
+        {
+          "type": "multipleRecordLinks",
+          "options": {
+            "linkedTableId": "tblXhMi6CoPsglJrN",
+            "isReversed": false,
+            "prefersSingleRecordLink": true,
+            "inverseLinkFieldId": "fld0bWJeP1xmjMcjf"
+          },
+          "id": "flduwfr2Yu4zQyLZ8",
+          "name": "Pickup Person"
+        },
+        {
+          "type": "multipleLookupValues",
+          "options": {
+            "isValid": true,
+            "recordLinkFieldId": "fldeUQsYwFzDzuicK",
+            "fieldIdInLinkedTable": "fldJFc2KMlpVPsE0V",
+            "result": {
+              "type": "multipleRecordLinks",
+              "options": {
+                "isReversed": false,
+                "prefersSingleRecordLink": false
+              }
+            }
+          },
+          "id": "fldc32wvtZCeiS26f",
+          "name": "Student"
+        },
+        {
+          "type": "multipleLookupValues",
+          "options": {
+            "isValid": true,
+            "recordLinkFieldId": "fldeUQsYwFzDzuicK",
+            "fieldIdInLinkedTable": "fldXVArROOQKLnplr",
+            "result": {
+              "type": "multipleRecordLinks",
+              "options": {
+                "isReversed": false,
+                "prefersSingleRecordLink": false
+              }
+            }
+          },
+          "id": "fldmg4eXWH9nhfPVs",
+          "name": "Class"
+        }
+      ],
+      "views": [
+        {
+          "id": "viwGSUgurIHqNZNW7",
+          "name": "Grid view",
+          "type": "grid"
+        }
+      ]
+    }
+  ]
+}
