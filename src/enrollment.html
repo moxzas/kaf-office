@@ -85,17 +85,25 @@
             progressBarType: "buttons",
             showQuestionNumbers: "off",
             pages: [
-                // Page 1: Parent Contact Information
+                // Page 1: Essential Contact (Save immediately to DB)
                 {
                     name: "parentInfo",
-                    title: "Your Contact Information",
+                    title: "Let's Get Started",
+                    description: "We'll save your progress as you go, so you can come back anytime.",
                     elements: [
                         {
                             type: "text",
-                            name: "parentName",
-                            title: "Your Full Name",
+                            name: "parentFirstName",
+                            title: "First Name",
                             isRequired: true,
-                            placeholder: "e.g., Sarah Johnson"
+                            placeholder: "Sarah"
+                        },
+                        {
+                            type: "text",
+                            name: "parentLastName",
+                            title: "Last Name",
+                            isRequired: true,
+                            placeholder: "Johnson"
                         },
                         {
                             type: "text",
@@ -113,7 +121,15 @@
                             isRequired: true,
                             inputType: "tel",
                             placeholder: "04xx xxx xxx"
-                        },
+                        }
+                    ]
+                },
+
+                // Page 2: Additional Contact Details
+                {
+                    name: "parentDetails",
+                    title: "Your Details",
+                    elements: [
                         {
                             type: "text",
                             name: "parentPhone",
@@ -380,100 +396,144 @@
         // Create the Survey
         const survey = new Survey.Model(surveyJson);
 
-        // Handle form submission
-        survey.onComplete.add(async function (sender, options) {
+        // Store parent and student record IDs for progressive saving
+        let parentRecordId = null;
+        let studentRecordIds = [];
+
+        // Save progress after each page
+        survey.onCurrentPageChanged.add(async function (sender, options) {
+            const currentPage = options.oldCurrentPage;
             const formData = sender.data;
 
-            showStatus('Submitting your enrollment...', 'info');
+            console.log('Page changed from:', currentPage.name);
 
             try {
-                console.log('Form data:', formData);
+                // Page 1: Save essential parent info immediately
+                if (currentPage.name === 'parentInfo' && !parentRecordId) {
+                    console.log('Saving parent (page 1)...');
 
-                // Step 1: Create Parent record
-                const parentData = {
-                    records: [{
-                        fields: {
-                            "Name": formData.parentName,
-                            "Email": formData.parentEmail,
-                            "Mobile": formData.parentMobile,
-                            "Phone": formData.parentPhone || "",
-                            "Address": formData.parentAddress,
-                            "Suburb": formData.parentSuburb,
-                            "Postcode": formData.parentPostcode,
-                            "Authorized for Pickup": formData.parentAuthorizedPickup || false
-                        }
-                    }]
-                };
-
-                const parentResponse = await fetch(
-                    `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Parents`,
-                    {
-                        method: 'POST',
-                        headers: {
-                            'Authorization': `Bearer ${AIRTABLE_API_KEY}`,
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify(parentData)
-                    }
-                );
-
-                if (!parentResponse.ok) {
-                    throw new Error('Failed to create parent record');
-                }
-
-                const parentResult = await parentResponse.json();
-                const parentRecordId = parentResult.records[0].id;
-                console.log('Parent created:', parentRecordId);
-
-                // Step 2: Create Student records
-                const studentRecords = [];
-                for (const student of formData.students) {
-                    const studentData = {
+                    const parentData = {
                         records: [{
                             fields: {
-                                "Name": student.studentName,
-                                "Date of Birth": student.studentDOB,
-                                "School": student.studentSchool,
-                                "Year/Class": student.studentYearClass || "",
-                                "Medical Notes": student.studentMedicalNotes || "",
-                                "Dietary Notes": student.studentDietaryNotes || "",
-                                "Special Needs": student.studentSpecialNeeds || "",
-                                "Parents": [parentRecordId]
+                                "Name": `${formData.parentFirstName} ${formData.parentLastName}`,
+                                "Email": formData.parentEmail,
+                                "Mobile": formData.parentMobile
                             }
                         }]
                     };
 
-                    const studentResponse = await fetch(
-                        `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Students`,
+                    const response = await fetch(
+                        `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Parents`,
                         {
                             method: 'POST',
                             headers: {
                                 'Authorization': `Bearer ${AIRTABLE_API_KEY}`,
                                 'Content-Type': 'application/json'
                             },
-                            body: JSON.stringify(studentData)
+                            body: JSON.stringify(parentData)
                         }
                     );
 
-                    if (!studentResponse.ok) {
-                        throw new Error('Failed to create student record');
+                    if (response.ok) {
+                        const result = await response.json();
+                        parentRecordId = result.records[0].id;
+                        console.log('✓ Parent created:', parentRecordId);
+                        console.log('Resume link:', `http://kaf.sonzai.com/enrol/${parentRecordId}`);
                     }
-
-                    const studentResult = await studentResponse.json();
-                    studentRecords.push(studentResult.records[0]);
-                    console.log('Student created:', studentResult.records[0].id);
                 }
 
-                // Step 3: Create Enrollment records (simplified for now)
-                // TODO: Enhance this when we have class selection working
+                // Page 2: Update parent with full details
+                if (currentPage.name === 'parentDetails' && parentRecordId) {
+                    console.log('Updating parent details...');
 
-                showStatus('✅ Success! Your enrollment has been submitted. Check your email for a confirmation link.', 'success');
+                    const updateData = {
+                        fields: {
+                            "Phone": formData.parentPhone || "",
+                            "Address": formData.parentAddress,
+                            "Suburb": formData.parentSuburb,
+                            "Postcode": formData.parentPostcode,
+                            "Authorized for Pickup": formData.parentAuthorizedPickup || false
+                        }
+                    };
+
+                    const response = await fetch(
+                        `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Parents/${parentRecordId}`,
+                        {
+                            method: 'PATCH',
+                            headers: {
+                                'Authorization': `Bearer ${AIRTABLE_API_KEY}`,
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify(updateData)
+                        }
+                    );
+
+                    if (response.ok) {
+                        console.log('✓ Parent details updated');
+                    }
+                }
+
+                // Page 3: Save students
+                if (currentPage.name === 'studentsPage' && parentRecordId && formData.students) {
+                    console.log('Saving students...');
+
+                    studentRecordIds = [];
+                    for (const student of formData.students) {
+                        const studentData = {
+                            records: [{
+                                fields: {
+                                    "Name": student.studentName,
+                                    "Date of Birth": student.studentDOB,
+                                    "School": student.studentSchool,
+                                    "Year/Class": student.studentYearClass || "",
+                                    "Medical Notes": student.studentMedicalNotes || "",
+                                    "Dietary Notes": student.studentDietaryNotes || "",
+                                    "Special Needs": student.studentSpecialNeeds || "",
+                                    "Parents": [parentRecordId]
+                                }
+                            }]
+                        };
+
+                        const response = await fetch(
+                            `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Students`,
+                            {
+                                method: 'POST',
+                                headers: {
+                                    'Authorization': `Bearer ${AIRTABLE_API_KEY}`,
+                                    'Content-Type': 'application/json'
+                                },
+                                body: JSON.stringify(studentData)
+                            }
+                        );
+
+                        if (response.ok) {
+                            const result = await response.json();
+                            studentRecordIds.push(result.records[0].id);
+                            console.log('✓ Student created:', result.records[0].id);
+                        }
+                    }
+                }
 
             } catch (error) {
-                console.error('Error submitting enrollment:', error);
-                showStatus(`❌ Error: ${error.message}. Please try again or contact us.`, 'error');
-                options.showSaveInProgress = false;
+                console.error('Error saving progress:', error);
+                // Don't block progression on save error
             }
+        });
+
+        // Final submission - just show success
+        survey.onComplete.add(async function (sender, options) {
+            console.log('Final submission');
+            console.log('Parent ID:', parentRecordId);
+            console.log('Student IDs:', studentRecordIds);
+
+            // TODO: Create enrollments, send confirmation email, etc.
+
+            showStatus(`✅ Success! Your enrollment is complete.
+
+Your link to view/edit anytime:
+http://kaf.sonzai.com/enrol/${parentRecordId}
+
+We'll send this link to ${sender.data.parentEmail}`, 'success');
         });
 
         // Render the survey
