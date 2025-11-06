@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KAF Art & Craft School - POC Enrollment Form</title>
+
+    <!-- SurveyJS Modern Theme CSS -->
+    <link href="https://unpkg.com/survey-core@1.9.131/defaultV2.min.css" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .status {
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+            display: none;
+        }
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .status.show {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <h1>KAF Art & Craft School</h1>
+    <h2 style="text-align: center; color: #666; font-weight: normal;">POC - Parent Registration Form</h2>
+
+    <div class="container">
+        <div id="statusMessage" class="status"></div>
+        <div id="surveyContainer"></div>
+    </div>
+
+    <!-- SurveyJS Library -->
+    <script src="https://unpkg.com/survey-core@1.9.131/survey.core.min.js"></script>
+    <script src="https://unpkg.com/survey-knockout-ui@1.9.131/survey-knockout-ui.min.js"></script>
+
+    <script>
+        // Airtable Configuration
+        const AIRTABLE_API_KEY = 'patYJhlgK2q6sAnyZ.8c3945853082593f6ec6cc6d12a0cd863a13a912a067dfd99c75a0ff95ae4e06';
+        const AIRTABLE_BASE_ID = 'appNuMdxaiSYdgxJS';
+        const AIRTABLE_TABLE_NAME = 'Parents';
+
+        // Survey Definition
+        const surveyJson = {
+            title: "Parent Registration",
+            description: "Please provide your contact information to register with our art school.",
+            showProgressBar: "top",
+            progressBarType: "buttons",
+            pages: [
+                {
+                    name: "contactInfo",
+                    title: "Contact Information",
+                    elements: [
+                        {
+                            type: "text",
+                            name: "Name",
+                            title: "Full Name",
+                            isRequired: true,
+                            placeholder: "e.g., Sarah Johnson"
+                        },
+                        {
+                            type: "text",
+                            name: "Email",
+                            title: "Email Address",
+                            isRequired: true,
+                            inputType: "email",
+                            placeholder: "sarah@example.com",
+                            validators: [
+                                {
+                                    type: "email"
+                                }
+                            ]
+                        },
+                        {
+                            type: "text",
+                            name: "Phone",
+                            title: "Phone Number",
+                            inputType: "tel",
+                            placeholder: "07 3xxx xxxx"
+                        },
+                        {
+                            type: "text",
+                            name: "Mobile",
+                            title: "Mobile Number",
+                            isRequired: true,
+                            inputType: "tel",
+                            placeholder: "04xx xxx xxx"
+                        }
+                    ]
+                },
+                {
+                    name: "authorization",
+                    title: "Authorization",
+                    elements: [
+                        {
+                            type: "boolean",
+                            name: "Authorized for Pickup",
+                            title: "I am authorized to pick up children from classes",
+                            isRequired: true,
+                            defaultValue: true
+                        },
+                        {
+                            type: "tagbox",
+                            name: "Interest Categories",
+                            title: "What programs are you interested in?",
+                            isRequired: false,
+                            choices: [
+                                "Pottery",
+                                "Painting",
+                                "Drawing",
+                                "Sculpture",
+                                "Mixed Media",
+                                "Holiday Programs",
+                                "After School Programs"
+                            ]
+                        },
+                        {
+                            type: "comment",
+                            name: "Interest Notes",
+                            title: "Tell us more about your interests or any questions you have",
+                            placeholder: "e.g., My daughter loves pottery and we're looking for after-school classes..."
+                        }
+                    ]
+                }
+            ],
+            completedHtml: "<h3>Thank you for registering!</h3><p>We'll be in touch soon.</p>",
+            showQuestionNumbers: "off"
+        };
+
+        // Create the Survey
+        const survey = new Survey.Model(surveyJson);
+
+        // Handle form submission
+        survey.onComplete.add(async function (sender, options) {
+            const formData = sender.data;
+
+            showStatus('Submitting...', 'info');
+
+            try {
+                // Format data for Airtable
+                const airtableData = {
+                    records: [
+                        {
+                            fields: {
+                                "Name": formData["Name"],
+                                "Email": formData["Email"],
+                                "Phone": formData["Phone"] || "",
+                                "Mobile": formData["Mobile"],
+                                "Authorized for Pickup": formData["Authorized for Pickup"] || false,
+                                "Interest Categories": formData["Interest Categories"] || [],
+                                "Interest Notes": formData["Interest Notes"] || ""
+                            }
+                        }
+                    ]
+                };
+
+                console.log('Sending to Airtable:', airtableData);
+
+                // Submit to Airtable
+                const response = await fetch(
+                    `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_TABLE_NAME}`,
+                    {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${AIRTABLE_API_KEY}`,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(airtableData)
+                    }
+                );
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error?.message || 'Failed to submit');
+                }
+
+                const result = await response.json();
+                console.log('Airtable response:', result);
+
+                showStatus('✓ Successfully registered! Your information has been saved.', 'success');
+
+            } catch (error) {
+                console.error('Error submitting to Airtable:', error);
+                showStatus(`✗ Error: ${error.message}`, 'error');
+
+                // Allow user to retry
+                options.showSaveInProgress = false;
+            }
+        });
+
+        // Render the survey
+        survey.render(document.getElementById("surveyContainer"));
+
+        // Helper function to show status messages
+        function showStatus(message, type) {
+            const statusEl = document.getElementById('statusMessage');
+            statusEl.textContent = message;
+            statusEl.className = 'status show ' + type;
+        }
+    </script>
+</body>
+</html>

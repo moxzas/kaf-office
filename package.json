@@ -1,0 +1,33 @@
+{
+  "name": "kaf-office",
+  "version": "1.0.0",
+  "description": "Web-based enrollment and management system for a small art & craft school in Brisbane, Australia.",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "start": "http-server src -p 8080 -o",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/moxzas/kaf-office.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/moxzas/kaf-office/issues"
+  },
+  "homepage": "https://github.com/moxzas/kaf-office#readme",
+  "dependencies": {
+    "knockout": "^3.5.1",
+    "survey-core": "^1.12.56",
+    "survey-knockout-ui": "^1.12.56"
+  },
+  "devDependencies": {
+    "http-server": "^14.1.1"
+  }
+}
