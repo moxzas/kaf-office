@@ -243,24 +243,18 @@
                                     inputType: "date"
                                 },
                                 {
-                                    type: "dropdown",
+                                    type: "text",
                                     name: "studentSchool",
                                     title: "School/Kindergarten",
                                     isRequired: true,
-                                    choices: [
-                                        "Chapel Hill Art Studio",
-                                        "Ironside State School",
-                                        "St Lucia Kindergarten",
-                                        "Yeronga State School",
-                                        "Good News Lutheran",
-                                        "Other"
-                                    ]
+                                    placeholder: "e.g., Ironside State School",
+                                    description: "Common schools: Ironside SS, St Lucia Kindergarten, Yeronga SS, Chapel Hill Art Studio, Good News Lutheran"
                                 },
                                 {
                                     type: "text",
                                     name: "studentYearClass",
                                     title: "Year/Class",
-                                    placeholder: "e.g., Year 3, Prep, Kindy"
+                                    placeholder: "e.g., Year 3, Prep, Kindergarten"
                                 },
                                 {
                                     type: "comment",
@@ -303,6 +297,7 @@
                             type: "paneldynamic",
                             name: "authorizedPickup",
                             title: "Additional Authorized Pickup People",
+                            description: "Add anyone else who can pick up your children (besides yourself). You can mark them as emergency contacts too.",
                             templateTitle: "Person {panelIndex}",
                             templateElements: [
                                 {
@@ -314,60 +309,27 @@
                                 {
                                     type: "text",
                                     name: "pickupRelationship",
-                                    title: "Relationship to Student",
-                                    placeholder: "e.g., Father, Grandmother, Aunt"
+                                    title: "Relationship to Child",
+                                    placeholder: "e.g., Father, Grandmother, Family Friend"
                                 },
                                 {
                                     type: "text",
                                     name: "pickupPhone",
                                     title: "Phone Number",
+                                    isRequired: true,
                                     inputType: "tel"
+                                },
+                                {
+                                    type: "boolean",
+                                    name: "isEmergencyContact",
+                                    title: "Also use as emergency contact",
+                                    defaultValue: false
                                 }
                             ],
                             panelCount: 0,
                             minPanelCount: 0,
                             panelAddText: "+ Add Pickup Person",
                             panelRemoveText: "Remove"
-                        },
-                        {
-                            type: "html",
-                            name: "emergencyInfo",
-                            html: "<h3>Emergency Contacts</h3>"
-                        },
-                        {
-                            type: "text",
-                            name: "emergency1Name",
-                            title: "Emergency Contact 1 - Name",
-                            isRequired: true
-                        },
-                        {
-                            type: "text",
-                            name: "emergency1Relationship",
-                            title: "Emergency Contact 1 - Relationship",
-                            placeholder: "e.g., Father, Grandmother"
-                        },
-                        {
-                            type: "text",
-                            name: "emergency1Phone",
-                            title: "Emergency Contact 1 - Phone",
-                            isRequired: true,
-                            inputType: "tel"
-                        },
-                        {
-                            type: "text",
-                            name: "emergency2Name",
-                            title: "Emergency Contact 2 - Name"
-                        },
-                        {
-                            type: "text",
-                            name: "emergency2Relationship",
-                            title: "Emergency Contact 2 - Relationship"
-                        },
-                        {
-                            type: "text",
-                            name: "emergency2Phone",
-                            title: "Emergency Contact 2 - Phone",
-                            inputType: "tel"
                         },
                         {
                             type: "radiogroup",
