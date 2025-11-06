@@ -92,35 +92,69 @@
                     description: "We'll save your progress as you go, so you can come back anytime.",
                     elements: [
                         {
-                            type: "text",
-                            name: "parentFirstName",
-                            title: "First Name",
-                            isRequired: true,
-                            placeholder: "Sarah"
+                            type: "panel",
+                            name: "contactPanel",
+                            title: "Your Contact Details",
+                            elements: [
+                                {
+                                    type: "text",
+                                    name: "parentFirstName",
+                                    title: "First Name",
+                                    isRequired: true,
+                                    placeholder: "Sarah"
+                                },
+                                {
+                                    type: "text",
+                                    name: "parentLastName",
+                                    title: "Last Name",
+                                    isRequired: true,
+                                    placeholder: "Johnson"
+                                },
+                                {
+                                    type: "text",
+                                    name: "parentEmail",
+                                    title: "Email Address",
+                                    isRequired: true,
+                                    inputType: "email",
+                                    placeholder: "sarah@example.com",
+                                    validators: [{ type: "email" }]
+                                },
+                                {
+                                    type: "text",
+                                    name: "parentMobile",
+                                    title: "Mobile Number",
+                                    isRequired: true,
+                                    inputType: "tel",
+                                    placeholder: "04xx xxx xxx"
+                                }
+                            ]
                         },
                         {
-                            type: "text",
-                            name: "parentLastName",
-                            title: "Last Name",
-                            isRequired: true,
-                            placeholder: "Johnson"
-                        },
-                        {
-                            type: "text",
-                            name: "parentEmail",
-                            title: "Email Address",
-                            isRequired: true,
-                            inputType: "email",
-                            placeholder: "sarah@example.com",
-                            validators: [{ type: "email" }]
-                        },
-                        {
-                            type: "text",
-                            name: "parentMobile",
-                            title: "Mobile Number",
-                            isRequired: true,
-                            inputType: "tel",
-                            placeholder: "04xx xxx xxx"
+                            type: "panel",
+                            name: "interestPanel",
+                            title: "What are you interested in? (Optional)",
+                            elements: [
+                                {
+                                    type: "tagbox",
+                                    name: "interestCategories",
+                                    title: "Select all that interest you",
+                                    choices: [
+                                        "Pottery",
+                                        "Painting",
+                                        "Drawing",
+                                        "Sculpture",
+                                        "Mixed Media",
+                                        "Holiday Programs",
+                                        "After School Programs"
+                                    ]
+                                },
+                                {
+                                    type: "comment",
+                                    name: "interestNotes",
+                                    title: "Tell us more",
+                                    placeholder: "e.g., My daughter loves pottery, looking for Monday afternoon classes..."
+                                }
+                            ]
                         }
                     ]
                 },
@@ -131,37 +165,44 @@
                     title: "Your Details",
                     elements: [
                         {
-                            type: "text",
-                            name: "parentPhone",
-                            title: "Phone Number (Optional)",
-                            inputType: "tel",
-                            placeholder: "07 3xxx xxxx"
-                        },
-                        {
-                            type: "text",
-                            name: "parentAddress",
-                            title: "Street Address",
-                            isRequired: true,
-                            placeholder: "123 Example Street"
-                        },
-                        {
-                            type: "text",
-                            name: "parentSuburb",
-                            title: "Suburb",
-                            isRequired: true,
-                            placeholder: "Chapel Hill"
-                        },
-                        {
-                            type: "text",
-                            name: "parentPostcode",
-                            title: "Postcode",
-                            isRequired: true,
-                            placeholder: "4069",
-                            validators: [
+                            type: "panel",
+                            name: "addressPanel",
+                            title: "Address",
+                            elements: [
                                 {
-                                    type: "regex",
-                                    regex: "^[0-9]{4}$",
-                                    text: "Please enter a 4-digit postcode"
+                                    type: "text",
+                                    name: "parentAddress",
+                                    title: "Street Address",
+                                    isRequired: true,
+                                    placeholder: "123 Example Street"
+                                },
+                                {
+                                    type: "text",
+                                    name: "parentSuburb",
+                                    title: "Suburb",
+                                    isRequired: true,
+                                    placeholder: "Chapel Hill"
+                                },
+                                {
+                                    type: "text",
+                                    name: "parentPostcode",
+                                    title: "Postcode",
+                                    isRequired: true,
+                                    placeholder: "4069",
+                                    validators: [
+                                        {
+                                            type: "regex",
+                                            regex: "^[0-9]{4}$",
+                                            text: "Please enter a 4-digit postcode"
+                                        }
+                                    ]
+                                },
+                                {
+                                    type: "text",
+                                    name: "parentPhone",
+                                    title: "Phone Number (Optional)",
+                                    inputType: "tel",
+                                    placeholder: "07 3xxx xxxx"
                                 }
                             ]
                         },
@@ -248,28 +289,7 @@
                     ]
                 },
 
-                // Page 3: Class Selection (Will be dynamic - for now just text input)
-                {
-                    name: "classSelection",
-                    title: "Class Selection",
-                    elements: [
-                        {
-                            type: "html",
-                            name: "classSelectionInfo",
-                            html: "<p><strong>Note:</strong> Class selection will be enhanced in the next version. For now, please indicate your class preferences below.</p>"
-                        },
-                        {
-                            type: "comment",
-                            name: "classPreferences",
-                            title: "Which classes are you interested in?",
-                            description: "Please list the classes, days, and times you're interested in for each student.",
-                            isRequired: true,
-                            placeholder: "e.g., Emma - Pottery Monday 3:30pm, Noah - Painting Wednesday 4:00pm"
-                        }
-                    ]
-                },
-
-                // Page 4: Enrollment Details
+                // Page 4: Enrollment Details (removed class selection page)
                 {
                     name: "enrollmentDetails",
                     title: "Additional Details",
@@ -376,7 +396,7 @@
                     ]
                 },
 
-                // Page 5: Review & Submit
+                // Page 4: Review & Submit
                 {
                     name: "reviewSubmit",
                     title: "Review & Submit",
@@ -408,7 +428,7 @@
             console.log('Page changed from:', currentPage.name);
 
             try {
-                // Page 1: Save essential parent info immediately
+                // Page 1: Save essential parent info + interests immediately
                 if (currentPage.name === 'parentInfo' && !parentRecordId) {
                     console.log('Saving parent (page 1)...');
 
@@ -417,7 +437,9 @@
                             fields: {
                                 "Name": `${formData.parentFirstName} ${formData.parentLastName}`,
                                 "Email": formData.parentEmail,
-                                "Mobile": formData.parentMobile
+                                "Mobile": formData.parentMobile,
+                                "Interest Categories": formData.interestCategories || [],
+                                "Interest Notes": formData.interestNotes || ""
                             }
                         }]
                     };
