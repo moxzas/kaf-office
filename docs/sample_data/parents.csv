@@ -1,0 +1,8 @@
+Name,Email,Phone,Mobile,Authorized for Pickup,Interest Categories,Interest Notes,Communication Log
+Sarah Chen,sarah.chen@email.com,02 9876 5432,0412 345 678,TRUE,"Pottery,Painting","Called 2025-01-10 asking about pottery classes for Emma, interested in Term 1","2025-01-10: Initial inquiry via phone. Sent class schedule."
+Michael Thompson,michael.t@email.com,,0423 456 789,TRUE,"Holiday Programs","Interested in school holiday programs, has two boys","2025-01-08: Email inquiry. 2025-01-12: Enrolled both sons in Holiday Painting."
+Lisa Patel,lisa.patel@email.com,02 9555 1234,0434 567 890,TRUE,"Mixed Media,After School Programs",,"2025-01-05: Walk-in enrollment for Aanya in Mixed Media Term 1."
+David Wilson,david.wilson@email.com,,0445 678 901,TRUE,"Pottery",,"2025-01-15: Phone call re pottery classes, booked Oliver for Term 1."
+Rebecca Foster,rebecca.foster@email.com,02 9444 3210,0456 789 012,TRUE,"Painting,Drawing","Two daughters, looking for classes close to home","2025-01-07: Interested in home studio classes. Enrolled Sophie in Painting."
+James Foster,james.foster@email.com,,0467 890 123,TRUE,,,
+Emma Martinez,emma.martinez@email.com,02 9333 2109,0478 901 234,FALSE,,"Emergency contact only for Lucas Wilson",,
