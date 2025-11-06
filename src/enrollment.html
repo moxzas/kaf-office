@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KAF Art & Craft School - Enrollment</title>
+
+    <!-- SurveyJS Modern Theme CSS -->
+    <link href="https://unpkg.com/survey-core@1.9.131/defaultV2.min.css" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 5px;
+        }
+        .subtitle {
+            color: #666;
+            font-size: 18px;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .status {
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+            display: none;
+        }
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .status.show {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🎨 KAF Art & Craft School</h1>
+        <p class="subtitle">Student Enrollment Form</p>
+    </div>
+
+    <div class="container">
+        <div id="statusMessage" class="status"></div>
+        <div id="surveyContainer"></div>
+    </div>
+
+    <!-- jQuery (required for SurveyJS jQuery UI) -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <!-- SurveyJS Library with jQuery UI -->
+    <script src="https://unpkg.com/survey-jquery@1.9.131/survey.jquery.min.js"></script>
+
+    <script>
+        // Airtable Configuration (will be moved to server-side later)
+        const AIRTABLE_API_KEY = 'patYJhlgK2q6sAnyZ.8c3945853082593f6ec6cc6d12a0cd863a13a912a067dfd99c75a0ff95ae4e06';
+        const AIRTABLE_BASE_ID = 'appNuMdxaiSYdgxJS';
+
+        // Survey Definition
+        const surveyJson = {
+            title: "Student Enrollment",
+            description: "Please complete all sections to enroll your child(ren) in our classes.",
+            showProgressBar: "top",
+            progressBarType: "buttons",
+            showQuestionNumbers: "off",
+            pages: [
+                // Page 1: Parent Contact Information
+                {
+                    name: "parentInfo",
+                    title: "Your Contact Information",
+                    elements: [
+                        {
+                            type: "text",
+                            name: "parentName",
+                            title: "Your Full Name",
+                            isRequired: true,
+                            placeholder: "e.g., Sarah Johnson"
+                        },
+                        {
+                            type: "text",
+                            name: "parentEmail",
+                            title: "Email Address",
+                            isRequired: true,
+                            inputType: "email",
+                            placeholder: "sarah@example.com",
+                            validators: [{ type: "email" }]
+                        },
+                        {
+                            type: "text",
+                            name: "parentMobile",
+                            title: "Mobile Number",
+                            isRequired: true,
+                            inputType: "tel",
+                            placeholder: "04xx xxx xxx"
+                        },
+                        {
+                            type: "text",
+                            name: "parentPhone",
+                            title: "Phone Number (Optional)",
+                            inputType: "tel",
+                            placeholder: "07 3xxx xxxx"
+                        },
+                        {
+                            type: "text",
+                            name: "parentAddress",
+                            title: "Street Address",
+                            isRequired: true,
+                            placeholder: "123 Example Street"
+                        },
+                        {
+                            type: "text",
+                            name: "parentSuburb",
+                            title: "Suburb",
+                            isRequired: true,
+                            placeholder: "Chapel Hill"
+                        },
+                        {
+                            type: "text",
+                            name: "parentPostcode",
+                            title: "Postcode",
+                            isRequired: true,
+                            placeholder: "4069",
+                            validators: [
+                                {
+                                    type: "regex",
+                                    regex: "^[0-9]{4}$",
+                                    text: "Please enter a 4-digit postcode"
+                                }
+                            ]
+                        },
+                        {
+                            type: "boolean",
+                            name: "parentAuthorizedPickup",
+                            title: "I am authorized to pick up my children from classes",
+                            isRequired: true,
+                            defaultValue: true
+                        }
+                    ]
+                },
+
+                // Page 2: Students (Dynamic Panel - Repeatable)
+                {
+                    name: "studentsPage",
+                    title: "Your Children",
+                    elements: [
+                        {
+                            type: "paneldynamic",
+                            name: "students",
+                            title: "Add your children who will be enrolling",
+                            description: "You can add multiple children using the button below.",
+                            templateTitle: "Student {panelIndex}",
+                            templateElements: [
+                                {
+                                    type: "text",
+                                    name: "studentName",
+                                    title: "Student Name",
+                                    isRequired: true,
+                                    placeholder: "e.g., Emma Johnson"
+                                },
+                                {
+                                    type: "text",
+                                    name: "studentDOB",
+                                    title: "Date of Birth",
+                                    isRequired: true,
+                                    inputType: "date"
+                                },
+                                {
+                                    type: "dropdown",
+                                    name: "studentSchool",
+                                    title: "School/Kindergarten",
+                                    isRequired: true,
+                                    choices: [
+                                        "Chapel Hill Art Studio",
+                                        "Ironside State School",
+                                        "St Lucia Kindergarten",
+                                        "Yeronga State School",
+                                        "Good News Lutheran",
+                                        "Other"
+                                    ]
+                                },
+                                {
+                                    type: "text",
+                                    name: "studentYearClass",
+                                    title: "Year/Class",
+                                    placeholder: "e.g., Year 3, Prep, Kindy"
+                                },
+                                {
+                                    type: "comment",
+                                    name: "studentMedicalNotes",
+                                    title: "Medical Notes (allergies, conditions, medications)",
+                                    placeholder: "Any medical information we should know..."
+                                },
+                                {
+                                    type: "comment",
+                                    name: "studentDietaryNotes",
+                                    title: "Dietary Notes (food allergies, restrictions)",
+                                    placeholder: "Any dietary requirements..."
+                                },
+                                {
+                                    type: "comment",
+                                    name: "studentSpecialNeeds",
+                                    title: "Special Needs (learning support requirements)",
+                                    placeholder: "Any special needs or support requirements..."
+                                }
+                            ],
+                            panelCount: 1,
+                            minPanelCount: 1,
+                            panelAddText: "+ Add Another Child",
+                            panelRemoveText: "Remove"
+                        }
+                    ]
+                },
+
+                // Page 3: Class Selection (Will be dynamic - for now just text input)
+                {
+                    name: "classSelection",
+                    title: "Class Selection",
+                    elements: [
+                        {
+                            type: "html",
+                            name: "classSelectionInfo",
+                            html: "<p><strong>Note:</strong> Class selection will be enhanced in the next version. For now, please indicate your class preferences below.</p>"
+                        },
+                        {
+                            type: "comment",
+                            name: "classPreferences",
+                            title: "Which classes are you interested in?",
+                            description: "Please list the classes, days, and times you're interested in for each student.",
+                            isRequired: true,
+                            placeholder: "e.g., Emma - Pottery Monday 3:30pm, Noah - Painting Wednesday 4:00pm"
+                        }
+                    ]
+                },
+
+                // Page 4: Enrollment Details
+                {
+                    name: "enrollmentDetails",
+                    title: "Additional Details",
+                    elements: [
+                        {
+                            type: "html",
+                            name: "pickupInfo",
+                            html: "<h3>Authorized Pickup People</h3><p>You (the account holder) are automatically authorized. Add any additional people below:</p>"
+                        },
+                        {
+                            type: "paneldynamic",
+                            name: "authorizedPickup",
+                            title: "Additional Authorized Pickup People",
+                            templateTitle: "Person {panelIndex}",
+                            templateElements: [
+                                {
+                                    type: "text",
+                                    name: "pickupName",
+                                    title: "Name",
+                                    isRequired: true
+                                },
+                                {
+                                    type: "text",
+                                    name: "pickupRelationship",
+                                    title: "Relationship to Student",
+                                    placeholder: "e.g., Father, Grandmother, Aunt"
+                                },
+                                {
+                                    type: "text",
+                                    name: "pickupPhone",
+                                    title: "Phone Number",
+                                    inputType: "tel"
+                                }
+                            ],
+                            panelCount: 0,
+                            minPanelCount: 0,
+                            panelAddText: "+ Add Pickup Person",
+                            panelRemoveText: "Remove"
+                        },
+                        {
+                            type: "html",
+                            name: "emergencyInfo",
+                            html: "<h3>Emergency Contacts</h3>"
+                        },
+                        {
+                            type: "text",
+                            name: "emergency1Name",
+                            title: "Emergency Contact 1 - Name",
+                            isRequired: true
+                        },
+                        {
+                            type: "text",
+                            name: "emergency1Relationship",
+                            title: "Emergency Contact 1 - Relationship",
+                            placeholder: "e.g., Father, Grandmother"
+                        },
+                        {
+                            type: "text",
+                            name: "emergency1Phone",
+                            title: "Emergency Contact 1 - Phone",
+                            isRequired: true,
+                            inputType: "tel"
+                        },
+                        {
+                            type: "text",
+                            name: "emergency2Name",
+                            title: "Emergency Contact 2 - Name"
+                        },
+                        {
+                            type: "text",
+                            name: "emergency2Relationship",
+                            title: "Emergency Contact 2 - Relationship"
+                        },
+                        {
+                            type: "text",
+                            name: "emergency2Phone",
+                            title: "Emergency Contact 2 - Phone",
+                            inputType: "tel"
+                        },
+                        {
+                            type: "radiogroup",
+                            name: "photoPermission",
+                            title: "Photo Permission",
+                            description: "May we photograph your child for promotional materials?",
+                            isRequired: true,
+                            choices: [
+                                "Yes - child & artwork",
+                                "Yes - artwork only",
+                                "No photos"
+                            ]
+                        },
+                        {
+                            type: "boolean",
+                            name: "oshcCollection",
+                            title: "Pick up from OSHC (Outside School Hours Care) - Ironside State School only",
+                            defaultValue: false
+                        },
+                        {
+                            type: "comment",
+                            name: "specialRequests",
+                            title: "Special Requests or Additional Information",
+                            placeholder: "Any other information we should know..."
+                        }
+                    ]
+                },
+
+                // Page 5: Review & Submit
+                {
+                    name: "reviewSubmit",
+                    title: "Review & Submit",
+                    elements: [
+                        {
+                            type: "html",
+                            name: "reviewHtml",
+                            html: "<p>Please review your information and click <strong>Submit</strong> to complete your enrollment.</p><p>We'll send you a confirmation email with a link to edit your enrollment anytime.</p>"
+                        }
+                    ]
+                }
+            ],
+            completedHtml: "<div style='text-align: center;'><h2>🎉 Thank you for enrolling!</h2><p>We've received your enrollment and will send you a confirmation email shortly.</p><p>You'll receive a personalized link to view and update your enrollment details anytime.</p></div>",
+            completeText: "Submit Enrollment"
+        };
+
+        // Create the Survey
+        const survey = new Survey.Model(surveyJson);
+
+        // Handle form submission
+        survey.onComplete.add(async function (sender, options) {
+            const formData = sender.data;
+
+            showStatus('Submitting your enrollment...', 'info');
+
+            try {
+                console.log('Form data:', formData);
+
+                // Step 1: Create Parent record
+                const parentData = {
+                    records: [{
+                        fields: {
+                            "Name": formData.parentName,
+                            "Email": formData.parentEmail,
+                            "Mobile": formData.parentMobile,
+                            "Phone": formData.parentPhone || "",
+                            "Address": formData.parentAddress,
+                            "Suburb": formData.parentSuburb,
+                            "Postcode": formData.parentPostcode,
+                            "Authorized for Pickup": formData.parentAuthorizedPickup || false
+                        }
+                    }]
+                };
+
+                const parentResponse = await fetch(
+                    `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Parents`,
+                    {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${AIRTABLE_API_KEY}`,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(parentData)
+                    }
+                );
+
+                if (!parentResponse.ok) {
+                    throw new Error('Failed to create parent record');
+                }
+
+                const parentResult = await parentResponse.json();
+                const parentRecordId = parentResult.records[0].id;
+                console.log('Parent created:', parentRecordId);
+
+                // Step 2: Create Student records
+                const studentRecords = [];
+                for (const student of formData.students) {
+                    const studentData = {
+                        records: [{
+                            fields: {
+                                "Name": student.studentName,
+                                "Date of Birth": student.studentDOB,
+                                "School": student.studentSchool,
+                                "Year/Class": student.studentYearClass || "",
+                                "Medical Notes": student.studentMedicalNotes || "",
+                                "Dietary Notes": student.studentDietaryNotes || "",
+                                "Special Needs": student.studentSpecialNeeds || "",
+                                "Parents": [parentRecordId]
+                            }
+                        }]
+                    };
+
+                    const studentResponse = await fetch(
+                        `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Students`,
+                        {
+                            method: 'POST',
+                            headers: {
+                                'Authorization': `Bearer ${AIRTABLE_API_KEY}`,
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify(studentData)
+                        }
+                    );
+
+                    if (!studentResponse.ok) {
+                        throw new Error('Failed to create student record');
+                    }
+
+                    const studentResult = await studentResponse.json();
+                    studentRecords.push(studentResult.records[0]);
+                    console.log('Student created:', studentResult.records[0].id);
+                }
+
+                // Step 3: Create Enrollment records (simplified for now)
+                // TODO: Enhance this when we have class selection working
+
+                showStatus('✅ Success! Your enrollment has been submitted. Check your email for a confirmation link.', 'success');
+
+            } catch (error) {
+                console.error('Error submitting enrollment:', error);
+                showStatus(`❌ Error: ${error.message}. Please try again or contact us.`, 'error');
+                options.showSaveInProgress = false;
+            }
+        });
+
+        // Render the survey
+        window.survey = survey;
+        $("#surveyContainer").Survey({ model: survey });
+
+        // Helper function to show status messages
+        function showStatus(message, type) {
+            const statusEl = document.getElementById('statusMessage');
+            statusEl.textContent = message;
+            statusEl.className = 'status show ' + type;
+        }
+    </script>
+</body>
+</html>
