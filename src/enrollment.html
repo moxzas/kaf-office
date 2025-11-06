@@ -487,6 +487,20 @@
                 survey.data = formData;
                 console.log('✓ Form pre-filled with existing data');
 
+                // Store initial state for delta calculation
+                initialState = {
+                    parent: {
+                        Name: formData.parentFirstName + ' ' + formData.parentLastName,
+                        Email: formData.parentEmail,
+                        Mobile: formData.parentMobile,
+                        Phone: formData.parentPhone,
+                        Address: formData.parentAddress,
+                        Suburb: formData.parentSuburb,
+                        Postcode: formData.parentPostcode
+                    },
+                    students: studentsData
+                };
+
             } catch (error) {
                 console.error('Error loading enrollment:', error);
                 showStatus('❌ Error loading enrollment data. Please try again.', 'error');
@@ -698,13 +712,76 @@
             }
         });
 
-        // Final submission - just show success
+        // Store initial state for delta calculation
+        let initialState = null;
+
+        // Final submission - log audit and send emails
         survey.onComplete.add(async function (sender, options) {
             console.log('Final submission');
             console.log('Parent ID:', parentRecordId);
             console.log('Student IDs:', studentRecordIds);
 
-            // TODO: Create enrollments, send confirmation email, etc.
+            const formData = sender.data;
+
+            // Prepare current state snapshot
+            const afterState = {
+                parent: {
+                    Name: `${formData.parentFirstName} ${formData.parentLastName}`,
+                    Email: formData.parentEmail,
+                    Mobile: formData.parentMobile,
+                    Phone: formData.parentPhone || '',
+                    Address: formData.parentAddress,
+                    Suburb: formData.parentSuburb,
+                    Postcode: formData.parentPostcode,
+                    'Authorized for Pickup': formData.parentAuthorizedPickup,
+                    'Interest Categories': formData.interestCategories || [],
+                    'Interest Notes': formData.interestNotes || ''
+                },
+                students: (formData.students || []).map(s => ({
+                    Name: s.studentName,
+                    'Date of Birth': s.studentDOB,
+                    School: s.studentSchool,
+                    'Year/Class': s.studentYearClass || '',
+                    'Medical Notes': s.studentMedicalNotes || '',
+                    'Dietary Notes': s.studentDietaryNotes || '',
+                    'Special Needs': s.studentSpecialNeeds || ''
+                })),
+                authorizedPickup: formData.authorizedPickup || [],
+                photoPermission: formData.photoPermission,
+                oshcCollection: formData.oshcCollection,
+                specialRequests: formData.specialRequests || ''
+            };
+
+            // Send audit log to server (which sends emails)
+            try {
+                const auditResponse = await fetch(
+                    'https://app.sonzai.com/api/kaf/audit',
+                    {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            action: isEditMode ? 'Updated' : 'Created',
+                            parentRecordId: parentRecordId,
+                            parentEmail: formData.parentEmail,
+                            parentName: `${formData.parentFirstName} ${formData.parentLastName}`,
+                            beforeState: initialState,
+                            afterState: afterState,
+                            studentCount: (formData.students || []).length
+                        })
+                    }
+                );
+
+                if (auditResponse.ok) {
+                    console.log('✓ Audit log created and emails sent');
+                } else {
+                    console.error('Failed to create audit log:', await auditResponse.text());
+                }
+            } catch (error) {
+                console.error('Error sending audit log:', error);
+                // Don't fail the submission if audit logging fails
+            }
 
             const message = isEditMode
                 ? `✅ Success! Your enrollment has been updated.
@@ -712,13 +789,16 @@
 Your link to view/edit anytime:
 http://app.sonzai.com/kaf/enrollment.html?parent=${parentRecordId}
 
-Changes saved: ${new Date().toLocaleString()}`
+Changes saved: ${new Date().toLocaleString()}
+
+📧 Confirmation email sent to ${formData.parentEmail}`
                 : `✅ Success! Your enrollment is complete.
 
 Your link to view/edit anytime:
 http://app.sonzai.com/kaf/enrollment.html?parent=${parentRecordId}
 
-We'll send this link to ${sender.data.parentEmail}`;
+📧 Confirmation email sent to ${formData.parentEmail}
+(Check your spam folder if you don't see it)`;
 
             showStatus(message, 'success');
         });
