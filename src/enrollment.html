@@ -101,14 +101,16 @@
                                     name: "parentFirstName",
                                     title: "First Name",
                                     isRequired: true,
-                                    placeholder: "Sarah"
+                                    placeholder: "Sarah",
+                                    autocomplete: "given-name"
                                 },
                                 {
                                     type: "text",
                                     name: "parentLastName",
                                     title: "Last Name",
                                     isRequired: true,
-                                    placeholder: "Johnson"
+                                    placeholder: "Johnson",
+                                    autocomplete: "family-name"
                                 },
                                 {
                                     type: "text",
@@ -117,7 +119,8 @@
                                     isRequired: true,
                                     inputType: "email",
                                     placeholder: "sarah@example.com",
-                                    validators: [{ type: "email" }]
+                                    validators: [{ type: "email" }],
+                                    autocomplete: "email"
                                 },
                                 {
                                     type: "text",
@@ -125,7 +128,8 @@
                                     title: "Mobile Number",
                                     isRequired: true,
                                     inputType: "tel",
-                                    placeholder: "04xx xxx xxx"
+                                    placeholder: "04xx xxx xxx",
+                                    autocomplete: "tel"
                                 }
                             ]
                         },
@@ -174,14 +178,16 @@
                                     name: "parentAddress",
                                     title: "Street Address",
                                     isRequired: true,
-                                    placeholder: "123 Example Street"
+                                    placeholder: "123 Example Street",
+                                    autocomplete: "street-address"
                                 },
                                 {
                                     type: "text",
                                     name: "parentSuburb",
                                     title: "Suburb",
                                     isRequired: true,
-                                    placeholder: "Chapel Hill"
+                                    placeholder: "Chapel Hill",
+                                    autocomplete: "address-level2"
                                 },
                                 {
                                     type: "text",
@@ -195,14 +201,16 @@
                                             regex: "^[0-9]{4}$",
                                             text: "Please enter a 4-digit postcode"
                                         }
-                                    ]
+                                    ],
+                                    autocomplete: "postal-code"
                                 },
                                 {
                                     type: "text",
                                     name: "parentPhone",
                                     title: "Phone Number (Optional)",
                                     inputType: "tel",
-                                    placeholder: "07 3xxx xxxx"
+                                    placeholder: "07 3xxx xxxx",
+                                    autocomplete: "tel-national"
                                 }
                             ]
                         },
