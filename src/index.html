@@ -56,9 +56,11 @@
         <div id="surveyContainer"></div>
     </div>
 
-    <!-- SurveyJS Library -->
-    <script src="https://unpkg.com/survey-core@1.9.131/survey.core.min.js"></script>
-    <script src="https://unpkg.com/survey-knockout-ui@1.9.131/survey-knockout-ui.min.js"></script>
+    <!-- jQuery (required for SurveyJS jQuery UI) -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <!-- SurveyJS Library with jQuery UI -->
+    <script src="https://unpkg.com/survey-jquery@1.9.131/survey.jquery.min.js"></script>
 
     <script>
         // Airtable Configuration
@@ -215,7 +217,8 @@
         });
 
         // Render the survey
-        survey.render(document.getElementById("surveyContainer"));
+        window.survey = survey; // Make available for debugging
+        $("#surveyContainer").Survey({ model: survey });
 
         // Helper function to show status messages
         function showStatus(message, type) {
