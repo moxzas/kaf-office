@@ -251,12 +251,19 @@
                                     inputType: "date"
                                 },
                                 {
-                                    type: "text",
+                                    type: "dropdown",
                                     name: "studentSchool",
                                     title: "School",
                                     isRequired: true,
-                                    placeholder: "e.g., Ironside State School",
-                                    description: "Common schools: Ironside SS, St Lucia Kindergarten, Yeronga SS, Chapel Hill Art Studio, Good News Lutheran"
+                                    choices: [
+                                        "Ironside State School",
+                                        "St Lucia Kindergarten",
+                                        "Yeronga State School",
+                                        "Chapel Hill Art Studio",
+                                        "Good News Lutheran School",
+                                        "Other"
+                                    ],
+                                    placeholder: "Select school..."
                                 },
                                 {
                                     type: "text",
