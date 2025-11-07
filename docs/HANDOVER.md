@@ -1,9 +1,29 @@
 # Project Handover Document - KAF Art & Craft School CRM
 
-**Date:** 2025-11-05
-**For:** New Flutter Web Project
+**Date:** 2025-11-05 *(Outdated - See Latest Session Handover Below)*
+**For:** New Flutter Web Project *(Pivoted to SurveyJS Form)*
 **Airtable Base ID:** `appNuMdxaiSYdgxJS`
 **API Key Location:** See `inspect_actual.py:6` (or set as environment variable)
+
+---
+
+## ⚠️ IMPORTANT: Project Direction Changed
+
+**This document from Nov 5, 2025 described a planned Flutter web app.**
+
+**What Actually Happened:**
+- We pivoted to a SurveyJS-based enrollment form (faster, simpler)
+- Fully implemented and deployed in 2 days (Nov 6-7)
+- Live at: https://app.sonzai.com/kaf/enrollment.html
+- Integrated with Dart/Shelf backend (ezeo_otg server)
+
+**👉 For Current Project Status, See:**
+- **`SESSION_HANDOVER_2025-11-07.md`** - Latest session handover (Nov 7, 2025)
+- **`PHASE_2_COMPLETE.md`** - Edit mode documentation
+- **`PHASE_3_TODO.md`** - Phase 3 completion status
+- **`PHASE_3_SETUP.md`** - Audit trail and email setup
+
+**The information below is historical context only.**
 
 ---
 
