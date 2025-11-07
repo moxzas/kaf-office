@@ -450,37 +450,35 @@
 
                 // Fetch linked students if any
                 const studentIds = parentData.fields.Students || [];
-                if (studentIds.length > 0) {
-                    const studentsData = [];
+                const studentsData = [];
 
-                    for (const studentId of studentIds) {
-                        const studentResponse = await fetch(
-                            `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Students/${studentId}`,
-                            {
-                                headers: {
-                                    'Authorization': `Bearer ${AIRTABLE_API_KEY}`
-                                }
+                for (const studentId of studentIds) {
+                    const studentResponse = await fetch(
+                        `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Students/${studentId}`,
+                        {
+                            headers: {
+                                'Authorization': `Bearer ${AIRTABLE_API_KEY}`
                             }
-                        );
-
-                        if (studentResponse.ok) {
-                            const student = await studentResponse.json();
-                            studentsData.push({
-                                studentName: student.fields.Name || '',
-                                studentDOB: student.fields['Date of Birth'] || '',
-                                studentSchool: student.fields.School || '',
-                                studentYearClass: student.fields['Year/Class'] || '',
-                                studentMedicalNotes: student.fields['Medical Notes'] || '',
-                                studentDietaryNotes: student.fields['Dietary Notes'] || '',
-                                studentSpecialNeeds: student.fields['Special Needs'] || ''
-                            });
-                            studentRecordIds.push(studentId);
                         }
-                    }
+                    );
 
-                    if (studentsData.length > 0) {
-                        formData.students = studentsData;
+                    if (studentResponse.ok) {
+                        const student = await studentResponse.json();
+                        studentsData.push({
+                            studentName: student.fields.Name || '',
+                            studentDOB: student.fields['Date of Birth'] || '',
+                            studentSchool: student.fields.School || '',
+                            studentYearClass: student.fields['Year/Class'] || '',
+                            studentMedicalNotes: student.fields['Medical Notes'] || '',
+                            studentDietaryNotes: student.fields['Dietary Notes'] || '',
+                            studentSpecialNeeds: student.fields['Special Needs'] || ''
+                        });
+                        studentRecordIds.push(studentId);
                     }
+                }
+
+                if (studentsData.length > 0) {
+                    formData.students = studentsData;
                 }
 
                 // Set form data
@@ -806,6 +804,16 @@ http://app.sonzai.com/kaf/enrollment.html?parent=${parentRecordId}
         // Render the survey
         window.survey = survey;
         $("#surveyContainer").Survey({ model: survey });
+
+        // Debug: Allow jumping to specific page via URL (?page=2)
+        const pageParam = urlParams.get('page');
+        if (pageParam) {
+            const pageIndex = parseInt(pageParam) - 1;
+            if (pageIndex >= 0 && pageIndex < survey.pages.length) {
+                survey.currentPageNo = pageIndex;
+                console.log('Debug: Jumped to page', pageParam);
+            }
+        }
 
         // Helper function to show status messages
         function showStatus(message, type) {
