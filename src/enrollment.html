@@ -674,7 +674,12 @@
 
                         if (response.ok) {
                             newStudentRecordIds.push(existingStudentId);
-                            console.log('✓ Student updated');
+                            console.log('✓ Student updated:', existingStudentId);
+                        } else {
+                            const errorText = await response.text();
+                            console.error('❌ Failed to update student:', errorText);
+                            console.error('Student data was:', studentFields);
+                            throw new Error(`Failed to update student: ${errorText}`);
                         }
                     } else {
                         // Create new student
@@ -699,7 +704,12 @@
                         if (response.ok) {
                             const result = await response.json();
                             newStudentRecordIds.push(result.records[0].id);
-                            console.log('✓ Student created');
+                            console.log('✓ Student created:', result.records[0].id);
+                        } else {
+                            const errorText = await response.text();
+                            console.error('❌ Failed to create student:', errorText);
+                            console.error('Student data was:', studentFields);
+                            throw new Error(`Failed to create student: ${errorText}`);
                         }
                     }
                 }
