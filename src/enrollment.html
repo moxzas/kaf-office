@@ -505,93 +505,117 @@
             }
         }
 
-        // Save progress after each page
+        // Track page 1 completion for incomplete submissions
         survey.onCurrentPageChanged.add(async function (sender, options) {
             const currentPage = options.oldCurrentPage;
             const formData = sender.data;
 
             console.log('Page changed from:', currentPage.name);
 
-            try {
-                // Page 1: Save essential parent info + interests immediately
-                if (currentPage.name === 'parentInfo') {
-                    if (isEditMode) {
-                        // Update existing parent
-                        console.log('Updating parent (page 1)...');
+            // Page 1: Log incomplete submission to Audit Log (for follow-up)
+            if (currentPage.name === 'parentInfo' && !isEditMode) {
+                console.log('Logging incomplete submission for follow-up...');
 
-                        const updateData = {
+                try {
+                    const incompleteData = {
+                        parent: {
+                            Name: `${formData.parentFirstName} ${formData.parentLastName}`,
+                            Email: formData.parentEmail,
+                            Mobile: formData.parentMobile,
+                            'Interest Categories': formData.interestCategories || [],
+                            'Interest Notes': formData.interestNotes || ''
+                        },
+                        status: 'Incomplete - Page 1 only',
+                        timestamp: new Date().toISOString()
+                    };
+
+                    await fetch('https://app.sonzai.com/api/kaf/audit', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({
+                            action: 'Incomplete',
+                            parentRecordId: 'pending',
+                            parentEmail: formData.parentEmail,
+                            parentName: `${formData.parentFirstName} ${formData.parentLastName}`,
+                            beforeState: null,
+                            afterState: incompleteData,
+                            studentCount: 0
+                        })
+                    });
+
+                    console.log('✓ Incomplete submission logged for follow-up');
+                } catch (error) {
+                    console.error('Failed to log incomplete submission:', error);
+                    // Don't block progression
+                }
+            }
+        });
+
+        // Store initial state for delta calculation (edit mode only)
+        let initialState = null;
+
+        // Final submission - create all records, log audit, send emails
+        survey.onComplete.add(async function (sender, options) {
+            console.log('Final submission - creating all records...');
+
+            const formData = sender.data;
+
+            try {
+                // STEP 1: Create or Update Parent Record
+                if (!isEditMode) {
+                    console.log('Creating parent record...');
+
+                    const parentData = {
+                        records: [{
                             fields: {
                                 "Name": `${formData.parentFirstName} ${formData.parentLastName}`,
                                 "Email": formData.parentEmail,
                                 "Mobile": formData.parentMobile,
+                                "Phone": formData.parentPhone || "",
+                                "Address": formData.parentAddress,
+                                "Suburb": formData.parentSuburb,
+                                "Postcode": formData.parentPostcode,
+                                "Authorized for Pickup": formData.parentAuthorizedPickup || false,
                                 "Interest Categories": formData.interestCategories || [],
                                 "Interest Notes": formData.interestNotes || ""
                             }
-                        };
+                        }]
+                    };
 
-                        const response = await fetch(
-                            `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Parents/${parentRecordId}`,
-                            {
-                                method: 'PATCH',
-                                headers: {
-                                    'Authorization': `Bearer ${AIRTABLE_API_KEY}`,
-                                    'Content-Type': 'application/json'
-                                },
-                                body: JSON.stringify(updateData)
-                            }
-                        );
-
-                        if (response.ok) {
-                            console.log('✓ Parent updated');
+                    const parentResponse = await fetch(
+                        `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Parents`,
+                        {
+                            method: 'POST',
+                            headers: {
+                                'Authorization': `Bearer ${AIRTABLE_API_KEY}`,
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify(parentData)
                         }
-                    } else {
-                        // Create new parent
-                        console.log('Creating parent (page 1)...');
+                    );
 
-                        const parentData = {
-                            records: [{
-                                fields: {
-                                    "Name": `${formData.parentFirstName} ${formData.parentLastName}`,
-                                    "Email": formData.parentEmail,
-                                    "Mobile": formData.parentMobile,
-                                    "Interest Categories": formData.interestCategories || [],
-                                    "Interest Notes": formData.interestNotes || ""
-                                }
-                            }]
-                        };
-
-                        const response = await fetch(
-                            `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Parents`,
-                            {
-                                method: 'POST',
-                                headers: {
-                                    'Authorization': `Bearer ${AIRTABLE_API_KEY}`,
-                                    'Content-Type': 'application/json'
-                                },
-                                body: JSON.stringify(parentData)
-                            }
-                        );
-
-                        if (response.ok) {
-                            const result = await response.json();
-                            parentRecordId = result.records[0].id;
-                            console.log('✓ Parent created:', parentRecordId);
-                            console.log('Resume link:', `http://app.sonzai.com/kaf/enrollment.html?parent=${parentRecordId}`);
-                        }
+                    if (!parentResponse.ok) {
+                        throw new Error('Failed to create parent record');
                     }
-                }
 
-                // Page 2: Update parent with full details
-                if (currentPage.name === 'parentDetails' && parentRecordId) {
-                    console.log('Updating parent details...');
+                    const parentResult = await parentResponse.json();
+                    parentRecordId = parentResult.records[0].id;
+                    console.log('✓ Parent created:', parentRecordId);
+                } else {
+                    console.log('Updating parent record...');
 
                     const updateData = {
                         fields: {
+                            "Name": `${formData.parentFirstName} ${formData.parentLastName}`,
+                            "Email": formData.parentEmail,
+                            "Mobile": formData.parentMobile,
                             "Phone": formData.parentPhone || "",
                             "Address": formData.parentAddress,
                             "Suburb": formData.parentSuburb,
                             "Postcode": formData.parentPostcode,
-                            "Authorized for Pickup": formData.parentAuthorizedPickup || false
+                            "Authorized for Pickup": formData.parentAuthorizedPickup || false,
+                            "Interest Categories": formData.interestCategories || [],
+                            "Interest Notes": formData.interestNotes || ""
                         }
                     };
 
@@ -607,182 +631,150 @@
                         }
                     );
 
-                    if (response.ok) {
-                        console.log('✓ Parent details updated');
+                    if (!response.ok) {
+                        throw new Error('Failed to update parent record');
                     }
+
+                    console.log('✓ Parent updated');
                 }
 
-                // Page 3: Save students
-                if (currentPage.name === 'studentsPage' && parentRecordId && formData.students) {
-                    console.log('Saving students...');
+                // STEP 2: Create or Update Student Records
+                const newStudentRecordIds = [];
 
-                    const newStudentRecordIds = [];
+                for (let i = 0; i < (formData.students || []).length; i++) {
+                    const student = formData.students[i];
+                    const existingStudentId = studentRecordIds[i];
 
-                    for (let i = 0; i < formData.students.length; i++) {
-                        const student = formData.students[i];
-                        const existingStudentId = studentRecordIds[i];
+                    const studentFields = {
+                        "Name": student.studentName,
+                        "Date of Birth": student.studentDOB,
+                        "School": student.studentSchool,
+                        "Year/Class": student.studentYearClass || "",
+                        "Medical Notes": student.studentMedicalNotes || "",
+                        "Dietary Notes": student.studentDietaryNotes || "",
+                        "Special Needs": student.studentSpecialNeeds || "",
+                        "Parents": [parentRecordId]
+                    };
 
-                        const studentFields = {
-                            "Name": student.studentName,
-                            "Date of Birth": student.studentDOB,
-                            "School": student.studentSchool,
-                            "Year/Class": student.studentYearClass || "",
-                            "Medical Notes": student.studentMedicalNotes || "",
-                            "Dietary Notes": student.studentDietaryNotes || "",
-                            "Special Needs": student.studentSpecialNeeds || "",
-                            "Parents": [parentRecordId]
+                    if (isEditMode && existingStudentId) {
+                        // Update existing student
+                        console.log('Updating student:', existingStudentId);
+
+                        const response = await fetch(
+                            `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Students/${existingStudentId}`,
+                            {
+                                method: 'PATCH',
+                                headers: {
+                                    'Authorization': `Bearer ${AIRTABLE_API_KEY}`,
+                                    'Content-Type': 'application/json'
+                                },
+                                body: JSON.stringify({ fields: studentFields })
+                            }
+                        );
+
+                        if (response.ok) {
+                            newStudentRecordIds.push(existingStudentId);
+                            console.log('✓ Student updated');
+                        }
+                    } else {
+                        // Create new student
+                        console.log('Creating student...');
+
+                        const studentData = {
+                            records: [{ fields: studentFields }]
                         };
 
-                        if (existingStudentId) {
-                            // Update existing student
-                            console.log('Updating student:', existingStudentId);
-
-                            const response = await fetch(
-                                `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Students/${existingStudentId}`,
-                                {
-                                    method: 'PATCH',
-                                    headers: {
-                                        'Authorization': `Bearer ${AIRTABLE_API_KEY}`,
-                                        'Content-Type': 'application/json'
-                                    },
-                                    body: JSON.stringify({ fields: studentFields })
-                                }
-                            );
-
-                            if (response.ok) {
-                                newStudentRecordIds.push(existingStudentId);
-                                console.log('✓ Student updated:', existingStudentId);
+                        const response = await fetch(
+                            `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Students`,
+                            {
+                                method: 'POST',
+                                headers: {
+                                    'Authorization': `Bearer ${AIRTABLE_API_KEY}`,
+                                    'Content-Type': 'application/json'
+                                },
+                                body: JSON.stringify(studentData)
                             }
-                        } else {
-                            // Create new student
-                            console.log('Creating new student...');
+                        );
 
-                            const studentData = {
-                                records: [{
-                                    fields: studentFields
-                                }]
-                            };
-
-                            const response = await fetch(
-                                `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Students`,
-                                {
-                                    method: 'POST',
-                                    headers: {
-                                        'Authorization': `Bearer ${AIRTABLE_API_KEY}`,
-                                        'Content-Type': 'application/json'
-                                    },
-                                    body: JSON.stringify(studentData)
-                                }
-                            );
-
-                            if (response.ok) {
-                                const result = await response.json();
-                                newStudentRecordIds.push(result.records[0].id);
-                                console.log('✓ Student created:', result.records[0].id);
-                            }
+                        if (response.ok) {
+                            const result = await response.json();
+                            newStudentRecordIds.push(result.records[0].id);
+                            console.log('✓ Student created');
                         }
                     }
+                }
 
-                    // Delete removed students (if user removed any from the form)
-                    if (isEditMode) {
-                        for (const oldStudentId of studentRecordIds) {
-                            if (!newStudentRecordIds.includes(oldStudentId)) {
-                                console.log('Deleting removed student:', oldStudentId);
-                                await fetch(
-                                    `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Students/${oldStudentId}`,
-                                    {
-                                        method: 'DELETE',
-                                        headers: {
-                                            'Authorization': `Bearer ${AIRTABLE_API_KEY}`
-                                        }
+                // Delete removed students (edit mode only)
+                if (isEditMode) {
+                    for (const oldStudentId of studentRecordIds) {
+                        if (!newStudentRecordIds.includes(oldStudentId)) {
+                            console.log('Deleting removed student:', oldStudentId);
+                            await fetch(
+                                `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Students/${oldStudentId}`,
+                                {
+                                    method: 'DELETE',
+                                    headers: {
+                                        'Authorization': `Bearer ${AIRTABLE_API_KEY}`
                                     }
-                                );
-                            }
+                                }
+                            );
                         }
                     }
-
-                    studentRecordIds = newStudentRecordIds;
                 }
 
-            } catch (error) {
-                console.error('Error saving progress:', error);
-                // Don't block progression on save error
-            }
-        });
+                studentRecordIds = newStudentRecordIds;
 
-        // Store initial state for delta calculation
-        let initialState = null;
+                console.log('✓ All records saved!');
+                console.log('Parent ID:', parentRecordId);
+                console.log('Student IDs:', studentRecordIds);
 
-        // Final submission - log audit and send emails
-        survey.onComplete.add(async function (sender, options) {
-            console.log('Final submission');
-            console.log('Parent ID:', parentRecordId);
-            console.log('Student IDs:', studentRecordIds);
+                // STEP 3: Send audit log and emails
+                const afterState = {
+                    parent: {
+                        Name: `${formData.parentFirstName} ${formData.parentLastName}`,
+                        Email: formData.parentEmail,
+                        Mobile: formData.parentMobile,
+                        Phone: formData.parentPhone || '',
+                        Address: formData.parentAddress,
+                        Suburb: formData.parentSuburb,
+                        Postcode: formData.parentPostcode,
+                        'Authorized for Pickup': formData.parentAuthorizedPickup,
+                        'Interest Categories': formData.interestCategories || [],
+                        'Interest Notes': formData.interestNotes || ''
+                    },
+                    students: (formData.students || []).map(s => ({
+                        Name: s.studentName,
+                        'Date of Birth': s.studentDOB,
+                        School: s.studentSchool,
+                        'Year/Class': s.studentYearClass || '',
+                        'Medical Notes': s.studentMedicalNotes || '',
+                        'Dietary Notes': s.studentDietaryNotes || '',
+                        'Special Needs': s.studentSpecialNeeds || ''
+                    })),
+                    authorizedPickup: formData.authorizedPickup || [],
+                    photoPermission: formData.photoPermission,
+                    oshcCollection: formData.oshcCollection,
+                    specialRequests: formData.specialRequests || ''
+                };
 
-            const formData = sender.data;
+                await fetch('https://app.sonzai.com/api/kaf/audit', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        action: isEditMode ? 'Updated' : 'Created',
+                        parentRecordId: parentRecordId,
+                        parentEmail: formData.parentEmail,
+                        parentName: `${formData.parentFirstName} ${formData.parentLastName}`,
+                        beforeState: initialState,
+                        afterState: afterState,
+                        studentCount: (formData.students || []).length
+                    })
+                });
 
-            // Prepare current state snapshot
-            const afterState = {
-                parent: {
-                    Name: `${formData.parentFirstName} ${formData.parentLastName}`,
-                    Email: formData.parentEmail,
-                    Mobile: formData.parentMobile,
-                    Phone: formData.parentPhone || '',
-                    Address: formData.parentAddress,
-                    Suburb: formData.parentSuburb,
-                    Postcode: formData.parentPostcode,
-                    'Authorized for Pickup': formData.parentAuthorizedPickup,
-                    'Interest Categories': formData.interestCategories || [],
-                    'Interest Notes': formData.interestNotes || ''
-                },
-                students: (formData.students || []).map(s => ({
-                    Name: s.studentName,
-                    'Date of Birth': s.studentDOB,
-                    School: s.studentSchool,
-                    'Year/Class': s.studentYearClass || '',
-                    'Medical Notes': s.studentMedicalNotes || '',
-                    'Dietary Notes': s.studentDietaryNotes || '',
-                    'Special Needs': s.studentSpecialNeeds || ''
-                })),
-                authorizedPickup: formData.authorizedPickup || [],
-                photoPermission: formData.photoPermission,
-                oshcCollection: formData.oshcCollection,
-                specialRequests: formData.specialRequests || ''
-            };
+                console.log('✓ Audit log and emails sent');
 
-            // Send audit log to server (which sends emails)
-            try {
-                const auditResponse = await fetch(
-                    'https://app.sonzai.com/api/kaf/audit',
-                    {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({
-                            action: isEditMode ? 'Updated' : 'Created',
-                            parentRecordId: parentRecordId,
-                            parentEmail: formData.parentEmail,
-                            parentName: `${formData.parentFirstName} ${formData.parentLastName}`,
-                            beforeState: initialState,
-                            afterState: afterState,
-                            studentCount: (formData.students || []).length
-                        })
-                    }
-                );
-
-                if (auditResponse.ok) {
-                    console.log('✓ Audit log created and emails sent');
-                } else {
-                    console.error('Failed to create audit log:', await auditResponse.text());
-                }
-            } catch (error) {
-                console.error('Error sending audit log:', error);
-                // Don't fail the submission if audit logging fails
-            }
-
-            const message = isEditMode
-                ? `✅ Success! Your enrollment has been updated.
+                const message = isEditMode
+                    ? `✅ Success! Your enrollment has been updated.
 
 Your link to view/edit anytime:
 http://app.sonzai.com/kaf/enrollment.html?parent=${parentRecordId}
@@ -790,7 +782,7 @@ http://app.sonzai.com/kaf/enrollment.html?parent=${parentRecordId}
 Changes saved: ${new Date().toLocaleString()}
 
 📧 Confirmation email sent to ${formData.parentEmail}`
-                : `✅ Success! Your enrollment is complete.
+                    : `✅ Success! Your enrollment is complete!
 
 Your link to view/edit anytime:
 http://app.sonzai.com/kaf/enrollment.html?parent=${parentRecordId}
@@ -798,7 +790,12 @@ http://app.sonzai.com/kaf/enrollment.html?parent=${parentRecordId}
 📧 Confirmation email sent to ${formData.parentEmail}
 (Check your spam folder if you don't see it)`;
 
-            showStatus(message, 'success');
+                showStatus(message, 'success');
+
+            } catch (error) {
+                console.error('Submission error:', error);
+                showStatus('❌ Error submitting enrollment. Please try again or contact us.', 'error');
+            }
         });
 
         // Render the survey
