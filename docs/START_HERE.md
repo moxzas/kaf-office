@@ -22,9 +22,12 @@ Welcome to the KAF Art & Craft School Enrollment System!
 3. **PHASE_3_TODO.md** - Phase 3 completion checklist
 4. **PHASE_3_SETUP.md** - Audit trail and email setup details
 
+### Database Schema
+5. **SCHEMA.md** - Complete Airtable schema (authoritative, updated Nov 7)
+
 ### Historical Context (Optional)
-5. **HANDOVER.md** - Original Flutter plan (Nov 5) - *Outdated, we pivoted to SurveyJS*
-6. **SCHEMA_V2.md** - Airtable schema docs - *May be outdated after Households removal*
+6. **HANDOVER.md** - Original Flutter plan (Nov 5) - *Outdated, we pivoted to SurveyJS*
+7. **archive_schema_2025-11-07/** - Old schema versions (local only, not in git)
 
 ## 🏗️ What Was Built
 

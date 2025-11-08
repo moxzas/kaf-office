@@ -166,9 +166,10 @@ KAF-Office/
 │   ├── PHASE_2_COMPLETE.md       # Edit mode documentation
 │   ├── PHASE_3_TODO.md           # Phase 3 setup checklist
 │   ├── PHASE_3_SETUP.md          # Phase 3 technical details
-│   ├── SCHEMA_V2.md              # Airtable schema (may be outdated)
+│   ├── SCHEMA.md                 # Airtable schema (authoritative, updated Nov 7)
 │   ├── AUDIT_LOG_TABLE.md        # Audit log design
-│   └── DEPLOYMENT.md             # Deployment instructions
+│   ├── DEPLOYMENT.md             # Deployment instructions
+│   └── archive_schema_2025-11-07/ # Old schema versions (historical)
 └── .github/workflows/
     └── deploy.yml                # GitHub Actions deployment
 
