@@ -1,8 +1,8 @@
 # Airtable Schema: KAF Art & Craft School CRM
 
 **Base ID:** `appNuMdxaiSYdgxJS`
-**Last Updated:** 2025-11-07
-**Status:** Production (Live enrollment system)
+**Last Updated:** 2026-02-08
+**Status:** Production (Live enrollment system + CRM/Mailing list)
 
 ---
 
@@ -30,6 +30,7 @@ This is the **authoritative schema documentation** for the KAF enrollment system
 |-------|--------|---------|
 | **Parents** | 13 | Contact information, authorization |
 | **Students** | 17 | Child details, medical notes, auto-generated IDs |
+| **Contacts** | 13 | CRM/mailing list from Wix import (1,944 records) |
 | **Audit Log** | 5 | Complete history of enrollments (JSON blobs) |
 | **Venues** | 7 | Class locations (not used by enrollment form yet) |
 | **Teachers** | 8 | Instructors (not used by enrollment form yet) |
@@ -37,7 +38,7 @@ This is the **authoritative schema documentation** for the KAF enrollment system
 | **Enrollments** | 24 | Student-class junction (not used by enrollment form yet) |
 | **Attendance** | 10 | Session tracking (not used by enrollment form yet) |
 
-**Note:** Only Parents, Students, and Audit Log are actively used by the current enrollment form. The other tables are legacy/planned for future features.
+**Note:** Parents, Students, and Audit Log are actively used by the current enrollment form. Contacts is the CRM/mailing list table populated from Wix CSV exports. The other tables are legacy/planned for future features.
 
 ---
 
@@ -197,7 +198,61 @@ This is the **authoritative schema documentation** for the KAF enrollment system
 
 ---
 
-## 4. Venues Table
+## 4. Contacts Table
+
+**Purpose:** CRM and mailing list contacts imported from Wix CSV exports. Separate from Parents table to keep the enrollment workflow clean while providing Sophia with a broad contact database for communications.
+
+**Used by:** Mailing list views, CRM queries. Not used by enrollment form.
+
+**Import script:** `scripts/import_contacts.py`
+
+| Field Name | Type | Required | Description |
+|------------|------|----------|-------------|
+| **Name** | Single line text | | Contact name (parent/guardian). Parsed from Wix First/Last Name with child-parent pattern detection |
+| **Email** | Email | yes | Primary email (deduplicated, lowercase). Primary key for matching |
+| **Phone** | Phone number | | Primary phone from Wix or bookings |
+| **Suburb** | Single line text | | From Wix address City field |
+| **Email Status** | Single select | | Subscribed, Unsubscribed, Bounced, Never Subscribed |
+| **Contact Type** | Multiple select | | Email Subscriber, Past Student Family, Inquiry, Current Family, Imported List, Site Member |
+| **Class Interests** | Multiple select | | Painting, Drawing, Pottery, Sculpture, Mixed Media, Holiday Workshops, Term Classes, After School |
+| **Venues** | Multiple select | | Ironside SS, Chapel Hill, Good News Lutheran, Yeronga, Holiday Program, Saturday Class, St Lucia, Online |
+| **Source** | Single select | | Form Submission, Service Booking, Contact Import, Site Member, Enrollment Form, Manual |
+| **Last Activity** | Date | | Most recent activity from Wix |
+| **Created** | Date | | Earliest creation date from Wix |
+| **Notes** | Long text | | Child name (from parsed name), overflow Wix labels, booking summary |
+| **Parent Record** | Link to Parents | | Matched by email during link-parents step. Must be created manually in Airtable after table creation |
+
+**Data Sources:**
+- `data/contacts.csv` (Wix contacts export): 2,034 rows, 1,933 unique emails
+- `data/bookings.csv` (Wix bookings export): 1,232 rows, 464 unique customers
+- 11 synthetic records created from enrolled Parents not in Wix export
+
+**Name Cleaning:**
+- ~25% of contacts have child name in First Name and parent name in parentheses in Last Name (e.g., "Heidi Huynh" / "(Eva Zhang)")
+- Script extracts parent name as the Contact Name and stores "Child: Heidi Huynh" in Notes
+- Standard names are title-cased if all-upper or all-lower
+
+**Deduplication:**
+- Group by normalized email (lowercase, trimmed)
+- 22 emails appear twice in contacts.csv
+- Merge strategy: most recent name, union all labels/interests, worst email status wins, earliest Created date, latest Last Activity
+
+**Key Relationships:**
+- Contacts (many) -> (1) Parents (optional link by email match)
+- All 464 booking customer emails exist in contacts.csv (no orphans)
+- 79 contacts have no email and are excluded from import
+
+**Statistics (as of Feb 8, 2026 import):**
+- 1,944 total records (1,933 from Wix + 11 synthetic from enrollment form)
+- 75% have name, 50% have phone, 6% have suburb
+- 64% subscribed, 24% never subscribed, 12% unsubscribed
+- 28% have class interests, 34% have venue data
+- Top venues: Chapel Hill (400), Ironside SS (143), Holiday Program (64)
+- All 22 enrolled parents linked via Parent Record field
+
+---
+
+## 5. Venues Table
 
 **Purpose:** Locations where classes are held (not currently used by enrollment form).
 
@@ -215,7 +270,7 @@ This is the **authoritative schema documentation** for the KAF enrollment system
 
 ---
 
-## 5. Teachers Table
+## 6. Teachers Table
 
 **Purpose:** Instructor records (not currently used by enrollment form).
 
@@ -234,7 +289,7 @@ This is the **authoritative schema documentation** for the KAF enrollment system
 
 ---
 
-## 6. Classes Table
+## 7. Classes Table
 
 **Purpose:** Class schedules and details (not currently used by enrollment form).
 
@@ -262,7 +317,7 @@ This is the **authoritative schema documentation** for the KAF enrollment system
 
 ---
 
-## 7. Enrollments Table
+## 8. Enrollments Table
 
 **Purpose:** Junction table linking students to classes (not currently used by enrollment form).
 
@@ -297,7 +352,7 @@ This is the **authoritative schema documentation** for the KAF enrollment system
 
 ---
 
-## 8. Attendance Table
+## 9. Attendance Table
 
 **Purpose:** Individual session attendance tracking (not currently used by enrollment form).
 
@@ -322,8 +377,11 @@ This is the **authoritative schema documentation** for the KAF enrollment system
 
 ```
 Parents (1) ←──→ (many) Students
-                     │
-                     └─→ Audit Log (logs all changes)
+   │                   │
+   │                   └─→ Audit Log (logs all changes)
+   │
+   └──→ Contacts (optional link by email)
+           (CRM / Mailing List, ~1,933 records)
 
 [Legacy/Planned:]
 Students (many) ←──→ (many) Enrollments ←──→ (many) Classes
@@ -339,6 +397,7 @@ Students (many) ←──→ (many) Enrollments ←──→ (many) Classes
 **Active Relationships (Currently Used):**
 - Parents → Students (one parent can have multiple children)
 - Students → Parents (one child can have multiple guardians)
+- Contacts → Parents (optional link by email match, for CRM enrichment)
 - Audit Log tracks all enrollment submissions (not linked via Airtable relationships)
 
 **Inactive Relationships (For Future Features):**
@@ -375,7 +434,16 @@ Students (many) ←──→ (many) Enrollments ←──→ (many) Classes
 **Current:** Dropdown with exact Airtable values.
 **Why:** Airtable rejects invalid single-select values with 422 error. Dropdown prevents user error.
 
-### 5. Save Only on Final Submit
+### 5. Contacts Table Separate from Parents
+**Alternative:** Extend Parents table with all Wix contacts (~2,000 records).
+**Current:** Separate Contacts table for CRM/mailing list, Parents table stays lean for enrollment.
+**Why:**
+- Parents table has 22 records used by enrollment workflow; flooding it with 1,933 Wix contacts would break the form's parent lookup
+- Contacts need different fields (Email Status, Contact Type, Venues, Class Interests) that don't belong in the enrollment-focused Parents table
+- Optional link field allows enrichment: a contact who is also a parent can be linked
+- Different data lifecycles: parents are manually curated via enrollment form, contacts are bulk-imported from Wix
+
+### 6. Save Only on Final Submit
 **Previous:** Progressive saving after each page.
 **Current:** All records created on final submit only.
 **Why:**
@@ -474,18 +542,26 @@ POST https://api.airtable.com/v0/appNuMdxaiSYdgxJS/Audit%20Log
 - School must match dropdown options exactly
 - Parents link required (at least one parent)
 
+### Contacts Table
+- Email required (primary dedup key)
+- Email Status must match select options exactly
+- Contact Type, Class Interests, Venues are multiple selects -- values must match option names
+- Source must match single select options exactly
+- Dates in ISO format (YYYY-MM-DD)
+
 ### Audit Log Table
 - All fields required
 - Data must be valid JSON string
 
 ---
 
-## Usage Statistics (As of Nov 7, 2025)
+## Usage Statistics (As of Feb 8, 2026)
 
 **Active Tables:**
-- Parents: 1 record (Test Test)
-- Students: 1 record (Tom)
-- Audit Log: 3 records (1 incomplete, 1 created, 1 test)
+- Parents: 22 records (from 24 PDF enrollment forms, 2026 intake)
+- Students: 26 records (across 22 families)
+- Contacts: 1,944 records (imported from Wix CSVs + enrollment form)
+- Audit Log: active
 
 **Unused Tables:**
 - Venues: 0 records
@@ -494,7 +570,7 @@ POST https://api.airtable.com/v0/appNuMdxaiSYdgxJS/Audit%20Log
 - Enrollments: 0 records
 - Attendance: 0 records
 
-**Status:** Awaiting first real enrollments from Sophia's students.
+**Status:** Enrollment form in production. Contacts table populated (1,944 records). Views need to be created in Airtable UI (see Contacts Table Views section).
 
 ---
 
@@ -505,6 +581,24 @@ POST https://api.airtable.com/v0/appNuMdxaiSYdgxJS/Audit%20Log
 2. **Create Enrollment Records** - Link students to classes via Enrollments table
 3. **Payment Integration** - Stripe or Square for online payment
 4. **Parent Dashboard** - View enrollments, attendance, payments
+
+### Contacts Table Views (Recommended)
+
+These Airtable views should be created on the Contacts table for Sophia's mailing list workflows. Each view filters and sorts contacts for a specific communication purpose.
+
+| View Name | Filter | Sort | Purpose |
+|-----------|--------|------|---------|
+| **All Active Subscribers** | Email Status = "Subscribed" | Name A-Z | Default mailing list for general announcements |
+| **Holiday Workshop List** | Email Status = "Subscribed" AND (Class Interests contains "Holiday Workshops" OR Venues contains "Holiday Program") | Name A-Z | Holiday program promotions |
+| **Ironside SS Families** | Email Status = "Subscribed" AND Venues contains "Ironside SS" | Name A-Z | Venue-specific comms |
+| **Chapel Hill Families** | Email Status = "Subscribed" AND Venues contains "Chapel Hill" | Name A-Z | Venue-specific comms |
+| **Good News Lutheran** | Email Status = "Subscribed" AND Venues contains "Good News Lutheran" | Name A-Z | Venue-specific comms |
+| **Yeronga Families** | Email Status = "Subscribed" AND Venues contains "Yeronga" | Name A-Z | Venue-specific comms |
+| **Current Families** | Contact Type contains "Current Family" | Name A-Z | Currently enrolled families |
+| **Unsubscribed** | Email Status = "Unsubscribed" | Last Activity desc | Do-not-contact list |
+| **Inactive > 1 Year** | Email Status = "Subscribed" AND Last Activity < 1 year ago | Last Activity asc | Re-engagement campaigns |
+
+**How to create views:** In Airtable, click the "+" next to the view tabs, choose "Grid view", name it, then set filters. Each view can be exported to CSV for use in email tools. (Note: Airtable API does not support creating views programmatically — these must be created in the UI. Run `python scripts/import_contacts.py create-views` for copy-paste instructions.)
 
 ### Phase 5 (Future)
 1. **Teacher Interface** - Mark attendance, view class rosters
@@ -531,5 +625,5 @@ POST https://api.airtable.com/v0/appNuMdxaiSYdgxJS/Audit%20Log
 
 ---
 
-**Last Updated:** 2025-11-07
-**Schema Version:** 1.0 (Production)
+**Last Updated:** 2026-02-08
+**Schema Version:** 1.1 (Production + CRM Contacts)
