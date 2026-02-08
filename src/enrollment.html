@@ -253,7 +253,7 @@
                                 {
                                     type: "dropdown",
                                     name: "studentSchool",
-                                    title: "School",
+                                    title: "Venue",
                                     isRequired: true,
                                     choices: [
                                         "Ironside State School",
@@ -263,7 +263,7 @@
                                         "Good News Lutheran School",
                                         "Other"
                                     ],
-                                    placeholder: "Select school..."
+                                    placeholder: "Select venue..."
                                 },
                                 {
                                     type: "text",
@@ -474,7 +474,7 @@
                         studentsData.push({
                             studentName: student.fields.Name || '',
                             studentDOB: student.fields['Date of Birth'] || '',
-                            studentSchool: student.fields.School || '',
+                            studentSchool: student.fields.Venue || '',
                             studentYearClass: student.fields['Year/Class'] || '',
                             studentMedicalNotes: student.fields['Medical Notes'] || '',
                             studentDietaryNotes: student.fields['Dietary Notes'] || '',
@@ -655,7 +655,7 @@
                     const studentFields = {
                         "Name": student.studentName,
                         "Date of Birth": student.studentDOB,
-                        "School": student.studentSchool,
+                        "Venue": student.studentSchool,
                         "Year/Class": student.studentYearClass || "",
                         "Medical Notes": student.studentMedicalNotes || "",
                         "Dietary Notes": student.studentDietaryNotes || "",
@@ -762,7 +762,7 @@
                     students: (formData.students || []).map(s => ({
                         Name: s.studentName,
                         'Date of Birth': s.studentDOB,
-                        School: s.studentSchool,
+                        Venue: s.studentSchool,
                         'Year/Class': s.studentYearClass || '',
                         'Medical Notes': s.studentMedicalNotes || '',
                         'Dietary Notes': s.studentDietaryNotes || '',
