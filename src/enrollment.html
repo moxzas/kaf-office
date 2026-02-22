@@ -251,24 +251,9 @@
                                     inputType: "date"
                                 },
                                 {
-                                    type: "dropdown",
-                                    name: "studentSchool",
-                                    title: "Art Class Location",
-                                    isRequired: true,
-                                    choices: [
-                                        "Ironside State School",
-                                        "St Lucia Kindergarten",
-                                        "Yeronga State School",
-                                        "Chapel Hill Art Studio",
-                                        "Good News Lutheran School",
-                                        "Other"
-                                    ],
-                                    placeholder: "Select location..."
-                                },
-                                {
                                     type: "text",
                                     name: "studentSchoolAttended",
-                                    title: "School",
+                                    title: "Child's School",
                                     placeholder: "e.g., Ironside State School"
                                 },
                                 {
@@ -467,7 +452,6 @@
                         studentsData.push({
                             studentName: student.fields.Name || '',
                             studentDOB: student.fields['Date of Birth'] || '',
-                            studentSchool: student.fields.Venue || '',
                             studentSchoolAttended: student.fields['School Attended'] || '',
                             studentYearClass: student.fields['Year/Class'] || '',
                             studentMedicalNotes: student.fields['Medical Notes'] || '',
@@ -649,7 +633,6 @@
                     const studentFields = {
                         "Name": student.studentName,
                         "Date of Birth": student.studentDOB,
-                        "Venue": student.studentSchool,
                         "School Attended": student.studentSchoolAttended || "",
                         "Year/Class": student.studentYearClass || "",
                         "Medical Notes": student.studentMedicalNotes || "",
@@ -757,7 +740,6 @@
                     students: (formData.students || []).map(s => ({
                         Name: s.studentName,
                         'Date of Birth': s.studentDOB,
-                        Venue: s.studentSchool,
                         'School Attended': s.studentSchoolAttended || '',
                         'Year/Class': s.studentYearClass || '',
                         'Medical Notes': s.studentMedicalNotes || '',
