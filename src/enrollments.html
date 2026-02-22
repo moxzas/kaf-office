@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KAF - Enrollments</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        h1 { color: #333; margin-bottom: 5px; }
+        .subtitle { color: #666; font-size: 18px; }
+        .loading { text-align: center; padding: 40px; color: #888; }
+        .error { text-align: center; padding: 40px; color: #c00; }
+        .summary {
+            background: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            color: #555;
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        .summary .stat { font-weight: 600; color: #333; }
+
+        .family-card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 16px;
+            overflow: hidden;
+        }
+        .parent-section {
+            padding: 20px;
+            border-bottom: 1px solid #eee;
+        }
+        .parent-name {
+            font-size: 20px;
+            font-weight: 600;
+            color: #333;
+            margin: 0 0 8px 0;
+        }
+        .parent-details {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px 20px;
+            color: #555;
+            font-size: 14px;
+        }
+        .parent-details a { color: #2563eb; text-decoration: none; }
+        .parent-details a:hover { text-decoration: underline; }
+        .detail-label { color: #888; }
+
+        .student-section {
+            padding: 15px 20px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        .student-section:last-child { border-bottom: none; }
+        .student-header {
+            display: flex;
+            align-items: baseline;
+            gap: 10px;
+            margin-bottom: 6px;
+        }
+        .student-name {
+            font-size: 16px;
+            font-weight: 600;
+            color: #444;
+        }
+        .student-age {
+            font-size: 13px;
+            color: #888;
+        }
+        .student-details {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px 16px;
+            font-size: 13px;
+            color: #666;
+        }
+        .student-tag {
+            background: #f0f4ff;
+            color: #4a6fa5;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+        .medical-tag {
+            background: #fff3f0;
+            color: #c44;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+        .no-students {
+            padding: 15px 20px;
+            color: #999;
+            font-style: italic;
+            font-size: 14px;
+        }
+        .edit-link {
+            float: right;
+            font-size: 13px;
+            color: #2563eb;
+            text-decoration: none;
+        }
+        .edit-link:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Kids Art Fun</h1>
+        <p class="subtitle">Enrolled Families</p>
+    </div>
+
+    <div id="content">
+        <div class="loading">Loading enrollments...</div>
+    </div>
+
+    <script>
+        const AIRTABLE_API_KEY = 'patYJhlgK2q6sAnyZ.8c3945853082593f6ec6cc6d12a0cd863a13a912a067dfd99c75a0ff95ae4e06';
+        const AIRTABLE_BASE_ID = 'appNuMdxaiSYdgxJS';
+        const API_BASE = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}`;
+
+        async function fetchAll(table, params = '') {
+            const records = [];
+            let offset = '';
+            do {
+                const sep = params ? '&' : '?';
+                const url = `${API_BASE}/${encodeURIComponent(table)}?${params}${offset ? `${sep}offset=${offset}` : ''}`;
+                const resp = await fetch(url, {
+                    headers: { 'Authorization': `Bearer ${AIRTABLE_API_KEY}` }
+                });
+                if (!resp.ok) throw new Error(`Failed to fetch ${table}: ${resp.status}`);
+                const data = await resp.json();
+                records.push(...data.records);
+                offset = data.offset || '';
+            } while (offset);
+            return records;
+        }
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
+        }
+
+        async function loadEnrollments() {
+            const content = document.getElementById('content');
+            try {
+                const [parents, students] = await Promise.all([
+                    fetchAll('Parents', 'sort%5B0%5D%5Bfield%5D=Name&sort%5B0%5D%5Bdirection%5D=asc'),
+                    fetchAll('Students')
+                ]);
+
+                // Index students by parent record ID
+                const studentsByParent = {};
+                for (const s of students) {
+                    const parentIds = s.fields.Parents || [];
+                    for (const pid of parentIds) {
+                        if (!studentsByParent[pid]) studentsByParent[pid] = [];
+                        studentsByParent[pid].push(s);
+                    }
+                }
+
+                // Summary
+                const totalFamilies = parents.length;
+                const totalStudents = students.length;
+
+                let html = `<div class="summary">
+                    <div><span class="stat">${totalFamilies}</span> families</div>
+                    <div><span class="stat">${totalStudents}</span> students</div>
+                </div>`;
+
+                // Render each family
+                for (const parent of parents) {
+                    const p = parent.fields;
+                    const kids = studentsByParent[parent.id] || [];
+                    const editUrl = `enrollment.html?parent=${parent.id}`;
+
+                    html += `<div class="family-card">`;
+                    html += `<div class="parent-section">`;
+                    html += `<a href="${editUrl}" class="edit-link">Edit</a>`;
+                    html += `<div class="parent-name">${escapeHtml(p.Name)}</div>`;
+                    html += `<div class="parent-details">`;
+                    if (p.Email) html += `<div><a href="mailto:${escapeHtml(p.Email)}">${escapeHtml(p.Email)}</a></div>`;
+                    if (p.Mobile) html += `<div>${escapeHtml(p.Mobile)}</div>`;
+                    if (p.Phone) html += `<div>${escapeHtml(p.Phone)}</div>`;
+                    if (p.Suburb) html += `<div>${escapeHtml(p.Suburb)}</div>`;
+                    if (p.Address) html += `<div><span class="detail-label">Address:</span> ${escapeHtml(p.Address)}, ${escapeHtml(p.Suburb || '')} ${escapeHtml(p.Postcode || '')}</div>`;
+                    html += `</div></div>`;
+
+                    if (kids.length === 0) {
+                        html += `<div class="no-students">No students linked</div>`;
+                    } else {
+                        // Sort kids by name
+                        kids.sort((a, b) => (a.fields.Name || '').localeCompare(b.fields.Name || ''));
+                        for (const kid of kids) {
+                            const s = kid.fields;
+                            html += `<div class="student-section">`;
+                            html += `<div class="student-header">`;
+                            html += `<span class="student-name">${escapeHtml(s.Name)}</span>`;
+                            if (s.Age !== undefined && s.Age !== null) html += `<span class="student-age">Age ${s.Age}</span>`;
+                            html += `</div>`;
+                            html += `<div class="student-details">`;
+                            if (s['School Attended']) html += `<span class="student-tag">${escapeHtml(s['School Attended'])}</span>`;
+                            if (s['Year/Class']) html += `<span class="student-tag">${escapeHtml(s['Year/Class'])}</span>`;
+                            if (s['Medical Notes']) html += `<span class="medical-tag">${escapeHtml(s['Medical Notes'])}</span>`;
+                            if (s['Dietary Notes']) html += `<span class="medical-tag">${escapeHtml(s['Dietary Notes'])}</span>`;
+                            if (s['Special Needs']) html += `<span class="medical-tag">${escapeHtml(s['Special Needs'])}</span>`;
+                            html += `</div></div>`;
+                        }
+                    }
+                    html += `</div>`;
+                }
+
+                content.innerHTML = html;
+
+            } catch (err) {
+                content.innerHTML = `<div class="error">Error loading enrollments: ${escapeHtml(err.message)}</div>`;
+                console.error(err);
+            }
+        }
+
+        loadEnrollments();
+    </script>
+</body>
+</html>
