@@ -115,6 +115,10 @@
             text-decoration: none;
         }
         .edit-link:hover { text-decoration: underline; }
+        .enrolled-date { font-size: 13px; color: #999; margin-bottom: 6px; }
+        .sort-btn { color: #2563eb; text-decoration: none; font-size: 14px; }
+        .sort-btn:hover { text-decoration: underline; }
+        .sort-btn.sort-active { font-weight: 600; color: #333; }
     </style>
 </head>
 <body>
@@ -156,11 +160,25 @@
             return div.innerHTML;
         }
 
+        function getLastName(fullName) {
+            if (!fullName) return '';
+            const parts = fullName.trim().split(/\s+/);
+            return parts.length > 1 ? parts[parts.length - 1] : parts[0];
+        }
+
+        function formatDate(isoStr) {
+            if (!isoStr) return '';
+            const d = new Date(isoStr);
+            return d.toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' });
+        }
+
+        let currentSort = 'name'; // 'name' or 'date'
+
         async function loadEnrollments() {
             const content = document.getElementById('content');
             try {
                 const [parents, students] = await Promise.all([
-                    fetchAll('Parents', 'sort%5B0%5D%5Bfield%5D=Name&sort%5B0%5D%5Bdirection%5D=asc'),
+                    fetchAll('Parents'),
                     fetchAll('Students')
                 ]);
 
@@ -174,30 +192,59 @@
                     }
                 }
 
-                // Summary
-                const totalFamilies = parents.length;
-                const totalStudents = students.length;
+                window._parents = parents;
+                window._students = students;
+                window._studentsByParent = studentsByParent;
+                renderCards(parents, students, studentsByParent);
 
-                let html = `<div class="summary">
+            } catch (err) {
+                content.innerHTML = `<div class="error">Error loading enrollments: ${escapeHtml(err.message)}</div>`;
+                console.error(err);
+            }
+        }
+
+        function renderCards(parents, students, studentsByParent) {
+            const content = document.getElementById('content');
+
+            // Sort
+            const sorted = [...parents];
+            if (currentSort === 'name') {
+                sorted.sort((a, b) => getLastName(a.fields.Name).localeCompare(getLastName(b.fields.Name)));
+            } else {
+                sorted.sort((a, b) => (b.createdTime || '').localeCompare(a.createdTime || ''));
+            }
+
+            const totalFamilies = parents.length;
+            const totalStudents = students.length;
+
+            const nameActive = currentSort === 'name' ? 'sort-active' : '';
+            const dateActive = currentSort === 'date' ? 'sort-active' : '';
+
+            let html = `<div class="summary">
                     <div><span class="stat">${totalFamilies}</span> families</div>
                     <div><span class="stat">${totalStudents}</span> students</div>
+                    <div style="margin-left:auto;">
+                        Sort: <a href="#" class="sort-btn ${nameActive}" onclick="setSort('name');return false;">Last Name</a>
+                        | <a href="#" class="sort-btn ${dateActive}" onclick="setSort('date');return false;">Newest First</a>
+                    </div>
                 </div>`;
 
                 // Render each family
-                for (const parent of parents) {
+                for (const parent of sorted) {
                     const p = parent.fields;
                     const kids = studentsByParent[parent.id] || [];
                     const editUrl = `enrollment.html?parent=${parent.id}`;
+                    const enrolled = formatDate(parent.createdTime);
 
                     html += `<div class="family-card">`;
                     html += `<div class="parent-section">`;
                     html += `<a href="${editUrl}" class="edit-link">Edit</a>`;
                     html += `<div class="parent-name">${escapeHtml(p.Name)}</div>`;
+                    if (enrolled) html += `<div class="enrolled-date">Enrolled ${enrolled}</div>`;
                     html += `<div class="parent-details">`;
                     if (p.Email) html += `<div><a href="mailto:${escapeHtml(p.Email)}">${escapeHtml(p.Email)}</a></div>`;
                     if (p.Mobile) html += `<div>${escapeHtml(p.Mobile)}</div>`;
                     if (p.Phone) html += `<div>${escapeHtml(p.Phone)}</div>`;
-                    if (p.Suburb) html += `<div>${escapeHtml(p.Suburb)}</div>`;
                     if (p.Address) html += `<div><span class="detail-label">Address:</span> ${escapeHtml(p.Address)}, ${escapeHtml(p.Suburb || '')} ${escapeHtml(p.Postcode || '')}</div>`;
                     html += `</div></div>`;
 
@@ -226,11 +273,11 @@
                 }
 
                 content.innerHTML = html;
+        }
 
-            } catch (err) {
-                content.innerHTML = `<div class="error">Error loading enrollments: ${escapeHtml(err.message)}</div>`;
-                console.error(err);
-            }
+        function setSort(mode) {
+            currentSort = mode;
+            renderCards(window._parents, window._students, window._studentsByParent);
         }
 
         loadEnrollments();
