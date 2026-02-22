@@ -85,7 +85,7 @@ This is the **authoritative schema documentation** for the KAF enrollment system
 |------------|------|----------|-------------|
 | **Name** | Single line text | ✅ | Student full name (Primary field) |
 | **Date of Birth** | Date | ✅ | Student DOB (format: YYYY-MM-DD for API) |
-| **School** | Single select | ✅ | School/kindergarten name |
+| **Venue** | Single select | ✅ | School/kindergarten/venue name |
 | **Year/Class** | Single line text | | Year level or class (e.g., "Year 3") |
 | **Medical Notes** | Long text | | Allergies, conditions, medications |
 | **Dietary Notes** | Long text | | Food allergies, restrictions |
@@ -101,7 +101,7 @@ This is the **authoritative schema documentation** for the KAF enrollment system
 | **Suburb** | Lookup | | From Parents → Suburb |
 | **Postcode** | Lookup | | From Parents → Postcode |
 
-**School Options (Single Select):**
+**Venue Options (Single Select):**
 - Chapel Hill Art Studio
 - Ironside State School
 - St Lucia Kindergarten
@@ -109,7 +109,7 @@ This is the **authoritative schema documentation** for the KAF enrollment system
 - Good News Lutheran School
 - Other
 
-**⚠️ Critical:** School field must use exact values from dropdown. Form uses dropdown to prevent validation errors.
+**⚠️ Critical:** Venue field must use exact values from dropdown. Form uses dropdown to prevent validation errors.
 
 **Key Formulas:**
 - `Student ID`: `"STU-" & RIGHT("000" & {Student ID Number}, 3)`
@@ -167,7 +167,7 @@ This is the **authoritative schema documentation** for the KAF enrollment system
       {
         "Name": "...",
         "Date of Birth": "...",
-        "School": "...",
+        "Venue": "...",
         "Medical Notes": "..."
       }
     ],
@@ -482,7 +482,7 @@ POST https://api.airtable.com/v0/appNuMdxaiSYdgxJS/Students
     "fields": {
       "Name": "Emma Johnson",
       "Date of Birth": "2015-06-15",
-      "School": "Ironside State School",
+      "Venue": "Ironside State School",
       "Year/Class": "Year 3",
       "Medical Notes": "Peanut allergy",
       "Parents": ["recPARENT_ID_HERE"]
@@ -519,7 +519,7 @@ POST https://api.airtable.com/v0/appNuMdxaiSYdgxJS/Audit%20Log
 **Changes from Original Schema Plan (Nov 5):**
 1. ✅ Households table removed - addresses moved to Parents
 2. ✅ Audit Log table added - not in original schema
-3. ✅ School field confirmed as dropdown (was documented but form had bug)
+3. ✅ Venue field confirmed as dropdown (was documented but form had bug)
 4. ❌ Some rollup fields not implemented (Active Enrollments, Total Classes Attended)
 5. ❌ Primary Parent field not implemented (not needed for current form)
 
@@ -539,7 +539,7 @@ POST https://api.airtable.com/v0/appNuMdxaiSYdgxJS/Audit%20Log
 ### Students Table
 - Name required
 - Date of Birth required (must be valid date)
-- School must match dropdown options exactly
+- Venue must match dropdown options exactly
 - Parents link required (at least one parent)
 
 ### Contacts Table
