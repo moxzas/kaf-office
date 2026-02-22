@@ -267,6 +267,12 @@
                                 },
                                 {
                                     type: "text",
+                                    name: "studentSchoolAttended",
+                                    title: "School",
+                                    placeholder: "e.g., Ironside State School"
+                                },
+                                {
+                                    type: "text",
                                     name: "studentYearClass",
                                     title: "Year/Class",
                                     placeholder: "e.g., Year 3, Prep, Kindergarten"
@@ -462,6 +468,7 @@
                             studentName: student.fields.Name || '',
                             studentDOB: student.fields['Date of Birth'] || '',
                             studentSchool: student.fields.Venue || '',
+                            studentSchoolAttended: student.fields['School Attended'] || '',
                             studentYearClass: student.fields['Year/Class'] || '',
                             studentMedicalNotes: student.fields['Medical Notes'] || '',
                             studentDietaryNotes: student.fields['Dietary Notes'] || '',
@@ -643,6 +650,7 @@
                         "Name": student.studentName,
                         "Date of Birth": student.studentDOB,
                         "Venue": student.studentSchool,
+                        "School Attended": student.studentSchoolAttended || "",
                         "Year/Class": student.studentYearClass || "",
                         "Medical Notes": student.studentMedicalNotes || "",
                         "Dietary Notes": student.studentDietaryNotes || "",
@@ -750,6 +758,7 @@
                         Name: s.studentName,
                         'Date of Birth': s.studentDOB,
                         Venue: s.studentSchool,
+                        'School Attended': s.studentSchoolAttended || '',
                         'Year/Class': s.studentYearClass || '',
                         'Medical Notes': s.studentMedicalNotes || '',
                         'Dietary Notes': s.studentDietaryNotes || '',
