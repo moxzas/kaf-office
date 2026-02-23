@@ -242,15 +242,8 @@
                     </div>
                 </div>
                 <div class="form-group">
-                    <label for="classCategory">Category</label>
-                    <select id="classCategory">
-                        <option value="">Select...</option>
-                        <option value="Pottery">Pottery</option>
-                        <option value="Painting">Painting</option>
-                        <option value="Drawing">Drawing</option>
-                        <option value="Sculpture">Sculpture</option>
-                        <option value="Mixed Media">Mixed Media</option>
-                    </select>
+                    <label for="classNotes">Notes</label>
+                    <input type="text" id="classNotes" placeholder="e.g. Painting only, longer sessions">
                 </div>
             </div>
 
@@ -262,9 +255,9 @@
                     </select>
                 </div>
                 <div class="form-group">
-                    <label for="classTeachers">Teacher(s)</label>
-                    <select id="classTeachers" multiple size="3">
-                        <option value="">Loading teachers...</option>
+                    <label for="classTeacher">Teacher</label>
+                    <select id="classTeacher">
+                        <option value="">Select teacher...</option>
                     </select>
                 </div>
             </div>
@@ -428,8 +421,8 @@
         }
 
         function populateTeacherDropdown(teachers) {
-            const sel = document.getElementById('classTeachers');
-            sel.innerHTML = '';
+            const sel = document.getElementById('classTeacher');
+            sel.innerHTML = '<option value="">Select teacher...</option>';
             teachers.sort((a, b) => (a.fields.Name || '').localeCompare(b.fields.Name || ''));
             for (const t of teachers) {
                 sel.innerHTML += `<option value="${t.id}">${escapeHtml(t.fields.Name)}</option>`;
@@ -601,7 +594,7 @@
             const f = cls.fields;
             document.getElementById('className').value = f.Name || '';
             setRadio('classType', f.Type || 'Term');
-            document.getElementById('classCategory').value = f.Category || '';
+            document.getElementById('classNotes').value = f.Notes || '';
             document.getElementById('classDayOfWeek').value = f['Day of Week'] || '';
             document.getElementById('classStartTime').value = f['Start Time'] || '';
             document.getElementById('classDuration').value = f['Duration (mins)'] || '';
@@ -617,12 +610,9 @@
             const venueIds = f.Venue || [];
             document.getElementById('classVenue').value = venueIds[0] || '';
 
-            // Teachers (multi-select)
+            // Teacher (single select dropdown)
             const teacherIds = f.Teachers || [];
-            const teacherSel = document.getElementById('classTeachers');
-            for (const opt of teacherSel.options) {
-                opt.selected = teacherIds.includes(opt.value);
-            }
+            document.getElementById('classTeacher').value = teacherIds[0] || '';
 
             document.getElementById('formPanel').classList.add('show');
             document.getElementById('className').focus();
@@ -636,7 +626,7 @@
         function clearForm() {
             document.getElementById('className').value = '';
             setRadio('classType', 'Term');
-            document.getElementById('classCategory').value = '';
+            document.getElementById('classNotes').value = '';
             document.getElementById('classDayOfWeek').value = '';
             document.getElementById('classStartTime').value = '';
             document.getElementById('classDuration').value = '';
@@ -647,8 +637,7 @@
             document.getElementById('classHolidayDate').value = '';
             document.getElementById('classStatus').value = 'Active';
             document.getElementById('classVenue').value = '';
-            const teacherSel = document.getElementById('classTeachers');
-            for (const opt of teacherSel.options) opt.selected = false;
+            document.getElementById('classTeacher').value = '';
         }
 
         function setRadio(name, value) {
@@ -678,7 +667,7 @@
             const fields = {
                 "Name": name,
                 "Type": classType || null,
-                "Category": document.getElementById('classCategory').value || null,
+                "Notes": document.getElementById('classNotes').value.trim() || null,
                 "Day of Week": document.getElementById('classDayOfWeek').value || null,
                 "Start Time": document.getElementById('classStartTime').value.trim() || null,
                 "Duration (mins)": parseInt(document.getElementById('classDuration').value) || null,
@@ -694,10 +683,9 @@
             const venueId = document.getElementById('classVenue').value;
             if (venueId) fields["Venue"] = [venueId];
 
-            // Teachers (multi-select link)
-            const teacherSel = document.getElementById('classTeachers');
-            const teacherIds = Array.from(teacherSel.selectedOptions).map(o => o.value).filter(Boolean);
-            if (teacherIds.length) fields["Teachers"] = teacherIds;
+            // Teacher (single select)
+            const teacherId = document.getElementById('classTeacher').value;
+            if (teacherId) fields["Teachers"] = [teacherId];
 
             // Clean nulls
             for (const key of Object.keys(fields)) {
