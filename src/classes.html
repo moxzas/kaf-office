@@ -344,6 +344,7 @@
             <div class="form-actions">
                 <button class="btn btn-primary" id="saveBtn" onclick="saveClass()">Save Class</button>
                 <button class="btn btn-secondary" onclick="closeForm()">Cancel</button>
+                <button class="btn btn-sm" id="deleteBtn" style="display:none; margin-left:auto; color:#dc2626;" onclick="deleteClass()">Delete</button>
             </div>
         </div>
     </div>
@@ -580,6 +581,7 @@
             document.getElementById('editingRecordId').value = '';
             clearForm();
             document.getElementById('classStatus').value = 'Active';
+            document.getElementById('deleteBtn').style.display = 'none';
             onTypeChange();
             document.getElementById('formPanel').classList.add('show');
             document.getElementById('className').focus();
@@ -591,6 +593,10 @@
 
             document.getElementById('formTitle').textContent = 'Edit Class';
             document.getElementById('editingRecordId').value = recordId;
+
+            // Show delete button only if no enrollments
+            const hasEnrollments = (cls.fields['Current Enrollment'] || 0) > 0;
+            document.getElementById('deleteBtn').style.display = hasEnrollments ? 'none' : '';
 
             const f = cls.fields;
             document.getElementById('className').value = f.Name || '';
@@ -744,6 +750,29 @@
             } finally {
                 saveBtn.disabled = false;
                 saveBtn.textContent = 'Save Class';
+            }
+        }
+
+        async function deleteClass() {
+            const recordId = document.getElementById('editingRecordId').value;
+            if (!recordId) return;
+
+            const cls = allClasses.find(c => c.id === recordId);
+            const name = cls ? cls.fields.Name : 'this class';
+            if (!confirm(`Delete "${name}"? This cannot be undone.`)) return;
+
+            const errEl = document.getElementById('formError');
+            try {
+                const resp = await fetch(`${API_BASE}/Classes/${recordId}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${AIRTABLE_API_KEY}` },
+                });
+                if (!resp.ok) throw new Error(`Delete failed: ${await resp.text()}`);
+                closeForm();
+                await loadData();
+            } catch (err) {
+                errEl.textContent = err.message;
+                errEl.classList.add('show');
             }
         }
 
