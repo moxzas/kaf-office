@@ -351,6 +351,12 @@
                         },
                         {
                             type: "boolean",
+                            name: "marketingConsent",
+                            title: "I'd like to receive updates about classes and events from Kids Art Fun",
+                            defaultValue: true
+                        },
+                        {
+                            type: "boolean",
                             name: "oshcCollection",
                             title: "Pick up from OSHC (Outside School Hours Care) - Ironside State School only",
                             defaultValue: false
@@ -429,6 +435,7 @@
                     parentSuburb: parentData.fields.Suburb || '',
                     parentPostcode: parentData.fields.Postcode || '',
                     parentAuthorizedPickup: parentData.fields['Authorized for Pickup'] || false,
+                    marketingConsent: parentData.fields['Marketing Consent'] !== false,
                     interestCategories: parentData.fields['Interest Categories'] || [],
                     interestNotes: parentData.fields['Interest Notes'] || ''
                 };
@@ -561,6 +568,7 @@
                                 "Suburb": formData.parentSuburb,
                                 "Postcode": formData.parentPostcode,
                                 "Authorized for Pickup": formData.parentAuthorizedPickup || false,
+                                "Marketing Consent": formData.marketingConsent !== false,
                                 "Interest Categories": formData.interestCategories || [],
                                 "Interest Notes": formData.interestNotes || ""
                             }
@@ -599,6 +607,7 @@
                             "Suburb": formData.parentSuburb,
                             "Postcode": formData.parentPostcode,
                             "Authorized for Pickup": formData.parentAuthorizedPickup || false,
+                            "Marketing Consent": formData.marketingConsent !== false,
                             "Interest Categories": formData.interestCategories || [],
                             "Interest Notes": formData.interestNotes || ""
                         }
@@ -785,7 +794,16 @@ http://app.sonzai.com/kaf/enrollment.html?parent=${parentRecordId}
 📧 Confirmation email sent to ${formData.parentEmail}
 (Check your spam folder if you don't see it)`;
 
-                showStatus(message, 'success');
+                // Check for return URL (e.g. from class registration flow)
+                const returnUrl = urlParams.get('return');
+                if (returnUrl && !isEditMode) {
+                    showStatus('✅ Enrollment complete! Redirecting to class registration...', 'success');
+                    setTimeout(() => {
+                        window.location.href = returnUrl;
+                    }, 1500);
+                } else {
+                    showStatus(message, 'success');
+                }
 
             } catch (error) {
                 console.error('Submission error:', error);

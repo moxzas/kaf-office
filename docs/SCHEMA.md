@@ -1,8 +1,8 @@
 # Airtable Schema: KAF Art & Craft School CRM
 
 **Base ID:** `appNuMdxaiSYdgxJS`
-**Last Updated:** 2026-02-08
-**Status:** Production (Live enrollment system + CRM/Mailing list)
+**Last Updated:** 2026-02-23
+**Status:** Production (Enrollment + Class Registration + CRM)
 
 ---
 
@@ -12,13 +12,15 @@ This is the **authoritative schema documentation** for the KAF enrollment system
 
 **What This System Does:**
 - Online enrollment form for parents (SurveyJS at app.sonzai.com/kaf/enrollment.html)
+- Class admin page for Sophia (app.sonzai.com/kaf/classes.html)
+- Parent-facing class registration (app.sonzai.com/kaf/register.html?class={ID})
 - Student records with medical/dietary notes
 - Audit trail of all enrollments and changes
 - Email notifications to school owner and parents
 
 **Database Architecture:**
-- 8 tables in Airtable
-- Direct API access from enrollment form (browser → Airtable)
+- 9 tables in Airtable
+- Direct API access from enrollment form and registration pages (browser → Airtable)
 - Audit logging via backend server (ezeo_otg)
 - No complex build process, minimal dependencies
 
@@ -32,13 +34,13 @@ This is the **authoritative schema documentation** for the KAF enrollment system
 | **Students** | 17 | Child details, medical notes, auto-generated IDs |
 | **Contacts** | 13 | CRM/mailing list from Wix import (1,944 records) |
 | **Audit Log** | 5 | Complete history of enrollments (JSON blobs) |
-| **Venues** | 7 | Class locations (not used by enrollment form yet) |
-| **Teachers** | 8 | Instructors (not used by enrollment form yet) |
-| **Classes** | 17 | Class schedules (not used by enrollment form yet) |
-| **Enrollments** | 24 | Student-class junction (not used by enrollment form yet) |
-| **Attendance** | 10 | Session tracking (not used by enrollment form yet) |
+| **Venues** | 7 | Class locations (seeded by setup script, used by classes.html) |
+| **Teachers** | 8 | Instructors (managed via Airtable UI, used by classes.html) |
+| **Classes** | 17 | Class schedules (created via classes.html, used by register.html) |
+| **Enrollments** | 5 | Student-class registration junction (created via register.html) |
+| **Attendance** | 10 | Session tracking (not used yet) |
 
-**Note:** Parents, Students, and Audit Log are actively used by the current enrollment form. Contacts is the CRM/mailing list table populated from Wix CSV exports. The other tables are legacy/planned for future features.
+**Note:** Parents, Students, Audit Log, Classes, Enrollments, Venues, and Teachers are actively used. Contacts is the CRM/mailing list table. Attendance is planned for future features.
 
 ---
 
@@ -266,13 +268,22 @@ This is the **authoritative schema documentation** for the KAF enrollment system
 | **Contact/Access Notes** | Long text | Keycode, contact person, parking info |
 | **Classes** | Link to Classes | Classes held at this venue (auto-populated) |
 
-**Status:** Legacy/planned feature. Not integrated with enrollment form.
+**Seeded venues:**
+- Chapel Hill Art Studio (Home Studio)
+- Ironside State School (School Rental)
+- St Lucia Kindergarten (School Rental)
+- Yeronga State School (School Rental)
+- Good News Lutheran School (School Rental)
+
+**Used by:** classes.html (venue dropdown), register.html (venue display)
+
+**Setup:** Run `python scripts/setup_classes.py seed-venues` to populate.
 
 ---
 
 ## 6. Teachers Table
 
-**Purpose:** Instructor records (not currently used by enrollment form).
+**Purpose:** Instructor records. Managed directly by Sophia in Airtable UI.
 
 | Field Name | Type | Description |
 |------------|------|-------------|
@@ -285,24 +296,26 @@ This is the **authoritative schema documentation** for the KAF enrollment system
 | **Notes** | Long text | General notes |
 | **Classes** | Link to Classes | Classes taught (auto-populated) |
 
-**Status:** Legacy/planned feature. Not integrated with enrollment form.
+**Used by:** classes.html (teacher dropdown)
 
 ---
 
 ## 7. Classes Table
 
-**Purpose:** Class schedules and details (not currently used by enrollment form).
+**Purpose:** Class schedules, pricing, and capacity. Created/edited via classes.html, referenced by register.html.
+
+**Used by:** classes.html (CRUD), register.html (display + spots check)
 
 | Field Name | Type | Description |
 |------------|------|-------------|
-| **Name** | Single line text | Class name (Primary field) |
+| **Name** | Single line text | Class name, e.g. "After School Art - Term 1 2026" (Primary field) |
 | **Type** | Single select | Term, Holiday Program |
 | **Category** | Single select | Pottery, Painting, Drawing, Sculpture, Mixed Media |
 | **Day of Week** | Single select | Monday - Sunday |
 | **Start Time** | Single line text | e.g., "3:30 PM" |
 | **Duration (mins)** | Number | Class length in minutes |
 | **Sessions in Term** | Number | Total sessions (e.g., 10 for term) |
-| **Price** | Currency | Class fee |
+| **Price** | Currency | Class fee (AUD) |
 | **Capacity** | Number | Max students |
 | **Status** | Single select | Active, Completed, Cancelled |
 | **Term Start Date** | Date | First session date |
@@ -311,44 +324,35 @@ This is the **authoritative schema documentation** for the KAF enrollment system
 | **Teachers** | Link to Teachers | Instructors (1-2 teachers) |
 | **Enrollments** | Link to Enrollments | Student enrollments (auto-populated) |
 | **Current Enrollment** | Count | Number of enrolled students |
-| **Spots Remaining** | Formula | `{Capacity} - {Current Enrollment}` |
+| **Spots Remaining** | Formula | `IF({Capacity}, {Capacity} - {Current Enrollment}, '')` |
 
-**Status:** Legacy/planned feature. Future: integrate class selection into enrollment form.
+**Registration Link Format:**
+```
+https://app.sonzai.com/kaf/register.html?class={AIRTABLE_RECORD_ID}
+```
+Sophia copies this from classes.html and pastes into Wix promo tile "Register" buttons.
+
+**Setup:** Run `python scripts/setup_classes.py create-tables` to create/verify.
 
 ---
 
 ## 8. Enrollments Table
 
-**Purpose:** Junction table linking students to classes (not currently used by enrollment form).
+**Purpose:** Lean junction table linking students to classes. Created by register.html when parents register their children.
+
+**Used by:** register.html (create), classes.html (count via Current Enrollment)
 
 | Field Name | Type | Description |
 |------------|------|-------------|
-| **Enrollment Name** | Formula | Auto-generated name |
-| **Enrollment ID** | Auto number | Sequential ID |
 | **Student** | Link to Students | Which student |
 | **Class** | Link to Classes | Which class |
-| **Payment Status** | Single select | Paid, Pending, Partial, Overdue, Refunded |
-| **Amount Paid** | Currency | Payment received |
-| **Sessions Included** | Number | Number of sessions paid for |
-| **Enrollment Date** | Date | When enrolled |
-| **Emergency Contact 1 Name** | Single line text | Primary emergency contact |
-| **Emergency Contact 1 Relationship** | Single line text | Relationship to student |
-| **Emergency Contact 1 Phone** | Phone number | Emergency phone |
-| **Emergency Contact 2 Name** | Single line text | Secondary emergency contact |
-| **Emergency Contact 2 Relationship** | Single line text | Relationship |
-| **Emergency Contact 2 Phone** | Phone number | Emergency phone |
-| **Photo Permission** | Single select | Yes - child & artwork, Yes - artwork only, No photos |
-| **Approved Pickup People** | Long text | Who can collect the student |
-| **OSHC Collection** | Checkbox | Collect from after-school care? (Ironside SS only) |
-| **Marketing Source** | Single select | How they found us |
-| **Special Requests** | Long text | Parent requests/notes |
-| **Additional Notes** | Long text | Internal notes |
-| **Attendance Records** | Link to Attendance | Session attendance (auto-populated) |
-| **Sessions Attended** | Rollup | Count of attended sessions |
-| **Sessions Remaining** | Formula | `MAX(0, {Sessions Included} - {Sessions Attended})` |
-| **Attendance Rate** | Formula | Percentage attendance |
+| **Enrollment Date** | Date | When registered (ISO format) |
+| **Payment Status** | Single select | Pending, Paid, Cancelled, Refunded |
+| **Notes** | Long text | Optional notes |
 
-**Status:** Legacy/planned feature. Currently, enrollment form captures emergency contacts and photo permissions but doesn't create Enrollment records yet. This is stored in Audit Log JSON blobs for now.
+**v1 Design Decision:** The original schema had 24 fields (emergency contacts, photo permission, etc.) which duplicate data already captured in the enrollment form's Parents/Students tables and Audit Log. For v1, this is a lean junction table. Additional fields (Sessions Attended, Attendance Rate, etc.) will be added when attendance tracking is built.
+
+**Setup:** Run `python scripts/setup_classes.py create-tables` to create/verify.
 
 ---
 
@@ -383,25 +387,29 @@ Parents (1) ←──→ (many) Students
    └──→ Contacts (optional link by email)
            (CRM / Mailing List, ~1,933 records)
 
-[Legacy/Planned:]
 Students (many) ←──→ (many) Enrollments ←──→ (many) Classes
-                               │                    │
-                               │                    ├─→ Venues (1)
-                               │                    └─→ Teachers (1-2)
-                               │
-                               └─→ (many) Attendance
-                                        │
-                                        └─→ Parents (pickup person)
+                                                     │
+                                                     ├─→ Venues (1)
+                                                     └─→ Teachers (1-2)
+
+[Planned:]
+Enrollments (1) ←──→ (many) Attendance
+                                │
+                                └─→ Parents (pickup person)
 ```
 
-**Active Relationships (Currently Used):**
+**Active Relationships:**
 - Parents → Students (one parent can have multiple children)
 - Students → Parents (one child can have multiple guardians)
+- Students → Enrollments (one student can register for many classes)
+- Classes → Enrollments (one class has many registrations)
+- Classes → Venues (class held at a venue)
+- Classes → Teachers (class taught by 1-2 teachers)
 - Contacts → Parents (optional link by email match, for CRM enrichment)
 - Audit Log tracks all enrollment submissions (not linked via Airtable relationships)
 
 **Inactive Relationships (For Future Features):**
-- Everything involving Venues, Teachers, Classes, Enrollments, Attendance
+- Attendance tracking (linked to Enrollments and Parents for pickup)
 
 ---
 
@@ -563,24 +571,26 @@ POST https://api.airtable.com/v0/appNuMdxaiSYdgxJS/Audit%20Log
 - Contacts: 1,944 records (imported from Wix CSVs + enrollment form)
 - Audit Log: active
 
-**Unused Tables:**
-- Venues: 0 records
-- Teachers: 0 records
-- Classes: 0 records
-- Enrollments: 0 records
-- Attendance: 0 records
+**Class Registration Tables:**
+- Venues: 5 records (seeded by setup script)
+- Teachers: managed by Sophia in Airtable
+- Classes: created via classes.html
+- Enrollments: created via register.html
 
-**Status:** Enrollment form in production. Contacts table populated (1,944 records). Views need to be created in Airtable UI (see Contacts Table Views section).
+**Unused Tables:**
+- Attendance: 0 records (planned)
+
+**Status:** Enrollment form, class admin, and class registration in production. Contacts table populated (1,944 records).
 
 ---
 
 ## Future Enhancements
 
-### Phase 4 (Planned)
-1. **Class Selection** - Let parents choose which classes to enroll in
-2. **Create Enrollment Records** - Link students to classes via Enrollments table
-3. **Payment Integration** - Stripe or Square for online payment
-4. **Parent Dashboard** - View enrollments, attendance, payments
+### Phase 4 (Completed Feb 2026)
+1. ~~**Class Selection**~~ - Done: register.html lets parents register for specific classes
+2. ~~**Create Enrollment Records**~~ - Done: register.html creates Enrollment records linking students to classes
+3. **Payment Integration** - Stripe Checkout (Phase 2, next session)
+4. **Parent Dashboard** - View enrollments, attendance, payments (future)
 
 ### Contacts Table Views (Recommended)
 
@@ -625,5 +635,5 @@ These Airtable views should be created on the Contacts table for Sophia's mailin
 
 ---
 
-**Last Updated:** 2026-02-08
-**Schema Version:** 1.1 (Production + CRM Contacts)
+**Last Updated:** 2026-02-23
+**Schema Version:** 1.2 (Production + Class Registration + CRM)

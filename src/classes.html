@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KAF - Class Management</title>
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            max-width: 960px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .header { text-align: center; margin-bottom: 30px; }
+        h1 { color: #333; margin-bottom: 5px; }
+        .subtitle { color: #666; font-size: 18px; }
+
+        /* Summary bar */
+        .summary {
+            background: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        .summary .stat { font-weight: 600; color: #333; }
+        .summary .stat-label { color: #555; }
+        .btn {
+            display: inline-block;
+            padding: 8px 16px;
+            border-radius: 6px;
+            border: none;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            text-decoration: none;
+        }
+        .btn-primary { background: #2563eb; color: white; }
+        .btn-primary:hover { background: #1d4ed8; }
+        .btn-secondary { background: #e5e7eb; color: #333; }
+        .btn-secondary:hover { background: #d1d5db; }
+        .btn-sm { padding: 5px 12px; font-size: 13px; }
+        .ml-auto { margin-left: auto; }
+
+        /* Toggle */
+        .toggle-row {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+        .toggle-label { font-size: 14px; color: #666; }
+        .toggle-label input { margin-right: 4px; }
+
+        /* Class cards */
+        .class-card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 16px;
+            padding: 20px;
+        }
+        .class-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 8px;
+        }
+        .class-name {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+        }
+        .class-meta {
+            font-size: 14px;
+            color: #555;
+            margin-bottom: 4px;
+        }
+        .class-meta .separator { color: #ccc; margin: 0 6px; }
+        .class-spots {
+            font-size: 14px;
+            font-weight: 500;
+        }
+        .spots-ok { color: #16a34a; }
+        .spots-low { color: #d97706; }
+        .spots-full { color: #dc2626; }
+        .class-teacher { font-size: 14px; color: #555; margin-bottom: 4px; }
+        .class-reg-link {
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid #f0f0f0;
+            font-size: 13px;
+            color: #888;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .reg-url {
+            color: #2563eb;
+            word-break: break-all;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        .copy-btn {
+            background: none;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 3px 8px;
+            cursor: pointer;
+            font-size: 13px;
+            color: #555;
+        }
+        .copy-btn:hover { background: #f5f5f5; }
+        .copy-btn.copied { color: #16a34a; border-color: #16a34a; }
+        .status-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        .status-active { background: #dcfce7; color: #166534; }
+        .status-completed { background: #f3f4f6; color: #6b7280; }
+        .status-cancelled { background: #fee2e2; color: #991b1b; }
+
+        /* Form panel */
+        .form-panel {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            overflow: hidden;
+            display: none;
+        }
+        .form-panel.show { display: block; }
+        .form-header {
+            padding: 15px 20px;
+            background: #f8fafc;
+            border-bottom: 1px solid #e5e7eb;
+            font-weight: 600;
+            font-size: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .form-body { padding: 20px; }
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+        .form-row.three-col { grid-template-columns: 1fr 1fr 1fr; }
+        .form-group { display: flex; flex-direction: column; }
+        .form-group.full-width { grid-column: 1 / -1; }
+        .form-group label {
+            font-size: 13px;
+            font-weight: 500;
+            color: #555;
+            margin-bottom: 4px;
+        }
+        .form-group input,
+        .form-group select {
+            padding: 8px 10px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 14px;
+            font-family: inherit;
+        }
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #2563eb;
+            box-shadow: 0 0 0 2px rgba(37,99,235,0.15);
+        }
+        .radio-group {
+            display: flex;
+            gap: 16px;
+            padding-top: 4px;
+        }
+        .radio-group label {
+            font-weight: 400;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            cursor: pointer;
+        }
+        .form-actions {
+            display: flex;
+            gap: 10px;
+            padding-top: 10px;
+            border-top: 1px solid #f0f0f0;
+            margin-top: 10px;
+        }
+        .form-error {
+            color: #dc2626;
+            font-size: 13px;
+            margin-top: 8px;
+            display: none;
+        }
+        .form-error.show { display: block; }
+
+        .loading { text-align: center; padding: 40px; color: #888; }
+        .error { text-align: center; padding: 40px; color: #c00; }
+        .empty-state { text-align: center; padding: 40px; color: #888; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Kids Art Fun</h1>
+        <p class="subtitle">Class Management</p>
+    </div>
+
+    <div id="formPanel" class="form-panel">
+        <div class="form-header">
+            <span id="formTitle">Add New Class</span>
+            <button class="btn btn-sm btn-secondary" onclick="closeForm()">Cancel</button>
+        </div>
+        <div class="form-body">
+            <input type="hidden" id="editingRecordId" value="">
+
+            <div class="form-row">
+                <div class="form-group full-width">
+                    <label for="className">Class Name</label>
+                    <input type="text" id="className" placeholder="e.g. After School Art - Term 1 2026">
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Type</label>
+                    <div class="radio-group">
+                        <label><input type="radio" name="classType" value="Term" checked> Term</label>
+                        <label><input type="radio" name="classType" value="Holiday Program"> Holiday Program</label>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="classCategory">Category</label>
+                    <select id="classCategory">
+                        <option value="">Select...</option>
+                        <option value="Pottery">Pottery</option>
+                        <option value="Painting">Painting</option>
+                        <option value="Drawing">Drawing</option>
+                        <option value="Sculpture">Sculpture</option>
+                        <option value="Mixed Media">Mixed Media</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="classVenue">Venue</label>
+                    <select id="classVenue">
+                        <option value="">Loading venues...</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="classTeachers">Teacher(s)</label>
+                    <select id="classTeachers" multiple size="3">
+                        <option value="">Loading teachers...</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-row three-col">
+                <div class="form-group">
+                    <label for="classDayOfWeek">Day of Week</label>
+                    <select id="classDayOfWeek">
+                        <option value="">Select...</option>
+                        <option value="Monday">Monday</option>
+                        <option value="Tuesday">Tuesday</option>
+                        <option value="Wednesday">Wednesday</option>
+                        <option value="Thursday">Thursday</option>
+                        <option value="Friday">Friday</option>
+                        <option value="Saturday">Saturday</option>
+                        <option value="Sunday">Sunday</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="classStartTime">Start Time</label>
+                    <input type="text" id="classStartTime" placeholder="e.g. 3:30 PM">
+                </div>
+                <div class="form-group">
+                    <label for="classDuration">Duration (mins)</label>
+                    <input type="number" id="classDuration" placeholder="e.g. 60">
+                </div>
+            </div>
+
+            <div class="form-row three-col">
+                <div class="form-group">
+                    <label for="classSessions">Sessions in Term</label>
+                    <input type="number" id="classSessions" placeholder="e.g. 10">
+                </div>
+                <div class="form-group">
+                    <label for="classPrice">Price ($)</label>
+                    <input type="number" id="classPrice" step="0.01" placeholder="e.g. 180">
+                </div>
+                <div class="form-group">
+                    <label for="classCapacity">Capacity</label>
+                    <input type="number" id="classCapacity" placeholder="e.g. 12">
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="classTermStart">Term Start Date</label>
+                    <input type="date" id="classTermStart">
+                </div>
+                <div class="form-group">
+                    <label for="classTermEnd">Term End Date</label>
+                    <input type="date" id="classTermEnd">
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="classStatus">Status</label>
+                    <select id="classStatus">
+                        <option value="Active">Active</option>
+                        <option value="Completed">Completed</option>
+                        <option value="Cancelled">Cancelled</option>
+                    </select>
+                </div>
+            </div>
+
+            <div id="formError" class="form-error"></div>
+
+            <div class="form-actions">
+                <button class="btn btn-primary" id="saveBtn" onclick="saveClass()">Save Class</button>
+                <button class="btn btn-secondary" onclick="closeForm()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="content">
+        <div class="loading">Loading classes...</div>
+    </div>
+
+    <script>
+        const AIRTABLE_API_KEY = 'patYJhlgK2q6sAnyZ.8c3945853082593f6ec6cc6d12a0cd863a13a912a067dfd99c75a0ff95ae4e06';
+        const AIRTABLE_BASE_ID = 'appNuMdxaiSYdgxJS';
+        const API_BASE = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}`;
+        const REG_BASE_URL = 'https://app.sonzai.com/kaf/register.html';
+
+        const DAY_ORDER = { Monday: 1, Tuesday: 2, Wednesday: 3, Thursday: 4, Friday: 5, Saturday: 6, Sunday: 7 };
+
+        let allClasses = [];
+        let venueMap = {};  // id -> name
+        let teacherMap = {};  // id -> name
+        let showInactive = false;
+
+        // ── Airtable helpers ──
+
+        async function fetchAll(table, params = '') {
+            const records = [];
+            let offset = '';
+            do {
+                const sep = params ? '&' : '';
+                const url = `${API_BASE}/${encodeURIComponent(table)}${params ? '?' + params : ''}${offset ? `${sep ? '&' : '?'}offset=${offset}` : ''}`;
+                const resp = await fetch(url, {
+                    headers: { 'Authorization': `Bearer ${AIRTABLE_API_KEY}` }
+                });
+                if (!resp.ok) throw new Error(`Failed to fetch ${table}: ${resp.status}`);
+                const data = await resp.json();
+                records.push(...data.records);
+                offset = data.offset || '';
+            } while (offset);
+            return records;
+        }
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
+        }
+
+        // ── Load data ──
+
+        async function loadData() {
+            try {
+                const [classes, venues, teachers] = await Promise.all([
+                    fetchAll('Classes'),
+                    fetchAll('Venues'),
+                    fetchAll('Teachers'),
+                ]);
+
+                allClasses = classes;
+                venueMap = {};
+                for (const v of venues) venueMap[v.id] = v.fields.Name || '?';
+                teacherMap = {};
+                for (const t of teachers) teacherMap[t.id] = t.fields.Name || '?';
+
+                populateVenueDropdown(venues);
+                populateTeacherDropdown(teachers);
+                renderClasses();
+            } catch (err) {
+                document.getElementById('content').innerHTML =
+                    `<div class="error">Error loading data: ${escapeHtml(err.message)}</div>`;
+                console.error(err);
+            }
+        }
+
+        function populateVenueDropdown(venues) {
+            const sel = document.getElementById('classVenue');
+            sel.innerHTML = '<option value="">Select venue...</option>';
+            venues.sort((a, b) => (a.fields.Name || '').localeCompare(b.fields.Name || ''));
+            for (const v of venues) {
+                sel.innerHTML += `<option value="${v.id}">${escapeHtml(v.fields.Name)}</option>`;
+            }
+        }
+
+        function populateTeacherDropdown(teachers) {
+            const sel = document.getElementById('classTeachers');
+            sel.innerHTML = '';
+            teachers.sort((a, b) => (a.fields.Name || '').localeCompare(b.fields.Name || ''));
+            for (const t of teachers) {
+                sel.innerHTML += `<option value="${t.id}">${escapeHtml(t.fields.Name)}</option>`;
+            }
+        }
+
+        // ── Render ──
+
+        function renderClasses() {
+            const content = document.getElementById('content');
+
+            let filtered = allClasses;
+            if (!showInactive) {
+                filtered = allClasses.filter(c => c.fields.Status === 'Active' || !c.fields.Status);
+            }
+
+            // Sort: Active first, then by day of week, then by start time
+            filtered.sort((a, b) => {
+                const statusA = a.fields.Status === 'Active' ? 0 : 1;
+                const statusB = b.fields.Status === 'Active' ? 0 : 1;
+                if (statusA !== statusB) return statusA - statusB;
+                const dayA = DAY_ORDER[a.fields['Day of Week']] || 99;
+                const dayB = DAY_ORDER[b.fields['Day of Week']] || 99;
+                if (dayA !== dayB) return dayA - dayB;
+                return (a.fields['Start Time'] || '').localeCompare(b.fields['Start Time'] || '');
+            });
+
+            const activeCount = allClasses.filter(c => c.fields.Status === 'Active' || !c.fields.Status).length;
+            const totalEnrolled = allClasses.reduce((sum, c) => sum + (c.fields['Current Enrollment'] || 0), 0);
+
+            let html = `
+                <div class="summary">
+                    <div><span class="stat">${activeCount}</span> <span class="stat-label">active classes</span></div>
+                    <div><span class="stat">${totalEnrolled}</span> <span class="stat-label">total enrolled</span></div>
+                    <button class="btn btn-primary ml-auto" onclick="openAddForm()">+ Add New Class</button>
+                </div>
+                <div class="toggle-row">
+                    <label class="toggle-label">
+                        <input type="checkbox" ${showInactive ? 'checked' : ''} onchange="showInactive=this.checked;renderClasses()">
+                        Show completed/cancelled
+                    </label>
+                </div>
+            `;
+
+            if (filtered.length === 0) {
+                html += `<div class="empty-state">No classes yet. Click "+ Add New Class" to create one.</div>`;
+            }
+
+            for (const cls of filtered) {
+                html += renderClassCard(cls);
+            }
+
+            content.innerHTML = html;
+        }
+
+        function renderClassCard(cls) {
+            const f = cls.fields;
+            const venueName = (f.Venue || []).map(id => venueMap[id] || '?').join(', ') || 'No venue';
+            const teacherNames = (f.Teachers || []).map(id => teacherMap[id] || '?').join(', ');
+            const enrolled = f['Current Enrollment'] || 0;
+            const capacity = f.Capacity || 0;
+            const spotsRemaining = capacity - enrolled;
+
+            let spotsClass = 'spots-ok';
+            let spotsText = `${enrolled}/${capacity} spots`;
+            if (capacity > 0 && spotsRemaining <= 0) {
+                spotsClass = 'spots-full';
+                spotsText = 'FULL';
+            } else if (capacity > 0 && spotsRemaining <= 3) {
+                spotsClass = 'spots-low';
+                spotsText = `${enrolled}/${capacity} spots (${spotsRemaining} left)`;
+            }
+
+            const statusClass = `status-${(f.Status || 'active').toLowerCase()}`;
+
+            const startDate = f['Term Start Date'] ? formatDateShort(f['Term Start Date']) : '';
+            const endDate = f['Term End Date'] ? formatDateShort(f['Term End Date']) : '';
+            const dateRange = startDate && endDate ? `${startDate} - ${endDate}` : startDate || '';
+
+            const price = f.Price != null ? `$${Number(f.Price).toFixed(0)}` : '';
+            const regUrl = `${REG_BASE_URL}?class=${cls.id}`;
+
+            let metaParts = [venueName];
+            if (f['Day of Week']) metaParts.push(f['Day of Week']);
+            if (f['Start Time']) metaParts.push(f['Start Time']);
+            if (f['Duration (mins)']) metaParts.push(`${f['Duration (mins)']} min`);
+
+            let detailParts = [];
+            if (dateRange) detailParts.push(dateRange);
+            if (price) detailParts.push(price);
+            if (f['Sessions in Term']) detailParts.push(`${f['Sessions in Term']} sessions`);
+
+            return `
+                <div class="class-card">
+                    <div class="class-card-header">
+                        <div>
+                            <span class="class-name">${escapeHtml(f.Name || 'Untitled')}</span>
+                            <span class="status-badge ${statusClass}">${escapeHtml(f.Status || 'Active')}</span>
+                        </div>
+                        <button class="btn btn-sm btn-secondary" onclick="openEditForm('${cls.id}')">Edit</button>
+                    </div>
+                    <div class="class-meta">${metaParts.map(escapeHtml).join('<span class="separator">·</span>')}</div>
+                    ${detailParts.length ? `<div class="class-meta">${detailParts.map(escapeHtml).join('<span class="separator">·</span>')}</div>` : ''}
+                    <div class="class-spots ${spotsClass}">${spotsText}</div>
+                    ${teacherNames ? `<div class="class-teacher">Teacher: ${escapeHtml(teacherNames)}</div>` : ''}
+                    ${f.Status === 'Active' || !f.Status ? `
+                    <div class="class-reg-link">
+                        <span>Registration link:</span>
+                        <span class="reg-url" id="regUrl-${cls.id}">${escapeHtml(regUrl)}</span>
+                        <button class="copy-btn" onclick="copyRegLink('${cls.id}', this)">Copy</button>
+                    </div>` : ''}
+                </div>
+            `;
+        }
+
+        function formatDateShort(iso) {
+            if (!iso) return '';
+            const d = new Date(iso + 'T00:00:00');
+            return d.toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' });
+        }
+
+        // ── Copy registration link ──
+
+        function copyRegLink(classId, btn) {
+            const url = document.getElementById(`regUrl-${classId}`).textContent;
+            navigator.clipboard.writeText(url).then(() => {
+                btn.textContent = 'Copied!';
+                btn.classList.add('copied');
+                setTimeout(() => {
+                    btn.textContent = 'Copy';
+                    btn.classList.remove('copied');
+                }, 2000);
+            });
+        }
+
+        // ── Form: Add/Edit ──
+
+        function openAddForm() {
+            document.getElementById('formTitle').textContent = 'Add New Class';
+            document.getElementById('editingRecordId').value = '';
+            clearForm();
+            document.getElementById('classStatus').value = 'Active';
+            document.getElementById('formPanel').classList.add('show');
+            document.getElementById('className').focus();
+        }
+
+        function openEditForm(recordId) {
+            const cls = allClasses.find(c => c.id === recordId);
+            if (!cls) return;
+
+            document.getElementById('formTitle').textContent = 'Edit Class';
+            document.getElementById('editingRecordId').value = recordId;
+
+            const f = cls.fields;
+            document.getElementById('className').value = f.Name || '';
+            setRadio('classType', f.Type || 'Term');
+            document.getElementById('classCategory').value = f.Category || '';
+            document.getElementById('classDayOfWeek').value = f['Day of Week'] || '';
+            document.getElementById('classStartTime').value = f['Start Time'] || '';
+            document.getElementById('classDuration').value = f['Duration (mins)'] || '';
+            document.getElementById('classSessions').value = f['Sessions in Term'] || '';
+            document.getElementById('classPrice').value = f.Price != null ? f.Price : '';
+            document.getElementById('classCapacity').value = f.Capacity || '';
+            document.getElementById('classTermStart').value = f['Term Start Date'] || '';
+            document.getElementById('classTermEnd').value = f['Term End Date'] || '';
+            document.getElementById('classStatus').value = f.Status || 'Active';
+
+            // Venue (single link shown as first element)
+            const venueIds = f.Venue || [];
+            document.getElementById('classVenue').value = venueIds[0] || '';
+
+            // Teachers (multi-select)
+            const teacherIds = f.Teachers || [];
+            const teacherSel = document.getElementById('classTeachers');
+            for (const opt of teacherSel.options) {
+                opt.selected = teacherIds.includes(opt.value);
+            }
+
+            document.getElementById('formPanel').classList.add('show');
+            document.getElementById('className').focus();
+        }
+
+        function closeForm() {
+            document.getElementById('formPanel').classList.remove('show');
+            document.getElementById('formError').classList.remove('show');
+        }
+
+        function clearForm() {
+            document.getElementById('className').value = '';
+            setRadio('classType', 'Term');
+            document.getElementById('classCategory').value = '';
+            document.getElementById('classDayOfWeek').value = '';
+            document.getElementById('classStartTime').value = '';
+            document.getElementById('classDuration').value = '';
+            document.getElementById('classSessions').value = '';
+            document.getElementById('classPrice').value = '';
+            document.getElementById('classCapacity').value = '';
+            document.getElementById('classTermStart').value = '';
+            document.getElementById('classTermEnd').value = '';
+            document.getElementById('classStatus').value = 'Active';
+            document.getElementById('classVenue').value = '';
+            const teacherSel = document.getElementById('classTeachers');
+            for (const opt of teacherSel.options) opt.selected = false;
+        }
+
+        function setRadio(name, value) {
+            const radios = document.querySelectorAll(`input[name="${name}"]`);
+            for (const r of radios) r.checked = r.value === value;
+        }
+
+        function getRadio(name) {
+            const checked = document.querySelector(`input[name="${name}"]:checked`);
+            return checked ? checked.value : '';
+        }
+
+        async function saveClass() {
+            const errEl = document.getElementById('formError');
+            errEl.classList.remove('show');
+
+            const name = document.getElementById('className').value.trim();
+            if (!name) {
+                errEl.textContent = 'Class name is required.';
+                errEl.classList.add('show');
+                return;
+            }
+
+            const fields = {
+                "Name": name,
+                "Type": getRadio('classType') || null,
+                "Category": document.getElementById('classCategory').value || null,
+                "Day of Week": document.getElementById('classDayOfWeek').value || null,
+                "Start Time": document.getElementById('classStartTime').value.trim() || null,
+                "Duration (mins)": parseInt(document.getElementById('classDuration').value) || null,
+                "Sessions in Term": parseInt(document.getElementById('classSessions').value) || null,
+                "Price": parseFloat(document.getElementById('classPrice').value) || null,
+                "Capacity": parseInt(document.getElementById('classCapacity').value) || null,
+                "Term Start Date": document.getElementById('classTermStart').value || null,
+                "Term End Date": document.getElementById('classTermEnd').value || null,
+                "Status": document.getElementById('classStatus').value || 'Active',
+            };
+
+            // Venue (link field, array of IDs)
+            const venueId = document.getElementById('classVenue').value;
+            if (venueId) fields["Venue"] = [venueId];
+
+            // Teachers (multi-select link)
+            const teacherSel = document.getElementById('classTeachers');
+            const teacherIds = Array.from(teacherSel.selectedOptions).map(o => o.value).filter(Boolean);
+            if (teacherIds.length) fields["Teachers"] = teacherIds;
+
+            // Clean nulls
+            for (const key of Object.keys(fields)) {
+                if (fields[key] === null) delete fields[key];
+            }
+
+            const saveBtn = document.getElementById('saveBtn');
+            saveBtn.disabled = true;
+            saveBtn.textContent = 'Saving...';
+
+            try {
+                const recordId = document.getElementById('editingRecordId').value;
+
+                if (recordId) {
+                    // Update existing
+                    const resp = await fetch(`${API_BASE}/Classes/${recordId}`, {
+                        method: 'PATCH',
+                        headers: {
+                            'Authorization': `Bearer ${AIRTABLE_API_KEY}`,
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ fields }),
+                    });
+                    if (!resp.ok) {
+                        const err = await resp.text();
+                        throw new Error(`Update failed: ${err}`);
+                    }
+                } else {
+                    // Create new
+                    const resp = await fetch(`${API_BASE}/Classes`, {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${AIRTABLE_API_KEY}`,
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ records: [{ fields }] }),
+                    });
+                    if (!resp.ok) {
+                        const err = await resp.text();
+                        throw new Error(`Create failed: ${err}`);
+                    }
+                }
+
+                closeForm();
+                await loadData();
+            } catch (err) {
+                errEl.textContent = err.message;
+                errEl.classList.add('show');
+                console.error(err);
+            } finally {
+                saveBtn.disabled = false;
+                saveBtn.textContent = 'Save Class';
+            }
+        }
+
+        // ── Init ──
+        loadData();
+    </script>
+</body>
+</html>

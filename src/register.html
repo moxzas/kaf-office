@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kids Art Fun - Class Registration</title>
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .header { text-align: center; margin-bottom: 30px; }
+        h1 { color: #333; margin-bottom: 5px; }
+        .subtitle { color: #666; font-size: 18px; }
+
+        .card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            padding: 24px;
+            margin-bottom: 20px;
+        }
+
+        /* Class info */
+        .class-info { border-left: 4px solid #2563eb; }
+        .class-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 12px;
+        }
+        .class-detail {
+            font-size: 15px;
+            color: #555;
+            margin-bottom: 6px;
+            display: flex;
+            gap: 8px;
+        }
+        .class-detail .label { color: #888; min-width: 80px; }
+        .class-price {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            margin-top: 12px;
+        }
+        .class-spots {
+            font-size: 14px;
+            margin-top: 8px;
+            font-weight: 500;
+        }
+        .spots-ok { color: #16a34a; }
+        .spots-low { color: #d97706; }
+        .spots-full { color: #dc2626; }
+
+        /* Steps */
+        .step { display: none; }
+        .step.active { display: block; }
+
+        /* Form elements */
+        .form-group { margin-bottom: 16px; }
+        .form-group label {
+            display: block;
+            font-size: 14px;
+            font-weight: 500;
+            color: #555;
+            margin-bottom: 6px;
+        }
+        .form-group input[type="email"] {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 16px;
+            font-family: inherit;
+        }
+        .form-group input:focus {
+            outline: none;
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37,99,235,0.15);
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 12px 24px;
+            border-radius: 8px;
+            border: none;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            text-decoration: none;
+            width: 100%;
+            text-align: center;
+        }
+        .btn-primary { background: #2563eb; color: white; }
+        .btn-primary:hover { background: #1d4ed8; }
+        .btn-primary:disabled { background: #93b4f5; cursor: not-allowed; }
+        .btn-outline {
+            background: white;
+            color: #2563eb;
+            border: 2px solid #2563eb;
+        }
+        .btn-outline:hover { background: #eff6ff; }
+
+        /* Student selection */
+        .welcome-msg {
+            font-size: 18px;
+            font-weight: 500;
+            color: #333;
+            margin-bottom: 16px;
+        }
+        .student-list { margin-bottom: 20px; }
+        .student-option {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: border-color 0.15s;
+        }
+        .student-option:hover { border-color: #93b4f5; }
+        .student-option.selected { border-color: #2563eb; background: #eff6ff; }
+        .student-option.already-enrolled {
+            border-color: #e5e7eb;
+            background: #f9fafb;
+            cursor: default;
+            opacity: 0.7;
+        }
+        .student-option input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            accent-color: #2563eb;
+        }
+        .student-name { font-weight: 500; font-size: 16px; color: #333; }
+        .student-age { font-size: 14px; color: #888; }
+        .already-text { font-size: 13px; color: #16a34a; font-weight: 500; }
+
+        /* Not found prompt */
+        .not-found-msg {
+            font-size: 16px;
+            color: #555;
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+
+        /* Confirmation */
+        .success-icon { font-size: 48px; text-align: center; margin-bottom: 16px; }
+        .success-title {
+            font-size: 22px;
+            font-weight: 600;
+            color: #333;
+            text-align: center;
+            margin-bottom: 12px;
+        }
+        .success-detail {
+            font-size: 15px;
+            color: #555;
+            text-align: center;
+            line-height: 1.6;
+        }
+        .payment-note {
+            margin-top: 16px;
+            padding: 12px;
+            background: #fef3c7;
+            border-radius: 6px;
+            font-size: 14px;
+            color: #92400e;
+            text-align: center;
+        }
+
+        /* Error/loading states */
+        .loading { text-align: center; padding: 40px; color: #888; }
+        .error-card {
+            text-align: center;
+            padding: 30px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .error-card .error-icon { font-size: 48px; margin-bottom: 12px; }
+        .error-card h2 { color: #333; margin-bottom: 8px; }
+        .error-card p { color: #666; margin-bottom: 20px; }
+        .form-error { color: #dc2626; font-size: 13px; margin-top: 8px; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Kids Art Fun</h1>
+        <p class="subtitle">Class Registration</p>
+    </div>
+
+    <!-- Loading state -->
+    <div id="loadingState" class="loading">Loading class details...</div>
+
+    <!-- Error: no class param or class not found -->
+    <div id="errorState" style="display:none;"></div>
+
+    <!-- Main content (shown after class loads) -->
+    <div id="mainContent" style="display:none;">
+
+        <!-- Class info card (always visible) -->
+        <div id="classInfo" class="card class-info"></div>
+
+        <!-- Step 1: Email entry -->
+        <div id="step1" class="step active">
+            <div class="card">
+                <div class="form-group">
+                    <label for="emailInput">Enter your email to register</label>
+                    <input type="email" id="emailInput" placeholder="your@email.com" autocomplete="email">
+                    <div id="emailError" class="form-error" style="display:none;"></div>
+                </div>
+                <button class="btn btn-primary" id="continueBtn" onclick="lookupEmail()">Continue</button>
+            </div>
+        </div>
+
+        <!-- Step 2a: Family found, select children -->
+        <div id="step2a" class="step">
+            <div class="card">
+                <div id="welcomeMsg" class="welcome-msg"></div>
+                <p style="color:#666; margin-bottom:16px;">Select which children to register:</p>
+                <div id="studentList" class="student-list"></div>
+                <div id="registerError" class="form-error" style="display:none;"></div>
+                <button class="btn btn-primary" id="registerBtn" onclick="registerStudents()">Register</button>
+            </div>
+        </div>
+
+        <!-- Step 2b: Family not found -->
+        <div id="step2b" class="step">
+            <div class="card">
+                <div class="not-found-msg">
+                    We don't have your details yet.<br>
+                    Please complete our enrollment form first, then come back to register for this class.
+                </div>
+                <a id="enrollLink" class="btn btn-primary" href="#">Enrol Now</a>
+            </div>
+        </div>
+
+        <!-- Step 3: Confirmation -->
+        <div id="step3" class="step">
+            <div class="card">
+                <div class="success-icon">&#10003;</div>
+                <div id="successTitle" class="success-title"></div>
+                <div id="successDetail" class="success-detail"></div>
+                <div class="payment-note">
+                    Payment: We'll be in touch about payment shortly.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const AIRTABLE_API_KEY = 'patYJhlgK2q6sAnyZ.8c3945853082593f6ec6cc6d12a0cd863a13a912a067dfd99c75a0ff95ae4e06';
+        const AIRTABLE_BASE_ID = 'appNuMdxaiSYdgxJS';
+        const API_BASE = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}`;
+        const ENROLLMENT_URL = 'https://app.sonzai.com/kaf/enrollment.html';
+
+        let classRecord = null;
+        let parentRecord = null;
+        let studentRecords = [];
+
+        // ── URL params ──
+        const urlParams = new URLSearchParams(window.location.search);
+        const classId = urlParams.get('class');
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
+        }
+
+        // ── Load class ──
+
+        async function loadClass() {
+            if (!classId) {
+                showError('No class specified', 'This link appears to be incomplete. Please check with your teacher for the correct registration link.');
+                return;
+            }
+
+            try {
+                const resp = await fetch(`${API_BASE}/Classes/${classId}`, {
+                    headers: { 'Authorization': `Bearer ${AIRTABLE_API_KEY}` }
+                });
+
+                if (!resp.ok) {
+                    if (resp.status === 404) {
+                        showError('Class not found', 'This class may no longer be available. Please check with your teacher for the correct registration link.');
+                    } else {
+                        showError('Error loading class', 'Something went wrong. Please try again later.');
+                    }
+                    return;
+                }
+
+                classRecord = await resp.json();
+                const f = classRecord.fields;
+
+                // Check if class is active
+                if (f.Status && f.Status !== 'Active') {
+                    showError('Registration closed', `This class is currently ${f.Status.toLowerCase()}. Please check with your teacher for available classes.`);
+                    return;
+                }
+
+                // Resolve venue name
+                let venueName = '';
+                if (f.Venue && f.Venue.length > 0) {
+                    try {
+                        const vResp = await fetch(`${API_BASE}/Venues/${f.Venue[0]}`, {
+                            headers: { 'Authorization': `Bearer ${AIRTABLE_API_KEY}` }
+                        });
+                        if (vResp.ok) {
+                            const vData = await vResp.json();
+                            venueName = vData.fields.Name || '';
+                        }
+                    } catch (e) { /* ignore venue resolve failure */ }
+                }
+
+                // Render class info
+                renderClassInfo(f, venueName);
+
+                document.getElementById('loadingState').style.display = 'none';
+                document.getElementById('mainContent').style.display = 'block';
+
+            } catch (err) {
+                showError('Connection error', 'Could not load class details. Please check your internet connection and try again.');
+                console.error(err);
+            }
+        }
+
+        function renderClassInfo(f, venueName) {
+            const enrolled = f['Current Enrollment'] || 0;
+            const capacity = f.Capacity || 0;
+            const spotsRemaining = capacity > 0 ? capacity - enrolled : null;
+
+            let spotsHtml = '';
+            if (spotsRemaining !== null) {
+                if (spotsRemaining <= 0) {
+                    spotsHtml = `<div class="class-spots spots-full">This class is full</div>`;
+                } else if (spotsRemaining <= 3) {
+                    spotsHtml = `<div class="class-spots spots-low">Only ${spotsRemaining} spot${spotsRemaining === 1 ? '' : 's'} left!</div>`;
+                } else {
+                    spotsHtml = `<div class="class-spots spots-ok">${spotsRemaining} spots available</div>`;
+                }
+            }
+
+            const startDate = f['Term Start Date'] ? formatDate(f['Term Start Date']) : '';
+            const endDate = f['Term End Date'] ? formatDate(f['Term End Date']) : '';
+
+            let detailsHtml = '';
+            if (venueName) detailsHtml += `<div class="class-detail"><span class="label">Venue</span> ${escapeHtml(venueName)}</div>`;
+            if (f['Day of Week']) {
+                let timeStr = f['Day of Week'];
+                if (f['Start Time']) timeStr += ` at ${f['Start Time']}`;
+                if (f['Duration (mins)']) timeStr += ` (${f['Duration (mins)']} min)`;
+                detailsHtml += `<div class="class-detail"><span class="label">When</span> ${escapeHtml(timeStr)}</div>`;
+            }
+            if (startDate && endDate) {
+                detailsHtml += `<div class="class-detail"><span class="label">Dates</span> ${escapeHtml(startDate)} - ${escapeHtml(endDate)}</div>`;
+            }
+            if (f['Sessions in Term']) {
+                detailsHtml += `<div class="class-detail"><span class="label">Sessions</span> ${f['Sessions in Term']}</div>`;
+            }
+
+            const priceHtml = f.Price != null ? `<div class="class-price">$${Number(f.Price).toFixed(0)}</div>` : '';
+
+            document.getElementById('classInfo').innerHTML = `
+                <div class="class-title">${escapeHtml(f.Name || 'Class')}</div>
+                ${detailsHtml}
+                ${priceHtml}
+                ${spotsHtml}
+            `;
+        }
+
+        function formatDate(iso) {
+            if (!iso) return '';
+            const d = new Date(iso + 'T00:00:00');
+            return d.toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' });
+        }
+
+        function showError(title, message) {
+            document.getElementById('loadingState').style.display = 'none';
+            document.getElementById('errorState').style.display = 'block';
+            document.getElementById('errorState').innerHTML = `
+                <div class="error-card">
+                    <div class="error-icon">&#9888;</div>
+                    <h2>${escapeHtml(title)}</h2>
+                    <p>${escapeHtml(message)}</p>
+                </div>
+            `;
+        }
+
+        function showStep(stepId) {
+            document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+            document.getElementById(stepId).classList.add('active');
+        }
+
+        // ── Step 1: Email lookup ──
+
+        async function lookupEmail() {
+            const emailInput = document.getElementById('emailInput');
+            const email = emailInput.value.trim().toLowerCase();
+            const errorEl = document.getElementById('emailError');
+            const btn = document.getElementById('continueBtn');
+
+            errorEl.style.display = 'none';
+
+            if (!email || !email.includes('@')) {
+                errorEl.textContent = 'Please enter a valid email address.';
+                errorEl.style.display = 'block';
+                return;
+            }
+
+            btn.disabled = true;
+            btn.textContent = 'Looking up...';
+
+            try {
+                // Search Parents table by email
+                const filterFormula = encodeURIComponent(`{Email}='${email}'`);
+                const resp = await fetch(`${API_BASE}/Parents?filterByFormula=${filterFormula}`, {
+                    headers: { 'Authorization': `Bearer ${AIRTABLE_API_KEY}` }
+                });
+
+                if (!resp.ok) throw new Error('Failed to search');
+
+                const data = await resp.json();
+
+                if (data.records.length > 0) {
+                    // Family found
+                    parentRecord = data.records[0];
+                    await loadStudents(parentRecord);
+                } else {
+                    // Family not found
+                    showNotFound(email);
+                }
+            } catch (err) {
+                errorEl.textContent = 'Something went wrong. Please try again.';
+                errorEl.style.display = 'block';
+                console.error(err);
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Continue';
+            }
+        }
+
+        // Allow Enter key to submit email
+        document.getElementById('emailInput').addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                lookupEmail();
+            }
+        });
+
+        // ── Step 2a: Show students ──
+
+        async function loadStudents(parent) {
+            const studentIds = parent.fields.Students || [];
+
+            if (studentIds.length === 0) {
+                showNotFound(parent.fields.Email);
+                return;
+            }
+
+            // Fetch student records
+            studentRecords = [];
+            for (const sid of studentIds) {
+                try {
+                    const resp = await fetch(`${API_BASE}/Students/${sid}`, {
+                        headers: { 'Authorization': `Bearer ${AIRTABLE_API_KEY}` }
+                    });
+                    if (resp.ok) {
+                        studentRecords.push(await resp.json());
+                    }
+                } catch (e) { /* skip failed fetches */ }
+            }
+
+            if (studentRecords.length === 0) {
+                showNotFound(parent.fields.Email);
+                return;
+            }
+
+            // Check which students are already enrolled in this class
+            const existingEnrollments = await fetchExistingEnrollments();
+
+            // Get parent's first name
+            const firstName = (parent.fields.Name || '').split(' ')[0] || 'there';
+            document.getElementById('welcomeMsg').textContent = `Welcome back, ${firstName}!`;
+
+            // Render student checkboxes
+            let html = '';
+            for (const student of studentRecords) {
+                const s = student.fields;
+                const age = s.Age != null ? `Age ${s.Age}` : '';
+                const alreadyEnrolled = existingEnrollments.has(student.id);
+
+                if (alreadyEnrolled) {
+                    html += `
+                        <div class="student-option already-enrolled">
+                            <input type="checkbox" disabled checked>
+                            <div>
+                                <div class="student-name">${escapeHtml(s.Name)}</div>
+                                ${age ? `<div class="student-age">${age}</div>` : ''}
+                                <div class="already-text">Already registered</div>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    html += `
+                        <div class="student-option" onclick="toggleStudent(this, '${student.id}')">
+                            <input type="checkbox" data-student-id="${student.id}" onclick="event.stopPropagation(); toggleStudent(this.parentElement, '${student.id}')">
+                            <div>
+                                <div class="student-name">${escapeHtml(s.Name)}</div>
+                                ${age ? `<div class="student-age">${age}</div>` : ''}
+                            </div>
+                        </div>
+                    `;
+                }
+            }
+
+            document.getElementById('studentList').innerHTML = html;
+            showStep('step2a');
+        }
+
+        async function fetchExistingEnrollments() {
+            const enrolled = new Set();
+            try {
+                // Find enrollments for this class
+                const filterFormula = encodeURIComponent(`FIND('${classId}', ARRAYJOIN({Class}))`);
+                const resp = await fetch(`${API_BASE}/Enrollments?filterByFormula=${filterFormula}`, {
+                    headers: { 'Authorization': `Bearer ${AIRTABLE_API_KEY}` }
+                });
+                if (resp.ok) {
+                    const data = await resp.json();
+                    for (const rec of data.records) {
+                        const studentIds = rec.fields.Student || [];
+                        for (const sid of studentIds) enrolled.add(sid);
+                    }
+                }
+            } catch (e) { /* ignore */ }
+            return enrolled;
+        }
+
+        function toggleStudent(el, studentId) {
+            const checkbox = el.querySelector('input[type="checkbox"]');
+            if (el.classList.contains('already-enrolled')) return;
+            checkbox.checked = !checkbox.checked;
+            el.classList.toggle('selected', checkbox.checked);
+        }
+
+        // ── Step 2b: Not found ──
+
+        function showNotFound(email) {
+            const returnParam = encodeURIComponent(`register.html?class=${classId}`);
+            document.getElementById('enrollLink').href = `${ENROLLMENT_URL}?return=${returnParam}`;
+            showStep('step2b');
+        }
+
+        // ── Step 2a: Register ──
+
+        async function registerStudents() {
+            const checkboxes = document.querySelectorAll('#studentList input[data-student-id]:checked');
+            const errorEl = document.getElementById('registerError');
+            const btn = document.getElementById('registerBtn');
+            errorEl.style.display = 'none';
+
+            if (checkboxes.length === 0) {
+                errorEl.textContent = 'Please select at least one child to register.';
+                errorEl.style.display = 'block';
+                return;
+            }
+
+            // Check spots
+            const f = classRecord.fields;
+            const enrolled = f['Current Enrollment'] || 0;
+            const capacity = f.Capacity || 0;
+            if (capacity > 0 && enrolled + checkboxes.length > capacity) {
+                const available = Math.max(0, capacity - enrolled);
+                errorEl.textContent = available === 0
+                    ? 'Sorry, this class is full.'
+                    : `Sorry, only ${available} spot${available === 1 ? '' : 's'} remaining.`;
+                errorEl.style.display = 'block';
+                return;
+            }
+
+            btn.disabled = true;
+            btn.textContent = 'Registering...';
+
+            try {
+                const today = new Date().toISOString().split('T')[0];
+                const records = [];
+
+                for (const cb of checkboxes) {
+                    records.push({
+                        fields: {
+                            "Student": [cb.dataset.studentId],
+                            "Class": [classId],
+                            "Enrollment Date": today,
+                            "Payment Status": "Pending",
+                        }
+                    });
+                }
+
+                // Batch create (up to 10)
+                const resp = await fetch(`${API_BASE}/Enrollments`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${AIRTABLE_API_KEY}`,
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ records }),
+                });
+
+                if (!resp.ok) {
+                    const errText = await resp.text();
+                    throw new Error(`Registration failed: ${errText}`);
+                }
+
+                // Show confirmation
+                const registeredNames = [];
+                for (const cb of checkboxes) {
+                    const student = studentRecords.find(s => s.id === cb.dataset.studentId);
+                    if (student) registeredNames.push(student.fields.Name);
+                }
+
+                showConfirmation(registeredNames);
+
+            } catch (err) {
+                errorEl.textContent = err.message;
+                errorEl.style.display = 'block';
+                console.error(err);
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Register';
+            }
+        }
+
+        // ── Step 3: Confirmation ──
+
+        function showConfirmation(names) {
+            const className = classRecord.fields.Name || 'this class';
+            if (names.length === 1) {
+                document.getElementById('successTitle').textContent = `${names[0]} is registered!`;
+                document.getElementById('successDetail').textContent = `Successfully registered for ${className}.`;
+            } else {
+                const nameList = names.slice(0, -1).join(', ') + ' and ' + names[names.length - 1];
+                document.getElementById('successTitle').textContent = 'Registration complete!';
+                document.getElementById('successDetail').textContent = `${nameList} are registered for ${className}.`;
+            }
+            showStep('step3');
+        }
+
+        // ── Init ──
+        loadClass();
+    </script>
+</body>
+</html>
