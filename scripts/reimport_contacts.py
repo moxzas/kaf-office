@@ -155,11 +155,9 @@ def main():
         print(f"Contacts reimport: {len(records)} records ready in {REIMPORT_FILE}")
         print(f"  Est. time: ~{len(records) // BATCH_SIZE * 0.25:.0f}s")
         print()
-        print("Steps to restore:")
-        print("  1. python import_contacts.py create-table")
-        print("  2. Add 'Parent Record' link field in Airtable UI (Contacts -> Parents)")
-        print("  3. python reimport_contacts.py --go")
-        print("  4. python reimport_contacts.py --link")
+        print("Steps to restore (table schema already exists):")
+        print("  1. python reimport_contacts.py --go    # import records")
+        print("  2. python reimport_contacts.py --link  # re-link to Parents")
         return
 
     api_key = get_api_key()
