@@ -36,7 +36,7 @@ This is the **authoritative schema documentation** for the KAF enrollment system
 | **Audit Log** | 5 | Complete history of enrollments (JSON blobs) |
 | **Venues** | 7 | Class locations (seeded by setup script, used by classes.html) |
 | **Teachers** | 8 | Instructors (managed via Airtable UI, used by classes.html) |
-| **Classes** | 17 | Class schedules (created via classes.html, used by register.html) |
+| **Classes** | 19 | Class schedules (created via classes.html, used by register.html) |
 | **Enrollments** | 5 | Student-class registration junction (created via register.html) |
 | **Attendance** | 10 | Session tracking (not used yet) |
 
@@ -146,6 +146,10 @@ This is the **authoritative schema documentation** for the KAF enrollment system
 
 **⚠️ Manual Setup Required:** Add "Incomplete" option to Action field in Airtable UI.
 
+**editedBy Values** (in JSON Data):
+- **parent** - Parent edited their own enrollment via their link
+- **admin** - Staff edited via enrollments.html admin page
+
 **JSON Data Structure:**
 ```json
 {
@@ -153,6 +157,7 @@ This is the **authoritative schema documentation** for the KAF enrollment system
   "recordType": "KAF Enrollment",
   "recordId": "recXXXXXXXXXXXXX",
   "action": "Created",
+  "editedBy": "parent",
   "parentEmail": "parent@example.com",
   "parentName": "Parent Name",
   "before": null,
@@ -206,7 +211,11 @@ This is the **authoritative schema documentation** for the KAF enrollment system
 
 **Used by:** Mailing list views, CRM queries. Not used by enrollment form.
 
-**Import script:** `scripts/import_contacts.py`
+**Current status:** Table schema preserved, records cleared (Feb 23, 2026) to stay under Airtable free plan 1,000-record limit. 1,944 records backed up to `data/contacts_reimport.json`.
+
+**Reimport:** `python scripts/reimport_contacts.py --go` then `--link` (~48 seconds total).
+
+**Original import script:** `scripts/import_contacts.py`
 
 | Field Name | Type | Required | Description |
 |------------|------|----------|-------------|
@@ -310,21 +319,29 @@ This is the **authoritative schema documentation** for the KAF enrollment system
 |------------|------|-------------|
 | **Name** | Single line text | Class name, e.g. "After School Art - Term 1 2026" (Primary field) |
 | **Type** | Single select | Term, Holiday Program |
-| **Category** | Single select | Pottery, Painting, Drawing, Sculpture, Mixed Media |
+| **Category** | Single select | Pottery, Painting, Drawing, Sculpture, Mixed Media (legacy, not used in form) |
+| **Notes** | Single line text | Free text reference notes (e.g. "Painting only, longer sessions") |
+| **Term** | Single select | Term 1 2026, Term 2 2026, Term 3 2026, Term 4 2026 (term classes only) |
 | **Day of Week** | Single select | Monday - Sunday |
 | **Start Time** | Single line text | e.g., "3:30 PM" |
 | **Duration (mins)** | Number | Class length in minutes |
-| **Sessions in Term** | Number | Total sessions (e.g., 10 for term) |
 | **Price** | Currency | Class fee (AUD) |
 | **Capacity** | Number | Max students |
+| **Sessions in Term** | Number | Total sessions (term classes only, not used for holiday programs) |
 | **Status** | Single select | Active, Completed, Cancelled |
-| **Term Start Date** | Date | First session date |
-| **Term End Date** | Date | Last session date |
+| **Term Start Date** | Date | Used as workshop date for holiday programs |
+| **Term End Date** | Date | Legacy, not used in form |
 | **Venue** | Link to Venues | Class location |
-| **Teachers** | Link to Teachers | Instructors (1-2 teachers) |
+| **Teachers** | Link to Teachers | Instructor (single selection in form) |
 | **Enrollments** | Link to Enrollments | Student enrollments (auto-populated) |
 | **Current Enrollment** | Count | Number of enrolled students |
 | **Spots Remaining** | Formula | `IF({Capacity}, {Capacity} - {Current Enrollment}, '')` |
+
+**Form behaviour by type:**
+- **Term classes:** Shows Term dropdown, Day of Week, Sessions in Term
+- **Holiday programs:** Shows single Date picker, hides Term and Sessions in Term (each class is a one-off)
+
+**Class deletion:** Classes with no enrollments can be deleted from the edit form. Classes with enrollments must be set to Cancelled status instead.
 
 **Registration Link Format:**
 ```
