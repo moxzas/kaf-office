@@ -237,8 +237,8 @@
                 <div class="form-group">
                     <label>Type</label>
                     <div class="radio-group">
-                        <label><input type="radio" name="classType" value="Term" checked> Term</label>
-                        <label><input type="radio" name="classType" value="Holiday Program"> Holiday Program</label>
+                        <label><input type="radio" name="classType" value="Term" checked onchange="onTypeChange()"> Term</label>
+                        <label><input type="radio" name="classType" value="Holiday Program" onchange="onTypeChange()"> Holiday Program</label>
                     </div>
                 </div>
                 <div class="form-group">
@@ -294,7 +294,7 @@
             </div>
 
             <div class="form-row three-col">
-                <div class="form-group">
+                <div class="form-group" id="sessionsGroup">
                     <label for="classSessions">Sessions in Term</label>
                     <input type="number" id="classSessions" placeholder="e.g. 10">
                 </div>
@@ -308,14 +308,23 @@
                 </div>
             </div>
 
-            <div class="form-row">
+            <div class="form-row" id="termRow">
                 <div class="form-group">
-                    <label for="classTermStart">Term Start Date</label>
-                    <input type="date" id="classTermStart">
+                    <label for="classTerm">Term</label>
+                    <select id="classTerm">
+                        <option value="">Select...</option>
+                        <option value="Term 1 2026">Term 1 2026</option>
+                        <option value="Term 2 2026">Term 2 2026</option>
+                        <option value="Term 3 2026">Term 3 2026</option>
+                        <option value="Term 4 2026">Term 4 2026</option>
+                    </select>
                 </div>
+            </div>
+
+            <div class="form-row" id="holidayDateRow" style="display:none;">
                 <div class="form-group">
-                    <label for="classTermEnd">Term End Date</label>
-                    <input type="date" id="classTermEnd">
+                    <label for="classHolidayDate">Date</label>
+                    <input type="date" id="classHolidayDate">
                 </div>
             </div>
 
@@ -495,9 +504,8 @@
 
             const statusClass = `status-${(f.Status || 'active').toLowerCase()}`;
 
-            const startDate = f['Term Start Date'] ? formatDateShort(f['Term Start Date']) : '';
-            const endDate = f['Term End Date'] ? formatDateShort(f['Term End Date']) : '';
-            const dateRange = startDate && endDate ? `${startDate} - ${endDate}` : startDate || '';
+            const term = f.Term || '';
+            const holidayDate = f['Term Start Date'] && f.Type === 'Holiday Program' ? formatDateShort(f['Term Start Date']) : '';
 
             const price = f.Price != null ? `$${Number(f.Price).toFixed(0)}` : '';
             const regUrl = `${REG_BASE_URL}?class=${cls.id}`;
@@ -508,7 +516,8 @@
             if (f['Duration (mins)']) metaParts.push(`${f['Duration (mins)']} min`);
 
             let detailParts = [];
-            if (dateRange) detailParts.push(dateRange);
+            if (term) detailParts.push(term);
+            if (holidayDate) detailParts.push(holidayDate);
             if (price) detailParts.push(price);
             if (f['Sessions in Term']) detailParts.push(`${f['Sessions in Term']} sessions`);
 
@@ -555,6 +564,15 @@
             });
         }
 
+        // ── Form: Type toggle ──
+
+        function onTypeChange() {
+            const isHoliday = getRadio('classType') === 'Holiday Program';
+            document.getElementById('sessionsGroup').style.display = isHoliday ? 'none' : '';
+            document.getElementById('termRow').style.display = isHoliday ? 'none' : '';
+            document.getElementById('holidayDateRow').style.display = isHoliday ? '' : 'none';
+        }
+
         // ── Form: Add/Edit ──
 
         function openAddForm() {
@@ -562,6 +580,7 @@
             document.getElementById('editingRecordId').value = '';
             clearForm();
             document.getElementById('classStatus').value = 'Active';
+            onTypeChange();
             document.getElementById('formPanel').classList.add('show');
             document.getElementById('className').focus();
         }
@@ -583,9 +602,10 @@
             document.getElementById('classSessions').value = f['Sessions in Term'] || '';
             document.getElementById('classPrice').value = f.Price != null ? f.Price : '';
             document.getElementById('classCapacity').value = f.Capacity || '';
-            document.getElementById('classTermStart').value = f['Term Start Date'] || '';
-            document.getElementById('classTermEnd').value = f['Term End Date'] || '';
+            document.getElementById('classTerm').value = f.Term || '';
+            document.getElementById('classHolidayDate').value = f['Term Start Date'] || '';
             document.getElementById('classStatus').value = f.Status || 'Active';
+            onTypeChange();
 
             // Venue (single link shown as first element)
             const venueIds = f.Venue || [];
@@ -617,8 +637,8 @@
             document.getElementById('classSessions').value = '';
             document.getElementById('classPrice').value = '';
             document.getElementById('classCapacity').value = '';
-            document.getElementById('classTermStart').value = '';
-            document.getElementById('classTermEnd').value = '';
+            document.getElementById('classTerm').value = '';
+            document.getElementById('classHolidayDate').value = '';
             document.getElementById('classStatus').value = 'Active';
             document.getElementById('classVenue').value = '';
             const teacherSel = document.getElementById('classTeachers');
@@ -646,18 +666,21 @@
                 return;
             }
 
+            const classType = getRadio('classType');
+            const isHoliday = classType === 'Holiday Program';
+
             const fields = {
                 "Name": name,
-                "Type": getRadio('classType') || null,
+                "Type": classType || null,
                 "Category": document.getElementById('classCategory').value || null,
                 "Day of Week": document.getElementById('classDayOfWeek').value || null,
                 "Start Time": document.getElementById('classStartTime').value.trim() || null,
                 "Duration (mins)": parseInt(document.getElementById('classDuration').value) || null,
-                "Sessions in Term": parseInt(document.getElementById('classSessions').value) || null,
+                "Sessions in Term": isHoliday ? null : (parseInt(document.getElementById('classSessions').value) || null),
                 "Price": parseFloat(document.getElementById('classPrice').value) || null,
                 "Capacity": parseInt(document.getElementById('classCapacity').value) || null,
-                "Term Start Date": document.getElementById('classTermStart').value || null,
-                "Term End Date": document.getElementById('classTermEnd').value || null,
+                "Term": isHoliday ? null : (document.getElementById('classTerm').value || null),
+                "Term Start Date": isHoliday ? (document.getElementById('classHolidayDate').value || null) : null,
                 "Status": document.getElementById('classStatus').value || 'Active',
             };
 
