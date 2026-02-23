@@ -1,2 +1,3 @@
-# Wix CSV exports contain PII (names, emails, phones, addresses)
+# Data files contain PII (names, emails, phones, addresses)
 *.csv
+*.json
