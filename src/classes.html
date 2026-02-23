@@ -269,6 +269,26 @@
                 </div>
             </div>
 
+            <div class="form-row" id="termRow">
+                <div class="form-group">
+                    <label for="classTerm">Term</label>
+                    <select id="classTerm">
+                        <option value="">Select...</option>
+                        <option value="Term 1 2026">Term 1 2026</option>
+                        <option value="Term 2 2026">Term 2 2026</option>
+                        <option value="Term 3 2026">Term 3 2026</option>
+                        <option value="Term 4 2026">Term 4 2026</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-row" id="holidayDateRow" style="display:none;">
+                <div class="form-group">
+                    <label for="classHolidayDate">Date</label>
+                    <input type="date" id="classHolidayDate">
+                </div>
+            </div>
+
             <div class="form-row three-col">
                 <div class="form-group">
                     <label for="classDayOfWeek">Day of Week</label>
@@ -294,10 +314,6 @@
             </div>
 
             <div class="form-row three-col">
-                <div class="form-group" id="sessionsGroup">
-                    <label for="classSessions">Sessions in Term</label>
-                    <input type="number" id="classSessions" placeholder="e.g. 10">
-                </div>
                 <div class="form-group">
                     <label for="classPrice">Price ($)</label>
                     <input type="number" id="classPrice" step="0.01" placeholder="e.g. 180">
@@ -306,25 +322,9 @@
                     <label for="classCapacity">Capacity</label>
                     <input type="number" id="classCapacity" placeholder="e.g. 12">
                 </div>
-            </div>
-
-            <div class="form-row" id="termRow">
-                <div class="form-group">
-                    <label for="classTerm">Term</label>
-                    <select id="classTerm">
-                        <option value="">Select...</option>
-                        <option value="Term 1 2026">Term 1 2026</option>
-                        <option value="Term 2 2026">Term 2 2026</option>
-                        <option value="Term 3 2026">Term 3 2026</option>
-                        <option value="Term 4 2026">Term 4 2026</option>
-                    </select>
-                </div>
-            </div>
-
-            <div class="form-row" id="holidayDateRow" style="display:none;">
-                <div class="form-group">
-                    <label for="classHolidayDate">Date</label>
-                    <input type="date" id="classHolidayDate">
+                <div class="form-group" id="sessionsGroup">
+                    <label for="classSessions">Sessions in Term</label>
+                    <input type="number" id="classSessions" placeholder="e.g. 10">
                 </div>
             </div>
 
