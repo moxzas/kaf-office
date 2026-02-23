@@ -526,6 +526,7 @@
                         headers: {'Content-Type': 'application/json'},
                         body: JSON.stringify({
                             action: 'Incomplete',
+                            editedBy: urlParams.get('editor') || 'parent',
                             parentRecordId: 'pending',
                             parentEmail: formData.parentEmail,
                             parentName: `${formData.parentFirstName} ${formData.parentLastName}`,
@@ -766,6 +767,7 @@
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({
                         action: isEditMode ? 'Updated' : 'Created',
+                        editedBy: urlParams.get('editor') || 'parent',
                         parentRecordId: parentRecordId,
                         parentEmail: formData.parentEmail,
                         parentName: `${formData.parentFirstName} ${formData.parentLastName}`,

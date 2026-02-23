@@ -233,7 +233,7 @@
                 for (const parent of sorted) {
                     const p = parent.fields;
                     const kids = studentsByParent[parent.id] || [];
-                    const editUrl = `enrollment.html?parent=${parent.id}`;
+                    const editUrl = `enrollment.html?parent=${parent.id}&editor=sophia`;
                     const enrolled = formatDate(parent.createdTime);
 
                     html += `<div class="family-card">`;
