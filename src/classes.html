@@ -958,7 +958,7 @@
                 let html = '';
                 for (const s of available) {
                     const parentName = getParentName(s);
-                    html += `<li onclick="addBooking('${s.id}')" title="Click to book">
+                    html += `<li onclick="addBooking('${s.id}', event)" title="Click to book">
                         <span class="booking-arrow">+</span>
                         <div>
                             <span class="booking-student-name">${escapeHtml(s.fields.Name)}</span>
@@ -983,7 +983,7 @@
                 for (const s of booked) {
                     const parentName = getParentName(s);
                     const bId = bookingByStudentId[s.id];
-                    html += `<li onclick="removeBooking('${bId}', '${escapeHtml(s.fields.Name)}')" title="Click to remove">
+                    html += `<li onclick="removeBooking('${bId}', '${escapeHtml(s.fields.Name)}', event)" title="Click to remove">
                         <span class="booking-arrow remove">&times;</span>
                         <div>
                             <span class="booking-student-name">${escapeHtml(s.fields.Name)}</span>
@@ -996,49 +996,55 @@
             document.getElementById('bookedCount').textContent = `(${booked.length})`;
         }
 
-        async function addBooking(studentId) {
+        async function addBooking(studentId, evt) {
             const classId = document.getElementById('bookingClassId').value;
             const msgEl = document.getElementById('bookingMsg');
+            msgEl.classList.remove('show');
 
-            // Mark the clicked item as busy
-            const li = event.target.closest('li');
+            const li = evt && evt.target ? evt.target.closest('li') : null;
             if (li) li.classList.add('busy');
 
             try {
                 const today = new Date().toISOString().split('T')[0];
+                const body = {
+                    records: [{
+                        fields: {
+                            "Student": [studentId],
+                            "Class": [classId],
+                            "Booking Date": today,
+                            "Payment Status": "Paid",
+                        }
+                    }]
+                };
+                console.log('Creating booking:', JSON.stringify(body));
                 const resp = await fetch(`${API_BASE}/Bookings`, {
                     method: 'POST',
                     headers: {
                         'Authorization': `Bearer ${AIRTABLE_API_KEY}`,
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({
-                        records: [{
-                            fields: {
-                                "Student": [studentId],
-                                "Class": [classId],
-                                "Booking Date": today,
-                                "Payment Status": "Paid",
-                            }
-                        }]
-                    }),
+                    body: JSON.stringify(body),
                 });
-                if (!resp.ok) throw new Error(await resp.text());
+                const respText = await resp.text();
+                console.log('Booking response:', resp.status, respText);
+                if (!resp.ok) throw new Error(respText);
 
                 await refreshBookings(classId);
-                loadData(); // update spots in background
+                loadData();
             } catch (err) {
+                console.error('Booking error:', err);
                 msgEl.textContent = 'Error: ' + err.message;
                 msgEl.className = 'booking-msg show error';
                 if (li) li.classList.remove('busy');
             }
         }
 
-        async function removeBooking(bookingId, studentName) {
+        async function removeBooking(bookingId, studentName, evt) {
             const classId = document.getElementById('bookingClassId').value;
             const msgEl = document.getElementById('bookingMsg');
+            msgEl.classList.remove('show');
 
-            const li = event.target.closest('li');
+            const li = evt && evt.target ? evt.target.closest('li') : null;
             if (li) li.classList.add('busy');
 
             try {
@@ -1051,6 +1057,7 @@
                 await refreshBookings(classId);
                 loadData();
             } catch (err) {
+                console.error('Remove booking error:', err);
                 msgEl.textContent = 'Error: ' + err.message;
                 msgEl.className = 'booking-msg show error';
                 if (li) li.classList.remove('busy');
