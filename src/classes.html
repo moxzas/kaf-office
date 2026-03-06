@@ -222,53 +222,61 @@
         }
         .booking-panel.show { display: block; }
         .booking-panel .form-header { background: #eff6ff; border-color: #bfdbfe; }
-        .booking-list {
+        .booking-columns {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+        .booking-col {
+            border: 1px solid #e5e7eb;
+            border-radius: 6px;
+            overflow: hidden;
+        }
+        .booking-col-header {
+            padding: 8px 12px;
+            font-size: 13px;
+            font-weight: 600;
+            color: #555;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        .booking-col-header.available { background: #f8fafc; }
+        .booking-col-header.booked { background: #eff6ff; }
+        .booking-col-header .count { font-weight: 400; color: #999; }
+        .booking-col-list {
             list-style: none;
             padding: 0;
-            margin: 0 0 12px 0;
+            margin: 0;
+            max-height: 400px;
+            overflow-y: auto;
         }
-        .booking-list li {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 8px 0;
-            border-bottom: 1px solid #f0f0f0;
-            font-size: 14px;
-        }
-        .booking-list li:last-child { border-bottom: none; }
-        .booking-student-name { font-weight: 500; color: #333; }
-        .booking-parent { color: #888; font-size: 13px; }
-        .booking-status { font-size: 12px; padding: 2px 8px; border-radius: 4px; }
-        .booking-status-paid { background: #dcfce7; color: #166534; }
-        .booking-status-pending { background: #fef3c7; color: #92400e; }
-        .booking-remove {
-            background: none;
-            border: none;
-            color: #dc2626;
+        .booking-col-list li {
+            padding: 7px 12px;
             cursor: pointer;
-            font-size: 13px;
-            padding: 2px 6px;
-        }
-        .booking-remove:hover { text-decoration: underline; }
-        .booking-add-row {
-            display: flex;
-            gap: 8px;
-            align-items: flex-end;
-        }
-        .booking-add-row select {
-            flex: 1;
-            padding: 8px 10px;
-            border: 1px solid #d1d5db;
-            border-radius: 6px;
             font-size: 14px;
+            border-bottom: 1px solid #f5f5f5;
+            transition: background 0.1s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .booking-col-list li:last-child { border-bottom: none; }
+        .booking-col-list li:hover { background: #f0f7ff; }
+        .booking-col-list li.busy { opacity: 0.5; pointer-events: none; }
+        .booking-student-name { font-weight: 500; color: #333; }
+        .booking-parent { color: #999; font-size: 12px; }
+        .booking-arrow { color: #2563eb; font-size: 16px; flex-shrink: 0; }
+        .booking-arrow.remove { color: #dc2626; }
+        .booking-empty { color: #999; font-style: italic; font-size: 13px; padding: 20px 12px; text-align: center; }
+        .booking-search {
+            width: 100%;
+            padding: 7px 10px;
+            border: none;
+            border-bottom: 1px solid #e5e7eb;
+            font-size: 13px;
             font-family: inherit;
-        }
-        .booking-add-row select:focus {
             outline: none;
-            border-color: #2563eb;
-            box-shadow: 0 0 0 2px rgba(37,99,235,0.15);
         }
-        .booking-empty { color: #999; font-style: italic; font-size: 14px; margin-bottom: 12px; }
+        .booking-search:focus { background: #fafbff; }
         .booking-msg {
             font-size: 13px;
             margin-top: 8px;
@@ -416,12 +424,16 @@
         </div>
         <div class="form-body">
             <input type="hidden" id="bookingClassId" value="">
-            <div id="bookingList"></div>
-            <div class="booking-add-row">
-                <select id="bookingStudentSelect">
-                    <option value="">Select student to add...</option>
-                </select>
-                <button class="btn btn-primary btn-sm" onclick="addBooking()">Add</button>
+            <div class="booking-columns">
+                <div class="booking-col">
+                    <div class="booking-col-header available">Available Students <span class="count" id="availableCount"></span></div>
+                    <input type="text" class="booking-search" id="bookingSearch" placeholder="Filter by name..." oninput="renderBookingColumns()">
+                    <ul class="booking-col-list" id="availableList"></ul>
+                </div>
+                <div class="booking-col">
+                    <div class="booking-col-header booked">Booked <span class="count" id="bookedCount"></span></div>
+                    <ul class="booking-col-list" id="bookedList"></ul>
+                </div>
             </div>
             <div id="bookingMsg" class="booking-msg"></div>
         </div>
@@ -615,7 +627,7 @@
                     ${teacherNames ? `<div class="class-teacher">Teacher: ${escapeHtml(teacherNames)}</div>` : ''}
                     ${f.Status === 'Active' || !f.Status ? `
                     <div class="class-reg-link">
-                        <span>Registration link:</span>
+                        <span>Booking link:</span>
                         <span class="reg-url" id="regUrl-${cls.id}">${escapeHtml(regUrl)}</span>
                         <button class="copy-btn" onclick="copyRegLink('${cls.id}', this)">Copy</button>
                         <button class="btn btn-primary btn-sm" style="margin-left:auto;" onclick="openBookingPanel('${cls.id}')">Book Students</button>
@@ -854,7 +866,7 @@
 
         let allStudents = [];
         let allParents = [];
-        let currentBookings = []; // booking records for the open class
+        let currentBookings = [];
 
         async function openBookingPanel(classId) {
             const cls = allClasses.find(c => c.id === classId);
@@ -862,14 +874,16 @@
 
             document.getElementById('bookingClassId').value = classId;
             document.getElementById('bookingTitle').textContent = `Book Students — ${cls.fields.Name || 'Untitled'}`;
+            document.getElementById('bookingSearch').value = '';
 
             const msgEl = document.getElementById('bookingMsg');
             msgEl.classList.remove('show');
 
             // Load students + parents if not yet loaded
             if (allStudents.length === 0) {
-                msgEl.textContent = 'Loading students...';
-                msgEl.className = 'booking-msg show';
+                document.getElementById('availableList').innerHTML = '<div class="booking-empty">Loading students...</div>';
+                document.getElementById('bookedList').innerHTML = '';
+                document.getElementById('bookingPanel').classList.add('show');
                 try {
                     const [students, parents] = await Promise.all([
                         fetchAll('Students'),
@@ -882,15 +896,14 @@
                     msgEl.className = 'booking-msg show error';
                     return;
                 }
-                msgEl.classList.remove('show');
             }
 
             // Load existing bookings for this class
             await refreshBookings(classId);
 
             document.getElementById('bookingPanel').classList.add('show');
-            // Scroll to panel
             document.getElementById('bookingPanel').scrollIntoView({ behavior: 'smooth', block: 'start' });
+            document.getElementById('bookingSearch').focus();
         }
 
         function closeBookingPanel() {
@@ -912,67 +925,84 @@
             if (!resp.ok) throw new Error('Failed to load bookings');
             const data = await resp.json();
             currentBookings = data.records || [];
-            renderBookingList(classId);
+            renderBookingColumns();
         }
 
-        function renderBookingList(classId) {
-            const listEl = document.getElementById('bookingList');
+        function renderBookingColumns() {
+            const searchTerm = (document.getElementById('bookingSearch').value || '').toLowerCase();
             const bookedStudentIds = new Set();
+            const bookingByStudentId = {};
 
-            if (currentBookings.length === 0) {
-                listEl.innerHTML = '<div class="booking-empty">No students booked yet.</div>';
+            for (const b of currentBookings) {
+                for (const sid of (b.fields.Student || [])) {
+                    bookedStudentIds.add(sid);
+                    bookingByStudentId[sid] = b.id;
+                }
+            }
+
+            // Available column
+            const availableEl = document.getElementById('availableList');
+            const available = allStudents
+                .filter(s => !bookedStudentIds.has(s.id))
+                .filter(s => {
+                    if (!searchTerm) return true;
+                    const name = (s.fields.Name || '').toLowerCase();
+                    const parent = getParentName(s).toLowerCase();
+                    return name.includes(searchTerm) || parent.includes(searchTerm);
+                })
+                .sort((a, b) => (a.fields.Name || '').localeCompare(b.fields.Name || ''));
+
+            if (available.length === 0) {
+                availableEl.innerHTML = `<div class="booking-empty">${searchTerm ? 'No matches' : 'All students booked'}</div>`;
             } else {
-                let html = '<ul class="booking-list">';
-                for (const b of currentBookings) {
-                    const studentIds = b.fields.Student || [];
-                    for (const sid of studentIds) bookedStudentIds.add(sid);
-                    const student = allStudents.find(s => studentIds.includes(s.id));
-                    const studentName = student ? student.fields.Name : '(unknown)';
-                    const parentName = student ? getParentName(student) : '';
-                    const status = b.fields['Payment Status'] || 'Pending';
-                    const statusClass = status === 'Paid' ? 'booking-status-paid' : 'booking-status-pending';
-
-                    html += `<li>
+                let html = '';
+                for (const s of available) {
+                    const parentName = getParentName(s);
+                    html += `<li onclick="addBooking('${s.id}')" title="Click to book">
+                        <span class="booking-arrow">+</span>
                         <div>
-                            <span class="booking-student-name">${escapeHtml(studentName)}</span>
-                            ${parentName ? `<span class="booking-parent"> — ${escapeHtml(parentName)}</span>` : ''}
-                        </div>
-                        <div>
-                            <span class="booking-status ${statusClass}">${escapeHtml(status)}</span>
-                            <button class="booking-remove" onclick="removeBooking('${b.id}', '${escapeHtml(studentName)}')">Remove</button>
+                            <span class="booking-student-name">${escapeHtml(s.fields.Name)}</span>
+                            ${parentName ? `<br><span class="booking-parent">${escapeHtml(parentName)}</span>` : ''}
                         </div>
                     </li>`;
                 }
-                html += '</ul>';
-                listEl.innerHTML = html;
+                availableEl.innerHTML = html;
             }
+            document.getElementById('availableCount').textContent = `(${available.length})`;
 
-            // Populate student dropdown (exclude already-booked students)
-            const sel = document.getElementById('bookingStudentSelect');
-            sel.innerHTML = '<option value="">Select student to add...</option>';
-            const available = allStudents
-                .filter(s => !bookedStudentIds.has(s.id))
+            // Booked column
+            const bookedEl = document.getElementById('bookedList');
+            const booked = allStudents
+                .filter(s => bookedStudentIds.has(s.id))
                 .sort((a, b) => (a.fields.Name || '').localeCompare(b.fields.Name || ''));
-            for (const s of available) {
-                const parentName = getParentName(s);
-                const label = parentName ? `${s.fields.Name} (${parentName})` : s.fields.Name;
-                sel.innerHTML += `<option value="${s.id}">${escapeHtml(label)}</option>`;
+
+            if (booked.length === 0) {
+                bookedEl.innerHTML = '<div class="booking-empty">No students booked yet</div>';
+            } else {
+                let html = '';
+                for (const s of booked) {
+                    const parentName = getParentName(s);
+                    const bId = bookingByStudentId[s.id];
+                    html += `<li onclick="removeBooking('${bId}', '${escapeHtml(s.fields.Name)}')" title="Click to remove">
+                        <span class="booking-arrow remove">&times;</span>
+                        <div>
+                            <span class="booking-student-name">${escapeHtml(s.fields.Name)}</span>
+                            ${parentName ? `<br><span class="booking-parent">${escapeHtml(parentName)}</span>` : ''}
+                        </div>
+                    </li>`;
+                }
+                bookedEl.innerHTML = html;
             }
+            document.getElementById('bookedCount').textContent = `(${booked.length})`;
         }
 
-        async function addBooking() {
+        async function addBooking(studentId) {
             const classId = document.getElementById('bookingClassId').value;
-            const studentId = document.getElementById('bookingStudentSelect').value;
             const msgEl = document.getElementById('bookingMsg');
 
-            if (!studentId) {
-                msgEl.textContent = 'Please select a student.';
-                msgEl.className = 'booking-msg show error';
-                return;
-            }
-
-            msgEl.textContent = 'Adding...';
-            msgEl.className = 'booking-msg show';
+            // Mark the clicked item as busy
+            const li = event.target.closest('li');
+            if (li) li.classList.add('busy');
 
             try {
                 const today = new Date().toISOString().split('T')[0];
@@ -993,29 +1023,23 @@
                         }]
                     }),
                 });
-                if (!resp.ok) {
-                    const err = await resp.text();
-                    throw new Error(err);
-                }
-
-                msgEl.textContent = 'Student booked!';
-                msgEl.className = 'booking-msg show success';
-                setTimeout(() => msgEl.classList.remove('show'), 2000);
+                if (!resp.ok) throw new Error(await resp.text());
 
                 await refreshBookings(classId);
-                // Reload class data to update the spots count
-                await loadData();
+                loadData(); // update spots in background
             } catch (err) {
                 msgEl.textContent = 'Error: ' + err.message;
                 msgEl.className = 'booking-msg show error';
+                if (li) li.classList.remove('busy');
             }
         }
 
         async function removeBooking(bookingId, studentName) {
-            if (!confirm(`Remove ${studentName} from this class?`)) return;
-
             const classId = document.getElementById('bookingClassId').value;
             const msgEl = document.getElementById('bookingMsg');
+
+            const li = event.target.closest('li');
+            if (li) li.classList.add('busy');
 
             try {
                 const resp = await fetch(`${API_BASE}/Bookings/${bookingId}`, {
@@ -1024,15 +1048,12 @@
                 });
                 if (!resp.ok) throw new Error(await resp.text());
 
-                msgEl.textContent = 'Booking removed.';
-                msgEl.className = 'booking-msg show success';
-                setTimeout(() => msgEl.classList.remove('show'), 2000);
-
                 await refreshBookings(classId);
-                await loadData();
+                loadData();
             } catch (err) {
                 msgEl.textContent = 'Error: ' + err.message;
                 msgEl.className = 'booking-msg show error';
+                if (li) li.classList.remove('busy');
             }
         }
 
