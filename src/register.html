@@ -531,14 +531,14 @@
         async function fetchExistingBookings() {
             const enrolled = new Set();
             try {
-                // Find bookings for this class
-                const filterFormula = encodeURIComponent(`FIND('${classId}', ARRAYJOIN({Class}))`);
-                const resp = await fetch(`${API_BASE}/Bookings?filterByFormula=${filterFormula}`, {
+                // Find bookings for this class (filter client-side since ARRAYJOIN on link fields returns names, not IDs)
+                const resp = await fetch(`${API_BASE}/Bookings`, {
                     headers: { 'Authorization': `Bearer ${AIRTABLE_API_KEY}` }
                 });
                 if (resp.ok) {
                     const data = await resp.json();
                     for (const rec of data.records) {
+                        if (!(rec.fields.Class || []).includes(classId)) continue;
                         const studentIds = rec.fields.Student || [];
                         for (const sid of studentIds) enrolled.add(sid);
                     }

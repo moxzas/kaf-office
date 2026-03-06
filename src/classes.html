@@ -917,13 +917,16 @@
         }
 
         async function refreshBookings(classId) {
-            const filterFormula = encodeURIComponent(`FIND('${classId}', ARRAYJOIN({Class}))`);
-            const resp = await fetch(`${API_BASE}/Bookings?filterByFormula=${filterFormula}`, {
+            // Fetch all bookings and filter client-side by Class linked record ID
+            // (ARRAYJOIN on link fields returns the name, not the ID, so server-side filter won't work)
+            const resp = await fetch(`${API_BASE}/Bookings`, {
                 headers: { 'Authorization': `Bearer ${AIRTABLE_API_KEY}` }
             });
             if (!resp.ok) throw new Error('Failed to load bookings');
             const data = await resp.json();
-            currentBookings = data.records || [];
+            currentBookings = (data.records || []).filter(r =>
+                (r.fields.Class || []).includes(classId)
+            );
             renderBookingColumns();
         }
 
