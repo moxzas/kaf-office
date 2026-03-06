@@ -8,7 +8,7 @@
 
 ## Overview
 
-This is the **authoritative schema documentation** for the KAF enrollment system. It reflects the actual current Airtable structure as of November 7, 2025.
+This is the **authoritative schema documentation** for the KAF enrollment system. It reflects the actual current Airtable structure.
 
 **What This System Does:**
 - Online enrollment form for parents (SurveyJS at app.sonzai.com/kaf/enrollment.html)
@@ -37,10 +37,10 @@ This is the **authoritative schema documentation** for the KAF enrollment system
 | **Venues** | 7 | Class locations (seeded by setup script, used by classes.html) |
 | **Teachers** | 8 | Instructors (managed via Airtable UI, used by classes.html) |
 | **Classes** | 19 | Class schedules (created via classes.html, used by register.html) |
-| **Enrollments** | 5 | Student-class registration junction (created via register.html) |
+| **Bookings** | 5 | Student-class junction (created via register.html) |
 | **Attendance** | 10 | Session tracking (not used yet) |
 
-**Note:** Parents, Students, Audit Log, Classes, Enrollments, Venues, and Teachers are actively used. Contacts is the CRM/mailing list table. Attendance is planned for future features.
+**Note:** Parents, Students, Audit Log, Classes, Bookings, Venues, and Teachers are actively used. Contacts is the CRM/mailing list table. Attendance is planned for future features.
 
 ---
 
@@ -98,7 +98,7 @@ This is the **authoritative schema documentation** for the KAF enrollment system
 | **Student Photo** | Attachment | | Photo for identification (not used by form yet) |
 | **General Notes** | Long text | | Additional notes |
 | **Parents** | Link to Parents | ✅ | Parent/guardian links (created by form) |
-| **Enrollments** | Link to Enrollments | | Class enrollments (auto-populated, not used yet) |
+| **Bookings** | Link to Bookings | | Class bookings (auto-populated) |
 | **Address** | Lookup | | From Parents → Address |
 | **Suburb** | Lookup | | From Parents → Suburb |
 | **Postcode** | Lookup | | From Parents → Postcode |
@@ -333,15 +333,15 @@ This is the **authoritative schema documentation** for the KAF enrollment system
 | **Term End Date** | Date | Legacy, not used in form |
 | **Venue** | Link to Venues | Class location |
 | **Teachers** | Link to Teachers | Instructor (single selection in form) |
-| **Enrollments** | Link to Enrollments | Student enrollments (auto-populated) |
-| **Current Enrollment** | Count | Number of enrolled students |
-| **Spots Remaining** | Formula | `IF({Capacity}, {Capacity} - {Current Enrollment}, '')` |
+| **Bookings** | Link to Bookings | Student bookings (auto-populated) |
+| **Current Bookings** | Count | Number of booked students |
+| **Spots Remaining** | Formula | `IF({Capacity}, {Capacity} - {Current Bookings}, '')` |
 
 **Form behaviour by type:**
 - **Term classes:** Shows Term dropdown, Day of Week, Sessions in Term
 - **Holiday programs:** Shows single Date picker, hides Term and Sessions in Term (each class is a one-off)
 
-**Class deletion:** Classes with no enrollments can be deleted from the edit form. Classes with enrollments must be set to Cancelled status instead.
+**Class deletion:** Classes with no bookings can be deleted from the edit form. Classes with bookings must be set to Cancelled status instead.
 
 **Registration Link Format:**
 ```
@@ -353,19 +353,21 @@ Sophia copies this from classes.html and pastes into Wix promo tile "Register" b
 
 ---
 
-## 8. Enrollments Table
+## 8. Bookings Table
 
-**Purpose:** Lean junction table linking students to classes. Created by register.html when parents register their children.
+**Purpose:** Lean junction table linking students to classes. Created by register.html (parent self-service) or admin booking (staff assignment).
 
-**Used by:** register.html (create), classes.html (count via Current Enrollment)
+**Used by:** register.html (create), classes.html (count via Current Bookings)
 
 | Field Name | Type | Description |
 |------------|------|-------------|
 | **Student** | Link to Students | Which student |
 | **Class** | Link to Classes | Which class |
-| **Enrollment Date** | Date | When registered (ISO format) |
+| **Booking Date** | Date | When booked (ISO format) |
 | **Payment Status** | Single select | Pending, Paid, Cancelled, Refunded |
 | **Notes** | Long text | Optional notes |
+
+**Terminology:** "Enroll" = sign up with KAF (Parents/Students tables). "Book" = place a student in a class (Bookings table).
 
 **v1 Design Decision:** The original schema had 24 fields (emergency contacts, photo permission, etc.) which duplicate data already captured in the enrollment form's Parents/Students tables and Audit Log. For v1, this is a lean junction table. Additional fields (Sessions Attended, Attendance Rate, etc.) will be added when attendance tracking is built.
 
@@ -380,15 +382,15 @@ Sophia copies this from classes.html and pastes into Wix promo tile "Register" b
 | Field Name | Type | Description |
 |------------|------|-------------|
 | **Attendance ID** | Auto number | Sequential ID |
-| **Enrollment** | Link to Enrollments | Which enrollment |
+| **Booking** | Link to Bookings | Which booking |
 | **Date** | Date | Session date |
 | **Status** | Single select | Present, Absent, Late, Excused |
 | **Sign-in Time** | Date/time | When student arrived |
 | **Sign-out Time** | Date/time | When student left |
 | **Pickup Person** | Link to Parents | Who collected the student |
 | **Notes** | Long text | Session notes |
-| **Student** | Lookup | From Enrollment → Student |
-| **Class** | Lookup | From Enrollment → Class |
+| **Student** | Lookup | From Booking → Student |
+| **Class** | Lookup | From Booking → Class |
 
 **Status:** Legacy/planned feature. Future: teacher interface for marking attendance.
 
@@ -404,13 +406,13 @@ Parents (1) ←──→ (many) Students
    └──→ Contacts (optional link by email)
            (CRM / Mailing List, ~1,933 records)
 
-Students (many) ←──→ (many) Enrollments ←──→ (many) Classes
+Students (many) ←──→ (many) Bookings ←──→ (many) Classes
                                                      │
                                                      ├─→ Venues (1)
                                                      └─→ Teachers (1-2)
 
 [Planned:]
-Enrollments (1) ←──→ (many) Attendance
+Bookings (1) ←──→ (many) Attendance
                                 │
                                 └─→ Parents (pickup person)
 ```
@@ -418,15 +420,15 @@ Enrollments (1) ←──→ (many) Attendance
 **Active Relationships:**
 - Parents → Students (one parent can have multiple children)
 - Students → Parents (one child can have multiple guardians)
-- Students → Enrollments (one student can register for many classes)
-- Classes → Enrollments (one class has many registrations)
+- Students → Bookings (one student can book many classes)
+- Classes → Bookings (one class has many bookings)
 - Classes → Venues (class held at a venue)
 - Classes → Teachers (class taught by 1-2 teachers)
 - Contacts → Parents (optional link by email match, for CRM enrichment)
 - Audit Log tracks all enrollment submissions (not linked via Airtable relationships)
 
 **Inactive Relationships (For Future Features):**
-- Attendance tracking (linked to Enrollments and Parents for pickup)
+- Attendance tracking (linked to Bookings and Parents for pickup)
 
 ---
 
@@ -545,12 +547,12 @@ POST https://api.airtable.com/v0/appNuMdxaiSYdgxJS/Audit%20Log
 1. ✅ Households table removed - addresses moved to Parents
 2. ✅ Audit Log table added - not in original schema
 3. ✅ Venue field confirmed as dropdown (was documented but form had bug)
-4. ❌ Some rollup fields not implemented (Active Enrollments, Total Classes Attended)
+4. ❌ Some rollup fields not implemented (Active Bookings, Total Classes Attended)
 5. ❌ Primary Parent field not implemented (not needed for current form)
 
 **Breaking Changes:**
 - None for current enrollment form
-- Legacy tables (Classes, Enrollments, etc.) not actively used yet
+- Legacy tables (Classes, Bookings, etc.) not actively used yet
 
 ---
 
@@ -592,7 +594,7 @@ POST https://api.airtable.com/v0/appNuMdxaiSYdgxJS/Audit%20Log
 - Venues: 5 records (seeded by setup script)
 - Teachers: managed by Sophia in Airtable
 - Classes: created via classes.html
-- Enrollments: created via register.html
+- Bookings: created via register.html
 
 **Unused Tables:**
 - Attendance: 0 records (planned)
@@ -605,7 +607,7 @@ POST https://api.airtable.com/v0/appNuMdxaiSYdgxJS/Audit%20Log
 
 ### Phase 4 (Completed Feb 2026)
 1. ~~**Class Selection**~~ - Done: register.html lets parents register for specific classes
-2. ~~**Create Enrollment Records**~~ - Done: register.html creates Enrollment records linking students to classes
+2. ~~**Create Booking Records**~~ - Done: register.html creates Booking records linking students to classes
 3. **Payment Integration** - Stripe Checkout (Phase 2, next session)
 4. **Parent Dashboard** - View enrollments, attendance, payments (future)
 

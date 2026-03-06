@@ -39,7 +39,7 @@ Single system where families enrol once, then register children for classes and 
 #### 3. Class Registration
 - Browse available classes (from Airtable Classes table)
 - Filter by venue, day, age group
-- Select class → creates Enrollment record linking Student to Class
+- Select class → creates Booking record linking Student to Class
 - Support multiple children registering for multiple classes
 - Pre-fill from known family data
 
@@ -47,7 +47,7 @@ Single system where families enrol once, then register children for classes and 
 - Checkout when registering for a class
 - Handle: single class, multi-class, term packages
 - Stripe Checkout (hosted) is simplest — redirect to Stripe, webhook confirms payment
-- Update Enrollment payment status in Airtable on webhook
+- Update Booking payment status in Airtable on webhook
 
 #### 5. Wix Integration Point
 - Sophia's promo tiles on Wix link to: `app.sonzai.com/kaf/register?class={CLASS_ID}`

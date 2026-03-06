@@ -210,6 +210,73 @@
         .loading { text-align: center; padding: 40px; color: #888; }
         .error { text-align: center; padding: 40px; color: #c00; }
         .empty-state { text-align: center; padding: 40px; color: #888; }
+
+        /* Booking panel */
+        .booking-panel {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            margin-bottom: 20px;
+            overflow: hidden;
+            display: none;
+        }
+        .booking-panel.show { display: block; }
+        .booking-panel .form-header { background: #eff6ff; border-color: #bfdbfe; }
+        .booking-list {
+            list-style: none;
+            padding: 0;
+            margin: 0 0 12px 0;
+        }
+        .booking-list li {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: 14px;
+        }
+        .booking-list li:last-child { border-bottom: none; }
+        .booking-student-name { font-weight: 500; color: #333; }
+        .booking-parent { color: #888; font-size: 13px; }
+        .booking-status { font-size: 12px; padding: 2px 8px; border-radius: 4px; }
+        .booking-status-paid { background: #dcfce7; color: #166534; }
+        .booking-status-pending { background: #fef3c7; color: #92400e; }
+        .booking-remove {
+            background: none;
+            border: none;
+            color: #dc2626;
+            cursor: pointer;
+            font-size: 13px;
+            padding: 2px 6px;
+        }
+        .booking-remove:hover { text-decoration: underline; }
+        .booking-add-row {
+            display: flex;
+            gap: 8px;
+            align-items: flex-end;
+        }
+        .booking-add-row select {
+            flex: 1;
+            padding: 8px 10px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 14px;
+            font-family: inherit;
+        }
+        .booking-add-row select:focus {
+            outline: none;
+            border-color: #2563eb;
+            box-shadow: 0 0 0 2px rgba(37,99,235,0.15);
+        }
+        .booking-empty { color: #999; font-style: italic; font-size: 14px; margin-bottom: 12px; }
+        .booking-msg {
+            font-size: 13px;
+            margin-top: 8px;
+            display: none;
+        }
+        .booking-msg.show { display: block; }
+        .booking-msg.success { color: #16a34a; }
+        .booking-msg.error { color: #dc2626; padding: 0; text-align: left; }
     </style>
 </head>
 <body>
@@ -342,6 +409,24 @@
         </div>
     </div>
 
+    <div id="bookingPanel" class="booking-panel">
+        <div class="form-header">
+            <span id="bookingTitle">Book Students</span>
+            <button class="btn btn-sm btn-secondary" onclick="closeBookingPanel()">Close</button>
+        </div>
+        <div class="form-body">
+            <input type="hidden" id="bookingClassId" value="">
+            <div id="bookingList"></div>
+            <div class="booking-add-row">
+                <select id="bookingStudentSelect">
+                    <option value="">Select student to add...</option>
+                </select>
+                <button class="btn btn-primary btn-sm" onclick="addBooking()">Add</button>
+            </div>
+            <div id="bookingMsg" class="booking-msg"></div>
+        </div>
+    </div>
+
     <div id="content">
         <div class="loading">Loading classes...</div>
     </div>
@@ -451,7 +536,7 @@
             });
 
             const activeCount = allClasses.filter(c => c.fields.Status === 'Active' || !c.fields.Status).length;
-            const totalEnrolled = allClasses.reduce((sum, c) => sum + (c.fields['Current Enrollment'] || 0), 0);
+            const totalEnrolled = allClasses.reduce((sum, c) => sum + (c.fields['Current Bookings'] || 0), 0);
 
             let html = `
                 <div class="summary">
@@ -482,7 +567,7 @@
             const f = cls.fields;
             const venueName = (f.Venue || []).map(id => venueMap[id] || '?').join(', ') || 'No venue';
             const teacherNames = (f.Teachers || []).map(id => teacherMap[id] || '?').join(', ');
-            const enrolled = f['Current Enrollment'] || 0;
+            const enrolled = f['Current Bookings'] || 0;
             const capacity = f.Capacity || 0;
             const spotsRemaining = capacity - enrolled;
 
@@ -533,6 +618,7 @@
                         <span>Registration link:</span>
                         <span class="reg-url" id="regUrl-${cls.id}">${escapeHtml(regUrl)}</span>
                         <button class="copy-btn" onclick="copyRegLink('${cls.id}', this)">Copy</button>
+                        <button class="btn btn-primary btn-sm" style="margin-left:auto;" onclick="openBookingPanel('${cls.id}')">Book Students</button>
                     </div>` : ''}
                 </div>
             `;
@@ -587,9 +673,9 @@
             document.getElementById('formTitle').textContent = 'Edit Class';
             document.getElementById('editingRecordId').value = recordId;
 
-            // Show delete button only if no enrollments
-            const hasEnrollments = (cls.fields['Current Enrollment'] || 0) > 0;
-            document.getElementById('deleteBtn').style.display = hasEnrollments ? 'none' : '';
+            // Show delete button only if no bookings
+            const hasBookings = (cls.fields['Current Bookings'] || 0) > 0;
+            document.getElementById('deleteBtn').style.display = hasBookings ? 'none' : '';
 
             const f = cls.fields;
             document.getElementById('className').value = f.Name || '';
@@ -761,6 +847,192 @@
             } catch (err) {
                 errEl.textContent = err.message;
                 errEl.classList.add('show');
+            }
+        }
+
+        // ── Booking Panel ──
+
+        let allStudents = [];
+        let allParents = [];
+        let currentBookings = []; // booking records for the open class
+
+        async function openBookingPanel(classId) {
+            const cls = allClasses.find(c => c.id === classId);
+            if (!cls) return;
+
+            document.getElementById('bookingClassId').value = classId;
+            document.getElementById('bookingTitle').textContent = `Book Students — ${cls.fields.Name || 'Untitled'}`;
+
+            const msgEl = document.getElementById('bookingMsg');
+            msgEl.classList.remove('show');
+
+            // Load students + parents if not yet loaded
+            if (allStudents.length === 0) {
+                msgEl.textContent = 'Loading students...';
+                msgEl.className = 'booking-msg show';
+                try {
+                    const [students, parents] = await Promise.all([
+                        fetchAll('Students'),
+                        fetchAll('Parents'),
+                    ]);
+                    allStudents = students;
+                    allParents = parents;
+                } catch (err) {
+                    msgEl.textContent = 'Error loading students: ' + err.message;
+                    msgEl.className = 'booking-msg show error';
+                    return;
+                }
+                msgEl.classList.remove('show');
+            }
+
+            // Load existing bookings for this class
+            await refreshBookings(classId);
+
+            document.getElementById('bookingPanel').classList.add('show');
+            // Scroll to panel
+            document.getElementById('bookingPanel').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        function closeBookingPanel() {
+            document.getElementById('bookingPanel').classList.remove('show');
+        }
+
+        function getParentName(studentRecord) {
+            const parentIds = studentRecord.fields.Parents || [];
+            if (parentIds.length === 0) return '';
+            const parent = allParents.find(p => p.id === parentIds[0]);
+            return parent ? parent.fields.Name || '' : '';
+        }
+
+        async function refreshBookings(classId) {
+            const filterFormula = encodeURIComponent(`FIND('${classId}', ARRAYJOIN({Class}))`);
+            const resp = await fetch(`${API_BASE}/Bookings?filterByFormula=${filterFormula}`, {
+                headers: { 'Authorization': `Bearer ${AIRTABLE_API_KEY}` }
+            });
+            if (!resp.ok) throw new Error('Failed to load bookings');
+            const data = await resp.json();
+            currentBookings = data.records || [];
+            renderBookingList(classId);
+        }
+
+        function renderBookingList(classId) {
+            const listEl = document.getElementById('bookingList');
+            const bookedStudentIds = new Set();
+
+            if (currentBookings.length === 0) {
+                listEl.innerHTML = '<div class="booking-empty">No students booked yet.</div>';
+            } else {
+                let html = '<ul class="booking-list">';
+                for (const b of currentBookings) {
+                    const studentIds = b.fields.Student || [];
+                    for (const sid of studentIds) bookedStudentIds.add(sid);
+                    const student = allStudents.find(s => studentIds.includes(s.id));
+                    const studentName = student ? student.fields.Name : '(unknown)';
+                    const parentName = student ? getParentName(student) : '';
+                    const status = b.fields['Payment Status'] || 'Pending';
+                    const statusClass = status === 'Paid' ? 'booking-status-paid' : 'booking-status-pending';
+
+                    html += `<li>
+                        <div>
+                            <span class="booking-student-name">${escapeHtml(studentName)}</span>
+                            ${parentName ? `<span class="booking-parent"> — ${escapeHtml(parentName)}</span>` : ''}
+                        </div>
+                        <div>
+                            <span class="booking-status ${statusClass}">${escapeHtml(status)}</span>
+                            <button class="booking-remove" onclick="removeBooking('${b.id}', '${escapeHtml(studentName)}')">Remove</button>
+                        </div>
+                    </li>`;
+                }
+                html += '</ul>';
+                listEl.innerHTML = html;
+            }
+
+            // Populate student dropdown (exclude already-booked students)
+            const sel = document.getElementById('bookingStudentSelect');
+            sel.innerHTML = '<option value="">Select student to add...</option>';
+            const available = allStudents
+                .filter(s => !bookedStudentIds.has(s.id))
+                .sort((a, b) => (a.fields.Name || '').localeCompare(b.fields.Name || ''));
+            for (const s of available) {
+                const parentName = getParentName(s);
+                const label = parentName ? `${s.fields.Name} (${parentName})` : s.fields.Name;
+                sel.innerHTML += `<option value="${s.id}">${escapeHtml(label)}</option>`;
+            }
+        }
+
+        async function addBooking() {
+            const classId = document.getElementById('bookingClassId').value;
+            const studentId = document.getElementById('bookingStudentSelect').value;
+            const msgEl = document.getElementById('bookingMsg');
+
+            if (!studentId) {
+                msgEl.textContent = 'Please select a student.';
+                msgEl.className = 'booking-msg show error';
+                return;
+            }
+
+            msgEl.textContent = 'Adding...';
+            msgEl.className = 'booking-msg show';
+
+            try {
+                const today = new Date().toISOString().split('T')[0];
+                const resp = await fetch(`${API_BASE}/Bookings`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${AIRTABLE_API_KEY}`,
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        records: [{
+                            fields: {
+                                "Student": [studentId],
+                                "Class": [classId],
+                                "Booking Date": today,
+                                "Payment Status": "Paid",
+                            }
+                        }]
+                    }),
+                });
+                if (!resp.ok) {
+                    const err = await resp.text();
+                    throw new Error(err);
+                }
+
+                msgEl.textContent = 'Student booked!';
+                msgEl.className = 'booking-msg show success';
+                setTimeout(() => msgEl.classList.remove('show'), 2000);
+
+                await refreshBookings(classId);
+                // Reload class data to update the spots count
+                await loadData();
+            } catch (err) {
+                msgEl.textContent = 'Error: ' + err.message;
+                msgEl.className = 'booking-msg show error';
+            }
+        }
+
+        async function removeBooking(bookingId, studentName) {
+            if (!confirm(`Remove ${studentName} from this class?`)) return;
+
+            const classId = document.getElementById('bookingClassId').value;
+            const msgEl = document.getElementById('bookingMsg');
+
+            try {
+                const resp = await fetch(`${API_BASE}/Bookings/${bookingId}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${AIRTABLE_API_KEY}` },
+                });
+                if (!resp.ok) throw new Error(await resp.text());
+
+                msgEl.textContent = 'Booking removed.';
+                msgEl.className = 'booking-msg show success';
+                setTimeout(() => msgEl.classList.remove('show'), 2000);
+
+                await refreshBookings(classId);
+                await loadData();
+            } catch (err) {
+                msgEl.textContent = 'Error: ' + err.message;
+                msgEl.className = 'booking-msg show error';
             }
         }
 

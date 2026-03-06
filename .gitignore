@@ -41,5 +41,8 @@ ENV/
 # Archive (keep locally but don't commit)
 archive_*/
 
+# Intake forms (PII - scanned enrollment forms)
+intake-forms/
+
 # Temporary - contains API key
 scripts/inspect_actual.py
