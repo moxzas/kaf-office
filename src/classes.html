@@ -416,6 +416,8 @@
         </div>
     </div>
 
+    <div id="summaryBar"></div>
+
     <div id="bookingPanel" class="booking-panel">
         <div class="form-header">
             <span id="bookingTitle">Book Students</span>
@@ -527,6 +529,20 @@
 
         // ── Render ──
 
+        let bookingCountAdjustment = 0; // tracks local add/remove before next loadData
+
+        function renderSummaryBar() {
+            const activeCount = allClasses.filter(c => c.fields.Status === 'Active' || !c.fields.Status).length;
+            const totalEnrolled = allClasses.reduce((sum, c) => sum + (c.fields['Current Bookings'] || 0), 0) + bookingCountAdjustment;
+            document.getElementById('summaryBar').innerHTML = `
+                <div class="summary">
+                    <div><span class="stat">${activeCount}</span> <span class="stat-label">active classes</span></div>
+                    <div><span class="stat">${totalEnrolled}</span> <span class="stat-label">total booked</span></div>
+                    <button class="btn btn-primary ml-auto" onclick="openAddForm()">+ Add New Class</button>
+                </div>
+            `;
+        }
+
         function renderClasses() {
             const content = document.getElementById('content');
 
@@ -546,15 +562,9 @@
                 return (a.fields['Start Time'] || '').localeCompare(b.fields['Start Time'] || '');
             });
 
-            const activeCount = allClasses.filter(c => c.fields.Status === 'Active' || !c.fields.Status).length;
-            const totalEnrolled = allClasses.reduce((sum, c) => sum + (c.fields['Current Bookings'] || 0), 0);
+            renderSummaryBar();
 
             let html = `
-                <div class="summary">
-                    <div><span class="stat">${activeCount}</span> <span class="stat-label">active classes</span></div>
-                    <div><span class="stat">${totalEnrolled}</span> <span class="stat-label">total enrolled</span></div>
-                    <button class="btn btn-primary ml-auto" onclick="openAddForm()">+ Add New Class</button>
-                </div>
                 <div class="toggle-row">
                     <label class="toggle-label">
                         <input type="checkbox" ${showInactive ? 'checked' : ''} onchange="showInactive=this.checked;renderClasses()">
@@ -907,6 +917,9 @@
 
         function closeBookingPanel() {
             document.getElementById('bookingPanel').classList.remove('show');
+            // Refresh class data to get accurate counts from server
+            bookingCountAdjustment = 0;
+            loadData();
         }
 
         function getParentName(studentRecord) {
@@ -1009,7 +1022,9 @@
                 id: tempId,
                 fields: { Student: [studentId], 'Payment Status': 'Paid' }
             });
+            bookingCountAdjustment++;
             renderBookingColumns();
+            renderSummaryBar();
 
             try {
                 const today = new Date().toISOString().split('T')[0];
@@ -1043,7 +1058,9 @@
                 console.error('Booking error:', err);
                 // Rollback optimistic update
                 currentBookings = currentBookings.filter(b => b.id !== tempId);
+                bookingCountAdjustment--;
                 renderBookingColumns();
+                renderSummaryBar();
                 msgEl.textContent = 'Error: ' + err.message;
                 msgEl.className = 'booking-msg show error';
             }
@@ -1057,7 +1074,9 @@
             // Optimistic update: immediately remove and re-render
             const removed = currentBookings.find(b => b.id === bookingId);
             currentBookings = currentBookings.filter(b => b.id !== bookingId);
+            bookingCountAdjustment--;
             renderBookingColumns();
+            renderSummaryBar();
 
             try {
                 const resp = await fetch(`${API_BASE}/Bookings/${bookingId}`, {
@@ -1069,7 +1088,9 @@
                 console.error('Remove booking error:', err);
                 // Rollback: put it back
                 if (removed) currentBookings.push(removed);
+                bookingCountAdjustment++;
                 renderBookingColumns();
+                renderSummaryBar();
                 msgEl.textContent = 'Error: ' + err.message;
                 msgEl.className = 'booking-msg show error';
             }
