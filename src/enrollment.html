@@ -569,8 +569,7 @@
                                 "Suburb": formData.parentSuburb,
                                 "Postcode": formData.parentPostcode,
                                 "Authorized for Pickup": formData.parentAuthorizedPickup || false,
-                                "Marketing Consent": formData.marketingConsent !== false,
-                                "Interest Categories": formData.interestCategories || [],
+                                                                "Interest Categories": formData.interestCategories || [],
                                 "Interest Notes": formData.interestNotes || ""
                             }
                         }]
@@ -589,7 +588,9 @@
                     );
 
                     if (!parentResponse.ok) {
-                        throw new Error('Failed to create parent record');
+                        const errText = await parentResponse.text();
+                        console.error('Parent create error:', errText);
+                        throw new Error('Failed to create parent record: ' + errText);
                     }
 
                     const parentResult = await parentResponse.json();
@@ -608,8 +609,7 @@
                             "Suburb": formData.parentSuburb,
                             "Postcode": formData.parentPostcode,
                             "Authorized for Pickup": formData.parentAuthorizedPickup || false,
-                            "Marketing Consent": formData.marketingConsent !== false,
-                            "Interest Categories": formData.interestCategories || [],
+                                                        "Interest Categories": formData.interestCategories || [],
                             "Interest Notes": formData.interestNotes || ""
                         }
                     };
@@ -627,7 +627,9 @@
                     );
 
                     if (!response.ok) {
-                        throw new Error('Failed to update parent record');
+                        const errText = await response.text();
+                        console.error('Parent update error:', errText);
+                        throw new Error('Failed to update parent record: ' + errText);
                     }
 
                     console.log('✓ Parent updated');
@@ -809,7 +811,8 @@ http://app.sonzai.com/kaf/enrollment.html?parent=${parentRecordId}
 
             } catch (error) {
                 console.error('Submission error:', error);
-                showStatus('❌ Error submitting enrollment. Please try again or contact us.', 'error');
+                console.error('Full error:', error);
+                showStatus('❌ Error submitting enrollment: ' + error.message, 'error');
             }
         });
 
