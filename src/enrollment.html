@@ -331,11 +331,15 @@
                             panelRemoveText: "Remove"
                         },
                         {
+                            type: "html",
+                            name: "enrollmentPhotoNotice",
+                            html: "<strong>Enrollment Photo Notice</strong><br>We take a photo of each child on their first day for our class roll. This helps relief teachers identify students and is used for administration purposes only. These photos are stored securely in our system and are not shared or published."
+                        },
+                        {
                             type: "radiogroup",
                             name: "photoPermission",
-                            title: "Photo Permission",
-                            description: "May we photograph your child for promotional materials?",
-                            isRequired: true,
+                            title: "Photo Permission (optional)",
+                            description: "May we photograph your child for social media and promotional materials?",
                             choices: [
                                 "Yes - child & artwork",
                                 "Yes - artwork only",
