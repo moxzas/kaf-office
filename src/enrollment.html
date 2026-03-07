@@ -214,13 +214,6 @@
                                 }
                             ]
                         },
-                        {
-                            type: "boolean",
-                            name: "parentAuthorizedPickup",
-                            title: "I am authorized to pick up my children from classes",
-                            isRequired: true,
-                            defaultValue: true
-                        }
                     ]
                 },
 
@@ -568,7 +561,7 @@
                                 "Address": formData.parentAddress,
                                 "Suburb": formData.parentSuburb,
                                 "Postcode": formData.parentPostcode,
-                                "Authorized for Pickup": formData.parentAuthorizedPickup || false,
+                                "Authorized for Pickup": true,
                                                                 "Interest Categories": formData.interestCategories || [],
                                 "Interest Notes": formData.interestNotes || ""
                             }
@@ -608,7 +601,7 @@
                             "Address": formData.parentAddress,
                             "Suburb": formData.parentSuburb,
                             "Postcode": formData.parentPostcode,
-                            "Authorized for Pickup": formData.parentAuthorizedPickup || false,
+                            "Authorized for Pickup": true,
                                                         "Interest Categories": formData.interestCategories || [],
                             "Interest Notes": formData.interestNotes || ""
                         }
