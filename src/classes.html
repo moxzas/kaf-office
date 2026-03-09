@@ -284,6 +284,24 @@
         .booking-msg.show { display: block; }
         .booking-msg.success { color: #16a34a; }
         .booking-msg.error { color: #dc2626; padding: 0; text-align: left; }
+        .oshc-toggle {
+            margin-left: auto;
+            font-size: 11px;
+            padding: 2px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            border: 1px solid #d1d5db;
+            background: #f9fafb;
+            color: #666;
+            flex-shrink: 0;
+        }
+        .oshc-toggle.active {
+            background: #dbeafe;
+            border-color: #93c5fd;
+            color: #1d4ed8;
+            font-weight: 600;
+        }
+        .oshc-toggle:hover { background: #eff6ff; }
     </style>
 </head>
 <body>
@@ -453,7 +471,7 @@
         const DAY_ORDER = { Monday: 1, Tuesday: 2, Wednesday: 3, Thursday: 4, Friday: 5, Saturday: 6, Sunday: 7 };
 
         let allClasses = [];
-        let venueMap = {};  // id -> name
+        let venueMap = {};  // id -> { name, oshcAvailable, oshcFee, oshcNotes }
         let teacherMap = {};  // id -> name
         let showInactive = false;
 
@@ -495,7 +513,12 @@
 
                 allClasses = classes;
                 venueMap = {};
-                for (const v of venues) venueMap[v.id] = v.fields.Name || '?';
+                for (const v of venues) venueMap[v.id] = {
+                    name: v.fields.Name || '?',
+                    oshcAvailable: !!v.fields['OSHC Available'],
+                    oshcFee: v.fields['OSHC Fee'] || 0,
+                    oshcNotes: v.fields['OSHC Notes'] || '',
+                };
                 teacherMap = {};
                 for (const t of teachers) teacherMap[t.id] = t.fields.Name || '?';
 
@@ -586,7 +609,7 @@
 
         function renderClassCard(cls) {
             const f = cls.fields;
-            const venueName = (f.Venue || []).map(id => venueMap[id] || '?').join(', ') || 'No venue';
+            const venueName = (f.Venue || []).map(id => (venueMap[id] || {}).name || '?').join(', ') || 'No venue';
             const teacherNames = (f.Teachers || []).map(id => teacherMap[id] || '?').join(', ');
             const enrolled = f['Current Bookings'] || 0;
             const capacity = f.Capacity || 0;
@@ -929,6 +952,14 @@
             return parent ? parent.fields.Name || '' : '';
         }
 
+        function classHasOshc() {
+            const classId = document.getElementById('bookingClassId').value;
+            const cls = allClasses.find(c => c.id === classId);
+            if (!cls) return false;
+            const venueIds = cls.fields.Venue || [];
+            return venueIds.some(id => (venueMap[id] || {}).oshcAvailable);
+        }
+
         async function refreshBookings(classId) {
             // Fetch all bookings and filter client-side by Class linked record ID
             // (ARRAYJOIN on link fields returns the name, not the ID, so server-side filter won't work)
@@ -991,6 +1022,7 @@
                 .filter(s => bookedStudentIds.has(s.id))
                 .sort((a, b) => (a.fields.Name || '').localeCompare(b.fields.Name || ''));
 
+            const showOshc = classHasOshc();
             if (booked.length === 0) {
                 bookedEl.innerHTML = '<div class="booking-empty">No students booked yet</div>';
             } else {
@@ -998,12 +1030,15 @@
                 for (const s of booked) {
                     const parentName = getParentName(s);
                     const bId = bookingByStudentId[s.id];
-                    html += `<li onclick="removeBooking('${bId}', '${escapeHtml(s.fields.Name)}')" title="Click to remove">
-                        <span class="booking-arrow remove">&times;</span>
+                    const booking = currentBookings.find(b => b.id === bId);
+                    const isOshc = booking && booking.fields['OSHC Collection'];
+                    html += `<li>
+                        <span class="booking-arrow remove" onclick="removeBooking('${bId}', '${escapeHtml(s.fields.Name)}')" title="Remove">&times;</span>
                         <div>
                             <span class="booking-student-name">${escapeHtml(s.fields.Name)}</span>
                             ${parentName ? `<br><span class="booking-parent">${escapeHtml(parentName)}</span>` : ''}
                         </div>
+                        ${showOshc ? `<span class="oshc-toggle ${isOshc ? 'active' : ''}" onclick="toggleOshc('${bId}')" title="Toggle OSHC">OSHC</span>` : ''}
                     </li>`;
                 }
                 bookedEl.innerHTML = html;
@@ -1092,6 +1127,38 @@
                 renderBookingColumns();
                 renderSummaryBar();
                 msgEl.textContent = 'Error: ' + err.message;
+                msgEl.className = 'booking-msg show error';
+            }
+        }
+
+        async function toggleOshc(bookingId) {
+            if (bookingId.startsWith('__pending_')) return; // don't toggle pending bookings
+            const booking = currentBookings.find(b => b.id === bookingId);
+            if (!booking) return;
+
+            const newValue = !booking.fields['OSHC Collection'];
+
+            // Optimistic update
+            booking.fields['OSHC Collection'] = newValue;
+            renderBookingColumns();
+
+            try {
+                const resp = await fetch(`${API_BASE}/Bookings/${bookingId}`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Authorization': `Bearer ${AIRTABLE_API_KEY}`,
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ fields: { 'OSHC Collection': newValue } }),
+                });
+                if (!resp.ok) throw new Error(await resp.text());
+            } catch (err) {
+                console.error('OSHC toggle error:', err);
+                // Rollback
+                booking.fields['OSHC Collection'] = !newValue;
+                renderBookingColumns();
+                const msgEl = document.getElementById('bookingMsg');
+                msgEl.textContent = 'Error toggling OSHC: ' + err.message;
                 msgEl.className = 'booking-msg show error';
             }
         }
