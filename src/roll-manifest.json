@@ -1,0 +1,16 @@
+{
+    "name": "KAF Roll Call",
+    "short_name": "KAF Roll",
+    "start_url": "/kaf/roll.html",
+    "display": "standalone",
+    "background_color": "#1e40af",
+    "theme_color": "#1e40af",
+    "orientation": "portrait",
+    "icons": [
+        {
+            "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect fill='%232563eb' width='512' height='512' rx='100'/><text x='256' y='340' font-size='250' text-anchor='middle' fill='white' font-family='sans-serif' font-weight='bold'>KAF</text></svg>",
+            "sizes": "512x512",
+            "type": "image/svg+xml"
+        }
+    ]
+}
