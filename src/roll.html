@@ -125,6 +125,18 @@
         .badge { font-size: 11px; padding: 2px 8px; border-radius: 4px; font-weight: 600; }
         .badge-oshc { background: #dbeafe; color: #1d4ed8; }
         .badge-medical { background: #fef2f2; color: #dc2626; cursor: pointer; }
+        .btn-artwork {
+            padding: 4px 10px; border-radius: 6px; border: 1px solid #d1d5db;
+            background: #f9fafb; font-size: 12px; cursor: pointer; color: #555;
+            display: inline-flex; align-items: center; gap: 4px;
+        }
+        .btn-artwork:active { background: #eff6ff; border-color: #93c5fd; }
+        .photo-permission-note {
+            font-size: 13px; color: #666; background: #fefce8; border: 1px solid #fde68a;
+            border-radius: 6px; padding: 8px 12px; margin-bottom: 12px;
+        }
+        .photo-permission-note strong { color: #92400e; }
+        .photo-count { font-size: 11px; color: #2563eb; font-weight: 600; }
 
         .student-status { font-size: 12px; color: #888; text-align: right; flex-shrink: 0; }
         .student-status .time { font-size: 14px; font-weight: 600; color: #22c55e; }
@@ -265,6 +277,7 @@
                 <div class="roll-stat"><strong id="statPresent">0</strong> present</div>
                 <div class="roll-stat"><strong id="statTotal">0</strong> total</div>
                 <div class="roll-stat"><strong id="statDeparted">0</strong> departed</div>
+                <div class="roll-stat"><strong id="statPhotos">0</strong> photos</div>
             </div>
         </div>
         <div class="roll-list" id="rollList"></div>
@@ -304,6 +317,7 @@
     <div class="modal-overlay" id="cameraModal">
         <div class="modal" style="max-width:500px;">
             <h3 id="cameraTitle">Take Photo</h3>
+            <div class="photo-permission-note" id="cameraPermissionNote"></div>
             <div class="camera-container" id="cameraContainer">
                 <video id="cameraVideo" autoplay playsinline></video>
                 <canvas id="cameraCanvas"></canvas>
@@ -723,9 +737,11 @@
 
             const present = rollStudents.filter(r => r.attendance.status === 'present').length;
             const departed = rollStudents.filter(r => r.attendance.status === 'departed').length;
+            const photoCount = rollStudents.reduce((sum, r) => sum + (r.attendance.artworkPhotos || []).length + (r.attendance.photoDataUrl ? 1 : 0), 0);
             document.getElementById('statPresent').textContent = present;
             document.getElementById('statTotal').textContent = rollStudents.length;
             document.getElementById('statDeparted').textContent = departed;
+            document.getElementById('statPhotos').textContent = photoCount;
 
             let html = '';
             for (let i = 0; i < rollStudents.length; i++) {
@@ -742,9 +758,14 @@
                     || sf['Allergy Information'] || sf['Dietary Notes'];
                 const initials = (sf.Name || '?').split(' ').map(n => n[0]).join('').toUpperCase();
 
+                // Photo permission from booking
+                const photoPermission = bf['Photo Permission'] || '';
+                const artworkCount = (att.artworkPhotos || []).length;
+
                 let statusHtml = '';
                 if (att.status === 'present') {
-                    statusHtml = `<div class="time">${att.arrivedAt}</div><div>Tap to depart</div>`;
+                    statusHtml = `<div class="time">${att.arrivedAt}</div>`;
+                    statusHtml += `<button class="btn-artwork" onclick="event.stopPropagation(); openArtworkCamera(${i})">📷${artworkCount ? ` <span class="photo-count">${artworkCount}</span>` : ''}</button>`;
                 } else if (att.status === 'departed') {
                     statusHtml = `<div class="departed-time">Left ${att.departedAt}</div><div>${escapeHtml(att.collectedBy || '')}</div>`;
                 } else {
@@ -903,10 +924,37 @@
 
         // ── Camera ──
 
-        async function openCamera(idx) {
+        let cameraMode = 'enrollment'; // 'enrollment' or 'artwork'
+
+        function getPermissionNote(idx) {
+            const bf = rollStudents[idx].booking.fields;
+            const perm = bf['Photo Permission'] || '';
+            if (cameraMode === 'enrollment') {
+                return '<strong>Admin photo</strong> — for class roll identification only. Not published.';
+            }
+            if (perm === 'Yes - child & artwork') {
+                return '<strong>Child & artwork OK</strong> — photos may include the child.';
+            } else if (perm === 'Yes - artwork only') {
+                return '<strong>Artwork only</strong> — do not include the child in the photo.';
+            } else if (perm === 'No photos') {
+                return '<strong>No photo permission</strong> — artwork only, no child in frame.';
+            }
+            return '<strong>No permission on file</strong> — artwork only, no child in frame.';
+        }
+
+        async function startCamera(idx, mode) {
             cameraStudentIdx = idx;
+            cameraMode = mode;
             const studentName = rollStudents[idx].student.fields.Name || 'Student';
-            document.getElementById('cameraTitle').textContent = `Enrollment Photo — ${studentName}`;
+            const title = mode === 'enrollment'
+                ? `Enrollment Photo — ${studentName}`
+                : `Artwork Photo — ${studentName}`;
+            document.getElementById('cameraTitle').textContent = title;
+
+            // Show permission note
+            const noteEl = document.getElementById('cameraPermissionNote');
+            noteEl.innerHTML = getPermissionNote(idx);
+            noteEl.style.display = '';
 
             document.getElementById('cameraContainer').style.display = '';
             document.getElementById('cameraControls').style.display = '';
@@ -915,7 +963,7 @@
 
             try {
                 cameraStream = await navigator.mediaDevices.getUserMedia({
-                    video: { facingMode: 'environment', width: { ideal: 640 }, height: { ideal: 640 } }
+                    video: { facingMode: 'environment', width: { ideal: 1024 }, height: { ideal: 1024 } }
                 });
                 document.getElementById('cameraVideo').srcObject = cameraStream;
                 document.getElementById('cameraModal').classList.add('show');
@@ -923,6 +971,14 @@
                 alert('Camera not available: ' + err.message);
                 cameraStudentIdx = null;
             }
+        }
+
+        function openCamera(idx) {
+            startCamera(idx, 'enrollment');
+        }
+
+        function openArtworkCamera(idx) {
+            startCamera(idx, 'artwork');
         }
 
         function capturePhoto() {
@@ -957,19 +1013,44 @@
         async function savePhoto() {
             if (cameraStudentIdx === null) return;
             const dataUrl = document.getElementById('cameraPreview').src;
+            const r = rollStudents[cameraStudentIdx];
+            const photoPermission = r.booking.fields['Photo Permission'] || '';
 
-            // Store photo data URL on the roll student for display
-            rollStudents[cameraStudentIdx].attendance.photoDataUrl = dataUrl;
+            if (cameraMode === 'enrollment') {
+                // Store enrollment photo on the roll student for display
+                r.attendance.photoDataUrl = dataUrl;
 
-            // Queue for upload when session closes
-            await dbPut('pendingPhotos', {
-                id: rollStudents[cameraStudentIdx].student.id,
-                studentId: rollStudents[cameraStudentIdx].student.id,
-                studentName: rollStudents[cameraStudentIdx].student.fields.Name,
-                type: 'enrollment',
-                dataUrl: dataUrl,
-                takenAt: new Date().toISOString(),
-            });
+                await dbPut('pendingPhotos', {
+                    id: r.student.id,
+                    studentId: r.student.id,
+                    studentName: r.student.fields.Name,
+                    type: 'enrollment',
+                    dataUrl: dataUrl,
+                    takenAt: new Date().toISOString(),
+                });
+            } else {
+                // Artwork photo — add to array
+                if (!r.attendance.artworkPhotos) r.attendance.artworkPhotos = [];
+                const photoId = `art_${Date.now()}`;
+                r.attendance.artworkPhotos.push({
+                    id: photoId,
+                    dataUrl: dataUrl,
+                    takenAt: new Date().toISOString(),
+                });
+
+                await dbPut('pendingPhotos', {
+                    id: photoId,
+                    studentId: r.student.id,
+                    studentName: r.student.fields.Name,
+                    classId: currentClass.id,
+                    sessionId: currentSession.id,
+                    sessionDate: currentSession.fields['Session Date'],
+                    type: 'artwork',
+                    photoPermission: photoPermission,
+                    dataUrl: dataUrl,
+                    takenAt: new Date().toISOString(),
+                });
+            }
 
             closeCameraModal();
             renderRoll();
