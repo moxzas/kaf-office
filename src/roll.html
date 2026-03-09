@@ -32,155 +32,77 @@
         }
         .login-title { font-size: 28px; font-weight: 700; margin-bottom: 8px; }
         .login-subtitle { font-size: 16px; opacity: 0.8; margin-bottom: 40px; }
-        .pin-display {
-            display: flex;
-            gap: 12px;
-            margin-bottom: 30px;
-        }
+        .pin-display { display: flex; gap: 12px; margin-bottom: 30px; }
         .pin-dot {
-            width: 18px;
-            height: 18px;
-            border-radius: 50%;
+            width: 18px; height: 18px; border-radius: 50%;
             border: 2px solid rgba(255,255,255,0.6);
-            background: transparent;
-            transition: background 0.15s;
+            background: transparent; transition: background 0.15s;
         }
         .pin-dot.filled { background: white; border-color: white; }
-        .pin-pad {
-            display: grid;
-            grid-template-columns: repeat(3, 80px);
-            gap: 12px;
-        }
+        .pin-pad { display: grid; grid-template-columns: repeat(3, 80px); gap: 12px; }
         .pin-btn {
-            width: 80px;
-            height: 80px;
-            border-radius: 50%;
+            width: 80px; height: 80px; border-radius: 50%;
             border: 2px solid rgba(255,255,255,0.4);
             background: rgba(255,255,255,0.1);
-            color: white;
-            font-size: 28px;
-            font-weight: 500;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            color: white; font-size: 28px; font-weight: 500;
+            cursor: pointer; display: flex; align-items: center; justify-content: center;
             -webkit-tap-highlight-color: transparent;
         }
         .pin-btn:active { background: rgba(255,255,255,0.3); }
         .pin-btn.fn { font-size: 14px; border-color: transparent; background: transparent; }
-        .pin-error {
-            color: #fca5a5;
-            font-size: 14px;
-            margin-top: 16px;
-            min-height: 20px;
-        }
+        .pin-error { color: #fca5a5; font-size: 14px; margin-top: 16px; min-height: 20px; }
 
         /* ── Class Selection Screen ── */
-        #classScreen {
-            flex-direction: column;
-            background: #f5f5f5;
-        }
+        #classScreen { flex-direction: column; background: #f5f5f5; }
         .top-bar {
-            background: white;
-            padding: 16px 20px;
+            background: white; padding: 16px 20px;
             box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
+            display: flex; align-items: center; justify-content: space-between;
         }
         .top-bar-title { font-size: 18px; font-weight: 600; color: #333; }
         .top-bar-user { font-size: 14px; color: #666; }
         .btn {
-            padding: 8px 16px;
-            border-radius: 6px;
-            border: none;
-            font-size: 14px;
-            font-weight: 500;
-            cursor: pointer;
+            padding: 8px 16px; border-radius: 6px; border: none;
+            font-size: 14px; font-weight: 500; cursor: pointer;
         }
         .btn-secondary { background: #e5e7eb; color: #333; }
         .btn-primary { background: #2563eb; color: white; }
         .btn-primary:active { background: #1d4ed8; }
 
-        .class-list {
-            flex: 1;
-            overflow-y: auto;
-            padding: 16px;
-        }
+        .class-list { flex: 1; overflow-y: auto; padding: 16px; }
         .day-group { margin-bottom: 20px; }
         .day-label {
-            font-size: 13px;
-            font-weight: 600;
-            color: #888;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            padding: 0 4px 8px;
+            font-size: 13px; font-weight: 600; color: #888;
+            text-transform: uppercase; letter-spacing: 0.5px; padding: 0 4px 8px;
         }
         .class-item {
-            background: white;
-            border-radius: 10px;
-            padding: 16px;
-            margin-bottom: 8px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
+            background: white; border-radius: 10px; padding: 16px; margin-bottom: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08); cursor: pointer;
+            display: flex; align-items: center; justify-content: space-between;
         }
         .class-item:active { background: #f0f7ff; }
         .class-item-name { font-weight: 600; color: #333; font-size: 16px; }
         .class-item-meta { font-size: 13px; color: #888; margin-top: 4px; }
         .class-item-session {
-            font-size: 12px;
-            color: #2563eb;
-            background: #eff6ff;
-            padding: 4px 10px;
-            border-radius: 12px;
-            font-weight: 500;
-            white-space: nowrap;
+            font-size: 12px; color: #2563eb; background: #eff6ff;
+            padding: 4px 10px; border-radius: 12px; font-weight: 500; white-space: nowrap;
         }
-        .class-item-count {
-            font-size: 13px;
-            color: #666;
-            margin-top: 2px;
-        }
+        .class-item-count { font-size: 13px; color: #666; margin-top: 2px; }
 
         /* ── Roll Screen ── */
-        #rollScreen {
-            flex-direction: column;
-            background: #f5f5f5;
-        }
-        .roll-header {
-            background: #1e40af;
-            color: white;
-            padding: 16px 20px;
-        }
+        #rollScreen { flex-direction: column; background: #f5f5f5; }
+        .roll-header { background: #1e40af; color: white; padding: 16px 20px; }
         .roll-class-name { font-size: 20px; font-weight: 700; }
         .roll-session-info { font-size: 14px; opacity: 0.85; margin-top: 4px; }
-        .roll-stats {
-            display: flex;
-            gap: 20px;
-            margin-top: 10px;
-        }
+        .roll-stats { display: flex; gap: 20px; margin-top: 10px; }
         .roll-stat { font-size: 14px; }
         .roll-stat strong { font-size: 20px; }
 
-        .roll-list {
-            flex: 1;
-            overflow-y: auto;
-            padding: 12px;
-        }
+        .roll-list { flex: 1; overflow-y: auto; padding: 12px; }
         .student-card {
-            background: white;
-            border-radius: 10px;
-            padding: 14px 16px;
-            margin-bottom: 8px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
-            display: flex;
-            align-items: center;
-            gap: 14px;
-            cursor: pointer;
-            transition: border-left 0.2s;
+            background: white; border-radius: 10px; padding: 14px 16px; margin-bottom: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08); display: flex; align-items: center;
+            gap: 14px; cursor: pointer; transition: border-left 0.2s;
             border-left: 4px solid transparent;
         }
         .student-card:active { background: #f9fafb; }
@@ -188,146 +110,112 @@
         .student-card.departed { border-left-color: #94a3b8; background: #f8fafc; opacity: 0.7; }
 
         .student-photo {
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            background: #e5e7eb;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 20px;
-            color: #9ca3af;
-            flex-shrink: 0;
-            overflow: hidden;
+            width: 50px; height: 50px; border-radius: 50%; background: #e5e7eb;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 20px; color: #9ca3af; flex-shrink: 0; overflow: hidden;
         }
-        .student-photo img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
+        .student-photo img { width: 100%; height: 100%; object-fit: cover; }
         .student-photo.no-photo { border: 2px dashed #d1d5db; }
+        .student-photo.camera-prompt { border: 2px dashed #3b82f6; color: #3b82f6; cursor: pointer; }
 
-        .student-info { flex: 1; }
+        .student-info { flex: 1; min-width: 0; }
         .student-name { font-weight: 600; color: #333; font-size: 16px; }
         .student-parent { font-size: 12px; color: #888; }
-        .student-badges { display: flex; gap: 6px; margin-top: 4px; }
-        .badge {
-            font-size: 11px;
-            padding: 2px 8px;
-            border-radius: 4px;
-            font-weight: 600;
-        }
+        .student-badges { display: flex; gap: 6px; margin-top: 4px; flex-wrap: wrap; }
+        .badge { font-size: 11px; padding: 2px 8px; border-radius: 4px; font-weight: 600; }
         .badge-oshc { background: #dbeafe; color: #1d4ed8; }
-        .badge-medical { background: #fef2f2; color: #dc2626; }
+        .badge-medical { background: #fef2f2; color: #dc2626; cursor: pointer; }
 
-        .student-status {
-            font-size: 12px;
-            color: #888;
-            text-align: right;
-            flex-shrink: 0;
-        }
+        .student-status { font-size: 12px; color: #888; text-align: right; flex-shrink: 0; }
         .student-status .time { font-size: 14px; font-weight: 600; color: #22c55e; }
         .student-status .departed-time { color: #94a3b8; }
 
-        /* ── Pickup Modal ── */
+        /* ── Modals ── */
         .modal-overlay {
-            display: none;
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,0.5);
-            z-index: 100;
-            align-items: center;
-            justify-content: center;
+            display: none; position: fixed; inset: 0;
+            background: rgba(0,0,0,0.5); z-index: 100;
+            align-items: center; justify-content: center;
         }
         .modal-overlay.show { display: flex; }
         .modal {
-            background: white;
-            border-radius: 16px;
-            padding: 24px;
-            width: 90%;
-            max-width: 400px;
-            max-height: 80vh;
-            overflow-y: auto;
+            background: white; border-radius: 16px; padding: 24px;
+            width: 90%; max-width: 400px; max-height: 80vh; overflow-y: auto;
         }
         .modal h3 { font-size: 18px; margin-bottom: 16px; color: #333; }
         .pickup-option {
-            padding: 14px;
-            border: 1px solid #e5e7eb;
-            border-radius: 8px;
-            margin-bottom: 8px;
-            cursor: pointer;
-            font-size: 15px;
+            padding: 14px; border: 1px solid #e5e7eb; border-radius: 8px;
+            margin-bottom: 8px; cursor: pointer; font-size: 15px;
         }
         .pickup-option:active { background: #f0f7ff; border-color: #93c5fd; }
         .pickup-option .name { font-weight: 600; }
         .pickup-option .relation { color: #888; font-size: 13px; }
         .pickup-other {
-            margin-top: 12px;
-            padding-top: 12px;
-            border-top: 1px solid #e5e7eb;
+            margin-top: 12px; padding-top: 12px; border-top: 1px solid #e5e7eb;
         }
         .pickup-other input {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #d1d5db;
-            border-radius: 6px;
-            font-size: 15px;
-            margin-bottom: 8px;
+            width: 100%; padding: 10px; border: 1px solid #d1d5db;
+            border-radius: 6px; font-size: 15px; margin-bottom: 8px;
+            font-family: inherit;
         }
-        .modal-actions {
-            display: flex;
-            gap: 8px;
-            margin-top: 16px;
-        }
+        .modal-actions { display: flex; gap: 8px; margin-top: 16px; }
         .modal-actions .btn { flex: 1; padding: 12px; font-size: 15px; }
 
-        /* ── Close Session Bar ── */
+        /* Medical detail modal */
+        .medical-detail { font-size: 15px; line-height: 1.5; color: #333; }
+        .medical-detail dt { font-weight: 600; margin-top: 12px; color: #dc2626; }
+        .medical-detail dt:first-child { margin-top: 0; }
+        .medical-detail dd { margin-left: 0; }
+
+        /* Camera modal */
+        .camera-container { width: 100%; aspect-ratio: 1; background: #000; border-radius: 8px; overflow: hidden; position: relative; }
+        .camera-container video { width: 100%; height: 100%; object-fit: cover; }
+        .camera-container canvas { display: none; }
+        .camera-preview { width: 100%; border-radius: 8px; }
+        .camera-actions { display: flex; gap: 8px; margin-top: 12px; }
+        .camera-actions .btn { flex: 1; padding: 14px; font-size: 16px; }
+        .btn-capture {
+            background: #22c55e; color: white; border: none; border-radius: 8px;
+            padding: 14px; font-size: 16px; font-weight: 600; cursor: pointer; width: 100%; margin-top: 12px;
+        }
+        .btn-capture:active { background: #16a34a; }
+
+        /* ── Session Actions ── */
         .session-actions {
-            background: white;
-            padding: 12px 16px;
-            box-shadow: 0 -1px 3px rgba(0,0,0,0.1);
-            display: flex;
-            gap: 12px;
+            background: white; padding: 12px 16px;
+            box-shadow: 0 -1px 3px rgba(0,0,0,0.1); display: flex; gap: 12px;
         }
         .btn-close-session {
-            flex: 1;
-            padding: 14px;
-            background: #dc2626;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
+            flex: 1; padding: 14px; background: #dc2626; color: white;
+            border: none; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer;
         }
         .btn-close-session:active { background: #b91c1c; }
 
+        /* ── Loading ── */
         .loading-overlay {
-            display: none;
-            position: fixed;
-            inset: 0;
-            background: rgba(255,255,255,0.9);
-            z-index: 200;
-            align-items: center;
-            justify-content: center;
-            flex-direction: column;
-            gap: 16px;
-            font-size: 18px;
-            color: #333;
+            display: none; position: fixed; inset: 0;
+            background: rgba(255,255,255,0.9); z-index: 200;
+            align-items: center; justify-content: center;
+            flex-direction: column; gap: 16px; font-size: 18px; color: #333;
         }
         .loading-overlay.show { display: flex; }
         .spinner {
-            width: 40px;
-            height: 40px;
-            border: 4px solid #e5e7eb;
-            border-top-color: #2563eb;
-            border-radius: 50%;
+            width: 40px; height: 40px; border: 4px solid #e5e7eb;
+            border-top-color: #2563eb; border-radius: 50%;
             animation: spin 0.8s linear infinite;
         }
         @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* ── Offline indicator ── */
+        .offline-bar {
+            background: #f59e0b; color: white; text-align: center;
+            padding: 6px; font-size: 13px; font-weight: 600; display: none;
+        }
+        .offline-bar.show { display: block; }
     </style>
 </head>
 <body>
+
+    <div class="offline-bar" id="offlineBar">Offline — data will sync when connection returns</div>
 
     <!-- Login Screen -->
     <div id="loginScreen" class="screen active">
@@ -401,6 +289,41 @@
         </div>
     </div>
 
+    <!-- Medical Detail Modal -->
+    <div class="modal-overlay" id="medicalModal">
+        <div class="modal">
+            <h3 id="medicalTitle">Medical Information</h3>
+            <dl class="medical-detail" id="medicalDetail"></dl>
+            <div class="modal-actions" style="margin-top:20px;">
+                <button class="btn btn-secondary" onclick="closeMedicalModal()">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Camera Modal -->
+    <div class="modal-overlay" id="cameraModal">
+        <div class="modal" style="max-width:500px;">
+            <h3 id="cameraTitle">Take Photo</h3>
+            <div class="camera-container" id="cameraContainer">
+                <video id="cameraVideo" autoplay playsinline></video>
+                <canvas id="cameraCanvas"></canvas>
+            </div>
+            <img id="cameraPreview" class="camera-preview" style="display:none;">
+            <div id="cameraControls">
+                <button class="btn-capture" id="captureBtn" onclick="capturePhoto()">Take Photo</button>
+            </div>
+            <div id="cameraReview" style="display:none;">
+                <div class="camera-actions">
+                    <button class="btn btn-secondary" onclick="retakePhoto()">Retake</button>
+                    <button class="btn btn-primary" onclick="savePhoto()">Use Photo</button>
+                </div>
+            </div>
+            <div class="modal-actions" style="margin-top:12px;">
+                <button class="btn btn-secondary" onclick="closeCameraModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Loading Overlay -->
     <div class="loading-overlay" id="loadingOverlay">
         <div class="spinner"></div>
@@ -411,8 +334,8 @@
         const AIRTABLE_API_KEY = 'patYJhlgK2q6sAnyZ.8c3945853082593f6ec6cc6d12a0cd863a13a912a067dfd99c75a0ff95ae4e06';
         const AIRTABLE_BASE_ID = 'appNuMdxaiSYdgxJS';
         const API_BASE = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}`;
-
-        const DAY_ORDER = { Monday: 1, Tuesday: 2, Wednesday: 3, Thursday: 4, Friday: 5, Saturday: 6, Sunday: 7 };
+        const DB_NAME = 'kaf-roll';
+        const DB_VERSION = 1;
 
         let currentAdmin = null;
         let allClasses = [];
@@ -420,8 +343,123 @@
         let venueMap = {};
         let currentClass = null;
         let currentSession = null;
-        let rollStudents = [];    // { student, booking, parent, attendance }
+        let rollStudents = [];
         let pickupStudentIdx = null;
+        let cameraStudentIdx = null;
+        let cameraStream = null;
+        let db = null;
+
+        // ── IndexedDB ──
+
+        function openDB() {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open(DB_NAME, DB_VERSION);
+                request.onupgradeneeded = (e) => {
+                    const db = e.target.result;
+                    if (!db.objectStoreNames.contains('rollState')) {
+                        db.createObjectStore('rollState', { keyPath: 'key' });
+                    }
+                    if (!db.objectStoreNames.contains('pendingPhotos')) {
+                        db.createObjectStore('pendingPhotos', { keyPath: 'id', autoIncrement: true });
+                    }
+                    if (!db.objectStoreNames.contains('pendingSync')) {
+                        db.createObjectStore('pendingSync', { keyPath: 'id', autoIncrement: true });
+                    }
+                };
+                request.onsuccess = (e) => { db = e.target.result; resolve(db); };
+                request.onerror = (e) => reject(e.target.error);
+            });
+        }
+
+        function dbPut(store, data) {
+            return new Promise((resolve, reject) => {
+                const tx = db.transaction(store, 'readwrite');
+                tx.objectStore(store).put(data);
+                tx.oncomplete = () => resolve();
+                tx.onerror = (e) => reject(e.target.error);
+            });
+        }
+
+        function dbGet(store, key) {
+            return new Promise((resolve, reject) => {
+                const tx = db.transaction(store, 'readonly');
+                const req = tx.objectStore(store).get(key);
+                req.onsuccess = () => resolve(req.result);
+                req.onerror = (e) => reject(e.target.error);
+            });
+        }
+
+        function dbGetAll(store) {
+            return new Promise((resolve, reject) => {
+                const tx = db.transaction(store, 'readonly');
+                const req = tx.objectStore(store).getAll();
+                req.onsuccess = () => resolve(req.result);
+                req.onerror = (e) => reject(e.target.error);
+            });
+        }
+
+        function dbDelete(store, key) {
+            return new Promise((resolve, reject) => {
+                const tx = db.transaction(store, 'readwrite');
+                tx.objectStore(store).delete(key);
+                tx.oncomplete = () => resolve();
+                tx.onerror = (e) => reject(e.target.error);
+            });
+        }
+
+        function dbClear(store) {
+            return new Promise((resolve, reject) => {
+                const tx = db.transaction(store, 'readwrite');
+                tx.objectStore(store).clear();
+                tx.oncomplete = () => resolve();
+                tx.onerror = (e) => reject(e.target.error);
+            });
+        }
+
+        // Save roll state to IndexedDB for offline resilience
+        async function saveRollState() {
+            if (!db || !currentClass || !currentSession) return;
+            const state = {
+                key: 'currentRoll',
+                classId: currentClass.id,
+                sessionId: currentSession.id,
+                className: currentClass.fields.Name,
+                sessionName: currentSession.fields['Session Name'],
+                venueMap,
+                rollStudents: rollStudents.map(r => ({
+                    studentId: r.student.id,
+                    studentFields: r.student.fields,
+                    bookingId: r.booking.id,
+                    bookingFields: r.booking.fields,
+                    parentId: r.parent.id,
+                    parentFields: r.parent.fields,
+                    attendance: r.attendance,
+                })),
+                savedAt: new Date().toISOString(),
+            };
+            await dbPut('rollState', state);
+        }
+
+        // Restore roll state from IndexedDB (after app restart during session)
+        async function restoreRollState() {
+            if (!db) return false;
+            const state = await dbGet('rollState', 'currentRoll');
+            if (!state) return false;
+
+            venueMap = state.venueMap || {};
+            currentClass = { id: state.classId, fields: { Name: state.className, Venue: [] } };
+            currentSession = { id: state.sessionId, fields: { 'Session Name': state.sessionName } };
+            rollStudents = state.rollStudents.map(r => ({
+                student: { id: r.studentId, fields: r.studentFields },
+                booking: { id: r.bookingId, fields: r.bookingFields },
+                parent: { id: r.parentId, fields: r.parentFields },
+                attendance: r.attendance,
+            }));
+
+            renderRoll();
+            showScreen('rollScreen');
+            return true;
+        }
 
         // ── Airtable helpers ──
 
@@ -462,6 +500,14 @@
         function hideLoading() {
             document.getElementById('loadingOverlay').classList.remove('show');
         }
+
+        // ── Offline detection ──
+
+        function updateOnlineStatus() {
+            document.getElementById('offlineBar').classList.toggle('show', !navigator.onLine);
+        }
+        window.addEventListener('online', updateOnlineStatus);
+        window.addEventListener('offline', updateOnlineStatus);
 
         // ── PIN Login ──
 
@@ -547,16 +593,16 @@
                 .filter(s => (s.fields.Class || []).includes(classId))
                 .sort((a, b) => (a.fields['Session Date'] || '').localeCompare(b.fields['Session Date'] || ''));
 
-            // Find the nearest session to today (current or next upcoming)
+            // Find nearest non-complete session to today
             let best = null;
             for (const s of classSessions) {
-                if (!best) { best = s; continue; }
-                const sDate = s.fields['Session Date'] || '';
-                const bDate = best.fields['Session Date'] || '';
-                // Prefer the session closest to today (not yet complete)
                 if (s.fields.Status === 'Complete') continue;
-                if (sDate <= today) best = s;
-                else if (bDate < today || (bDate > today && sDate < bDate)) best = s;
+                const sDate = s.fields['Session Date'] || '';
+                if (!best) { best = s; continue; }
+                const bDate = best.fields['Session Date'] || '';
+                const sDiff = Math.abs(new Date(sDate) - new Date(today));
+                const bDiff = Math.abs(new Date(bDate) - new Date(today));
+                if (sDiff < bDiff) best = s;
             }
             return best;
         }
@@ -595,7 +641,8 @@
                 html += '</div>';
             }
 
-            document.getElementById('classList').innerHTML = html || '<div style="padding:40px;text-align:center;color:#888;">No active classes</div>';
+            document.getElementById('classList').innerHTML = html ||
+                '<div style="padding:40px;text-align:center;color:#888;">No active classes</div>';
         }
 
         // ── Roll Call ──
@@ -608,17 +655,10 @@
             showLoading('Loading roll...');
 
             try {
-                // Fetch bookings, students, parents for this class
                 const allBookings = await fetchAll('Bookings');
                 const classBookings = allBookings.filter(b =>
                     (b.fields.Class || []).includes(classId)
                 );
-
-                const studentIds = new Set();
-                const parentIds = new Set();
-                for (const b of classBookings) {
-                    for (const sid of (b.fields.Student || [])) studentIds.add(sid);
-                }
 
                 const [allStudents, allParents] = await Promise.all([
                     fetchAll('Students'),
@@ -627,23 +667,21 @@
 
                 const studentMap = {};
                 for (const s of allStudents) studentMap[s.id] = s;
-
                 const parentMap = {};
                 for (const p of allParents) parentMap[p.id] = p;
 
-                // Build roll
                 rollStudents = classBookings.map(booking => {
                     const studentId = (booking.fields.Student || [])[0];
-                    const student = studentMap[studentId] || { fields: {} };
+                    const student = studentMap[studentId] || { id: studentId, fields: {} };
                     const parentId = (student.fields.Parents || [])[0];
-                    const parent = parentMap[parentId] || { fields: {} };
+                    const parent = parentMap[parentId] || { id: parentId, fields: {} };
 
                     return {
                         student,
                         booking,
                         parent,
                         attendance: {
-                            status: null,       // null, 'present', 'departed'
+                            status: null,
                             arrivedAt: null,
                             departedAt: null,
                             collectedBy: null,
@@ -653,7 +691,7 @@
                     (a.student.fields.Name || '').localeCompare(b.student.fields.Name || '')
                 );
 
-                // Update session status to In Progress
+                // Mark session In Progress
                 await fetch(`${API_BASE}/Sessions/${currentSession.id}`, {
                     method: 'PATCH',
                     headers: {
@@ -662,6 +700,9 @@
                     },
                     body: JSON.stringify({ fields: { Status: 'In Progress' } }),
                 });
+
+                // Save to IndexedDB for offline resilience
+                await saveRollState();
 
                 renderRoll();
                 showScreen('rollScreen');
@@ -695,31 +736,40 @@
                 const att = r.attendance;
 
                 const statusClass = att.status || '';
-                const hasPhoto = false; // TODO: check for photo URL
+                const photoUrl = att.photoDataUrl || sf['Photo URL'] || null;
                 const isOshc = bf['OSHC Collection'];
-                const hasMedical = sf['Medical Notes'] || sf['Allergy Information'];
+                const hasMedical = (sf['Medical Notes'] && sf['Medical Notes'] !== 'No' && sf['Medical Notes'] !== 'None' && sf['Medical Notes'] !== 'N/A')
+                    || sf['Allergy Information'] || sf['Dietary Notes'];
                 const initials = (sf.Name || '?').split(' ').map(n => n[0]).join('').toUpperCase();
 
                 let statusHtml = '';
                 if (att.status === 'present') {
-                    statusHtml = `<div class="time">${att.arrivedAt}</div><div>Tap to mark departed</div>`;
+                    statusHtml = `<div class="time">${att.arrivedAt}</div><div>Tap to depart</div>`;
                 } else if (att.status === 'departed') {
                     statusHtml = `<div class="departed-time">Left ${att.departedAt}</div><div>${escapeHtml(att.collectedBy || '')}</div>`;
                 } else {
-                    statusHtml = '<div>Tap to mark present</div>';
+                    statusHtml = '<div>Tap to arrive</div>';
                 }
+
+                const photoClass = photoUrl ? '' : (att.status === 'present' ? 'camera-prompt' : 'no-photo');
+                const photoContent = photoUrl
+                    ? `<img src="${photoUrl}" alt="">`
+                    : initials;
+                const photoClick = !photoUrl && att.status === 'present'
+                    ? `event.stopPropagation(); openCamera(${i})`
+                    : '';
 
                 html += `
                     <div class="student-card ${statusClass}" onclick="toggleAttendance(${i})">
-                        <div class="student-photo ${hasPhoto ? '' : 'no-photo'}">
-                            ${hasPhoto ? '<img src="" alt="">' : initials}
+                        <div class="student-photo ${photoClass}" ${photoClick ? `onclick="${photoClick}"` : ''}>
+                            ${photoContent}
                         </div>
                         <div class="student-info">
                             <div class="student-name">${escapeHtml(sf.Name || 'Unknown')}</div>
                             <div class="student-parent">${escapeHtml(pf.Name || '')}</div>
                             <div class="student-badges">
                                 ${isOshc ? '<span class="badge badge-oshc">OSHC</span>' : ''}
-                                ${hasMedical ? '<span class="badge badge-medical">Medical</span>' : ''}
+                                ${hasMedical ? `<span class="badge badge-medical" onclick="event.stopPropagation(); showMedical(${i})">Medical</span>` : ''}
                             </div>
                         </div>
                         <div class="student-status">${statusHtml}</div>
@@ -734,36 +784,64 @@
             const now = new Date().toLocaleTimeString('en-AU', { hour: '2-digit', minute: '2-digit' });
 
             if (!r.attendance.status) {
-                // Mark present
                 r.attendance.status = 'present';
                 r.attendance.arrivedAt = now;
+                renderRoll();
+                saveRollState();
             } else if (r.attendance.status === 'present') {
-                // Show pickup modal
                 pickupStudentIdx = idx;
                 showPickupModal(r);
-                return;
             }
-            // Departed students can't be tapped again
-            renderRoll();
+            // Departed students — no action
         }
 
         // ── Pickup Modal ──
 
+        function parsePickupPeople(commLog) {
+            if (!commLog) return [];
+            const people = [];
+            // Look for "Pickup:" section in Communication Log
+            const pickupMatch = commLog.match(/Pickup:\s*(.+)/i);
+            if (pickupMatch) {
+                const entries = pickupMatch[1].split(',').map(s => s.trim());
+                for (const entry of entries) {
+                    const parts = entry.split(/\s*-\s*/);
+                    if (parts.length >= 2) {
+                        people.push({ name: parts[0].trim(), relation: parts[1].trim() });
+                    } else if (parts[0]) {
+                        people.push({ name: parts[0].trim(), relation: '' });
+                    }
+                }
+            }
+            return people;
+        }
+
         function showPickupModal(r) {
             const pf = r.parent.fields;
-            document.getElementById('pickupTitle').textContent =
-                `${r.student.fields.Name || 'Student'} — collected by`;
+            const studentName = r.student.fields.Name || 'Student';
+            document.getElementById('pickupTitle').textContent = `${studentName} — collected by`;
 
             let html = '';
-            // Parent is always first option
+            // Parent
             if (pf.Name) {
-                html += `<div class="pickup-option" onclick="confirmPickup('${escapeHtml(pf.Name)} (Parent)')">
-                    <div class="name">${escapeHtml(pf.Name)}</div>
+                const safeName = escapeHtml(pf.Name);
+                html += `<div class="pickup-option" onclick="confirmPickup('${safeName} (Parent)')">
+                    <div class="name">${safeName}</div>
                     <div class="relation">Parent</div>
                 </div>`;
             }
 
-            // TODO: Add authorized pickup people from parent record
+            // Authorized pickup from Communication Log
+            const extraPeople = parsePickupPeople(pf['Communication Log'] || '');
+            for (const p of extraPeople) {
+                const safeName = escapeHtml(p.name);
+                const safeRelation = escapeHtml(p.relation);
+                const label = p.relation ? `${safeName} (${safeRelation})` : safeName;
+                html += `<div class="pickup-option" onclick="confirmPickup('${escapeHtml(label)}')">
+                    <div class="name">${safeName}</div>
+                    ${p.relation ? `<div class="relation">${safeRelation}</div>` : ''}
+                </div>`;
+            }
 
             document.getElementById('pickupOptions').innerHTML = html;
             document.getElementById('pickupOtherName').value = '';
@@ -781,6 +859,7 @@
             pickupStudentIdx = null;
             closePickupModal();
             renderRoll();
+            saveRollState();
         }
 
         function confirmOtherPickup() {
@@ -795,6 +874,117 @@
             pickupStudentIdx = null;
         }
 
+        // ── Medical Detail Modal ──
+
+        function showMedical(idx) {
+            const sf = rollStudents[idx].student.fields;
+            document.getElementById('medicalTitle').textContent =
+                `${sf.Name || 'Student'} — Medical Info`;
+
+            let html = '';
+            if (sf['Medical Notes'] && sf['Medical Notes'] !== 'No' && sf['Medical Notes'] !== 'None') {
+                html += `<dt>Medical Notes</dt><dd>${escapeHtml(sf['Medical Notes'])}</dd>`;
+            }
+            if (sf['Allergy Information']) {
+                html += `<dt>Allergies</dt><dd>${escapeHtml(sf['Allergy Information'])}</dd>`;
+            }
+            if (sf['Dietary Notes']) {
+                html += `<dt>Dietary Notes</dt><dd>${escapeHtml(sf['Dietary Notes'])}</dd>`;
+            }
+            if (!html) html = '<dd>No medical information on file.</dd>';
+
+            document.getElementById('medicalDetail').innerHTML = html;
+            document.getElementById('medicalModal').classList.add('show');
+        }
+
+        function closeMedicalModal() {
+            document.getElementById('medicalModal').classList.remove('show');
+        }
+
+        // ── Camera ──
+
+        async function openCamera(idx) {
+            cameraStudentIdx = idx;
+            const studentName = rollStudents[idx].student.fields.Name || 'Student';
+            document.getElementById('cameraTitle').textContent = `Enrollment Photo — ${studentName}`;
+
+            document.getElementById('cameraContainer').style.display = '';
+            document.getElementById('cameraControls').style.display = '';
+            document.getElementById('cameraPreview').style.display = 'none';
+            document.getElementById('cameraReview').style.display = 'none';
+
+            try {
+                cameraStream = await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: 'environment', width: { ideal: 640 }, height: { ideal: 640 } }
+                });
+                document.getElementById('cameraVideo').srcObject = cameraStream;
+                document.getElementById('cameraModal').classList.add('show');
+            } catch (err) {
+                alert('Camera not available: ' + err.message);
+                cameraStudentIdx = null;
+            }
+        }
+
+        function capturePhoto() {
+            const video = document.getElementById('cameraVideo');
+            const canvas = document.getElementById('cameraCanvas');
+            const size = Math.min(video.videoWidth, video.videoHeight);
+            canvas.width = 400;
+            canvas.height = 400;
+            const ctx = canvas.getContext('2d');
+            // Crop to square from center
+            const sx = (video.videoWidth - size) / 2;
+            const sy = (video.videoHeight - size) / 2;
+            ctx.drawImage(video, sx, sy, size, size, 0, 0, 400, 400);
+
+            const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
+            document.getElementById('cameraPreview').src = dataUrl;
+
+            // Switch to review mode
+            document.getElementById('cameraContainer').style.display = 'none';
+            document.getElementById('cameraControls').style.display = 'none';
+            document.getElementById('cameraPreview').style.display = '';
+            document.getElementById('cameraReview').style.display = '';
+        }
+
+        function retakePhoto() {
+            document.getElementById('cameraContainer').style.display = '';
+            document.getElementById('cameraControls').style.display = '';
+            document.getElementById('cameraPreview').style.display = 'none';
+            document.getElementById('cameraReview').style.display = 'none';
+        }
+
+        async function savePhoto() {
+            if (cameraStudentIdx === null) return;
+            const dataUrl = document.getElementById('cameraPreview').src;
+
+            // Store photo data URL on the roll student for display
+            rollStudents[cameraStudentIdx].attendance.photoDataUrl = dataUrl;
+
+            // Queue for upload when session closes
+            await dbPut('pendingPhotos', {
+                id: rollStudents[cameraStudentIdx].student.id,
+                studentId: rollStudents[cameraStudentIdx].student.id,
+                studentName: rollStudents[cameraStudentIdx].student.fields.Name,
+                type: 'enrollment',
+                dataUrl: dataUrl,
+                takenAt: new Date().toISOString(),
+            });
+
+            closeCameraModal();
+            renderRoll();
+            saveRollState();
+        }
+
+        function closeCameraModal() {
+            document.getElementById('cameraModal').classList.remove('show');
+            if (cameraStream) {
+                cameraStream.getTracks().forEach(t => t.stop());
+                cameraStream = null;
+            }
+            cameraStudentIdx = null;
+        }
+
         // ── Close Session ──
 
         async function closeSession() {
@@ -805,7 +995,7 @@
             showLoading('Saving attendance...');
 
             try {
-                // Create attendance records
+                // Build attendance records
                 const records = rollStudents
                     .filter(r => r.attendance.status)
                     .map(r => ({
@@ -813,38 +1003,72 @@
                             'Student': [r.student.id],
                             'Class': [currentClass.id],
                             'Date': currentSession.fields['Session Date'],
-                            'Status': r.attendance.status === 'present' || r.attendance.status === 'departed' ? 'Present' : 'Absent',
+                            'Status': 'Present',
                         }
                     }));
 
-                // Batch create attendance records (10 at a time)
-                for (let i = 0; i < records.length; i += 10) {
-                    const batch = records.slice(i, i + 10);
-                    await fetch(`${API_BASE}/Attendance`, {
-                        method: 'POST',
+                // Also create records for absent students
+                const absentRecords = rollStudents
+                    .filter(r => !r.attendance.status)
+                    .map(r => ({
+                        fields: {
+                            'Student': [r.student.id],
+                            'Class': [currentClass.id],
+                            'Date': currentSession.fields['Session Date'],
+                            'Status': 'Absent',
+                        }
+                    }));
+
+                const allRecords = [...records, ...absentRecords];
+
+                if (navigator.onLine) {
+                    // Batch create attendance records
+                    for (let i = 0; i < allRecords.length; i += 10) {
+                        const batch = allRecords.slice(i, i + 10);
+                        const resp = await fetch(`${API_BASE}/Attendance`, {
+                            method: 'POST',
+                            headers: {
+                                'Authorization': `Bearer ${AIRTABLE_API_KEY}`,
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({ records: batch }),
+                        });
+                        if (!resp.ok) throw new Error('Failed to save attendance: ' + await resp.text());
+                        // Rate limit pause
+                        if (i + 10 < allRecords.length) await new Promise(r => setTimeout(r, 250));
+                    }
+
+                    // Mark session complete
+                    await fetch(`${API_BASE}/Sessions/${currentSession.id}`, {
+                        method: 'PATCH',
                         headers: {
                             'Authorization': `Bearer ${AIRTABLE_API_KEY}`,
                             'Content-Type': 'application/json',
                         },
-                        body: JSON.stringify({ records: batch }),
+                        body: JSON.stringify({ fields: { Status: 'Complete' } }),
                     });
-                }
 
-                // Mark session complete
-                await fetch(`${API_BASE}/Sessions/${currentSession.id}`, {
-                    method: 'PATCH',
-                    headers: {
-                        'Authorization': `Bearer ${AIRTABLE_API_KEY}`,
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ fields: { Status: 'Complete' } }),
-                });
+                    // Clear saved state
+                    await dbClear('rollState');
+                } else {
+                    // Queue for sync later
+                    await dbPut('pendingSync', {
+                        type: 'attendance',
+                        sessionId: currentSession.id,
+                        records: allRecords,
+                        queuedAt: new Date().toISOString(),
+                    });
+                    await dbClear('rollState');
+                    alert('Saved offline. Attendance will sync when connection returns.');
+                }
 
                 // Return to class selection
                 currentClass = null;
                 currentSession = null;
                 rollStudents = [];
-                await loadClasses();
+                if (navigator.onLine) {
+                    await loadClasses();
+                }
                 showScreen('classScreen');
             } catch (err) {
                 alert('Error saving: ' + err.message);
@@ -853,6 +1077,71 @@
 
             hideLoading();
         }
+
+        // ── Sync pending data when back online ──
+
+        async function syncPending() {
+            if (!db || !navigator.onLine) return;
+
+            const pending = await dbGetAll('pendingSync');
+            for (const item of pending) {
+                try {
+                    if (item.type === 'attendance') {
+                        for (let i = 0; i < item.records.length; i += 10) {
+                            const batch = item.records.slice(i, i + 10);
+                            await fetch(`${API_BASE}/Attendance`, {
+                                method: 'POST',
+                                headers: {
+                                    'Authorization': `Bearer ${AIRTABLE_API_KEY}`,
+                                    'Content-Type': 'application/json',
+                                },
+                                body: JSON.stringify({ records: batch }),
+                            });
+                            await new Promise(r => setTimeout(r, 250));
+                        }
+
+                        // Mark session complete
+                        await fetch(`${API_BASE}/Sessions/${item.sessionId}`, {
+                            method: 'PATCH',
+                            headers: {
+                                'Authorization': `Bearer ${AIRTABLE_API_KEY}`,
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({ fields: { Status: 'Complete' } }),
+                        });
+                    }
+                    await dbDelete('pendingSync', item.id);
+                } catch (err) {
+                    console.error('Sync error:', err);
+                }
+            }
+        }
+
+        window.addEventListener('online', syncPending);
+
+        // ── Service Worker ──
+
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/kaf/roll-sw.js').catch(err =>
+                console.log('SW registration failed:', err)
+            );
+        }
+
+        // ── Init ──
+
+        async function init() {
+            await openDB();
+            updateOnlineStatus();
+
+            // Check for in-progress roll (app was closed during session)
+            const restored = await restoreRollState();
+            if (restored) return; // Stay on roll screen
+
+            // Try to sync any pending data
+            syncPending();
+        }
+
+        init();
     </script>
 </body>
 </html>
