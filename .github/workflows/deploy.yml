@@ -26,27 +26,22 @@ jobs:
         oauth-secret: ${{ secrets.TS_OAUTH_SECRET }}
         tags: tag:ci
 
-    - name: Wait for Tailscale connection
-      run: |
-        echo "Waiting for Tailscale to establish connection..."
-        for i in $(seq 1 30); do
-          if tailscale ping -c 1 100.98.110.31 2>/dev/null; then
-            echo "Tailscale connection established"
-            break
-          fi
-          echo "Attempt $i/30 - waiting..."
-          sleep 2
-        done
-        tailscale status
-
     - name: Deploy static files to server
-      env:
-        SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-      run: |
-        mkdir -p ~/.ssh
-        echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_deploy
-        chmod 600 ~/.ssh/id_deploy
-        ssh-keyscan -H 100.98.110.31 >> ~/.ssh/known_hosts 2>/dev/null
-        scp -i ~/.ssh/id_deploy -r src/* deploy@100.98.110.31:/home/deploy/webremote/kaf/
-        ssh -i ~/.ssh/id_deploy deploy@100.98.110.31 'chmod -R 755 /home/deploy/webremote/kaf/ && echo "Deployment complete! Files accessible at app.sonzai.com/kaf/"'
-        rm -f ~/.ssh/id_deploy
+      uses: appleboy/scp-action@v0.1.7
+      with:
+        host: 100.98.110.31
+        username: deploy
+        key: ${{ secrets.SSH_PRIVATE_KEY }}
+        source: "src/*"
+        target: "/home/deploy/webremote/kaf/"
+        strip_components: 1
+
+    - name: Set permissions
+      uses: appleboy/ssh-action@v1.2.0
+      with:
+        host: 100.98.110.31
+        username: deploy
+        key: ${{ secrets.SSH_PRIVATE_KEY }}
+        script: |
+          chmod -R 755 /home/deploy/webremote/kaf/
+          echo "Deployment complete! Files accessible at app.sonzai.com/kaf/"
