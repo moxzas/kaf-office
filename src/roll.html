@@ -123,7 +123,7 @@
         .student-parent { font-size: 12px; color: #888; }
         .student-badges { display: flex; gap: 6px; margin-top: 4px; flex-wrap: wrap; }
         .badge { font-size: 11px; padding: 2px 8px; border-radius: 4px; font-weight: 600; }
-        .badge-oshc { background: #dbeafe; color: #1d4ed8; }
+        .badge-oshc { background: #dbeafe; color: #1d4ed8; cursor: pointer; }
         .badge-medical { background: #fef2f2; color: #dc2626; cursor: pointer; }
         .btn-artwork {
             padding: 4px 10px; border-radius: 6px; border: 1px solid #d1d5db;
@@ -282,6 +282,7 @@
         </div>
         <div class="roll-list" id="rollList"></div>
         <div class="session-actions">
+            <button class="btn btn-secondary" onclick="backToClasses()" style="padding:14px; font-size:16px;">Back</button>
             <button class="btn-close-session" onclick="closeSession()">Close Session</button>
         </div>
     </div>
@@ -494,6 +495,20 @@
             return records;
         }
 
+        // Convert locale time (e.g. "09:15 am", "2:30 pm") to 24h "HH:MM"
+        function to24h(timeStr) {
+            if (!timeStr) return '00:00';
+            const clean = timeStr.trim().toLowerCase();
+            const match = clean.match(/^(\d{1,2}):(\d{2})\s*(am|pm)?$/);
+            if (!match) return '00:00';
+            let h = parseInt(match[1], 10);
+            const m = match[2];
+            const ampm = match[3];
+            if (ampm === 'pm' && h < 12) h += 12;
+            if (ampm === 'am' && h === 12) h = 0;
+            return `${String(h).padStart(2, '0')}:${m}`;
+        }
+
         function escapeHtml(str) {
             if (!str) return '';
             const div = document.createElement('div');
@@ -591,7 +606,10 @@
                 allClasses = classes;
                 allSessions = sessions;
                 venueMap = {};
-                for (const v of venues) venueMap[v.id] = v.fields.Name || '?';
+                for (const v of venues) venueMap[v.id] = {
+                    name: v.fields.Name || '?',
+                    oshcNotes: v.fields['OSHC Notes'] || '',
+                };
 
                 renderClassList();
             } catch (err) {
@@ -637,7 +655,7 @@
                 html += `<div class="day-group"><div class="day-label">${escapeHtml(day)}</div>`;
                 for (const cls of grouped[day]) {
                     const f = cls.fields;
-                    const venueName = (f.Venue || []).map(id => venueMap[id] || '?').join(', ');
+                    const venueName = (f.Venue || []).map(id => (venueMap[id] || {}).name || '?').join(', ');
                     const session = getCurrentSession(cls.id);
                     const sessionLabel = session ? session.fields['Session Name'] : 'No sessions';
                     const bookings = f['Current Bookings'] || 0;
@@ -730,7 +748,7 @@
 
         function renderRoll() {
             const f = currentClass.fields;
-            const venueName = (f.Venue || []).map(id => venueMap[id] || '?').join(', ');
+            const venueName = (f.Venue || []).map(id => (venueMap[id] || {}).name || '?').join(', ');
             document.getElementById('rollClassName').textContent = f.Name || 'Untitled';
             document.getElementById('rollSessionInfo').textContent =
                 `${venueName} · ${currentSession.fields['Session Name'] || ''}`;
@@ -789,7 +807,7 @@
                             <div class="student-name">${escapeHtml(sf.Name || 'Unknown')}</div>
                             <div class="student-parent">${escapeHtml(pf.Name || '')}</div>
                             <div class="student-badges">
-                                ${isOshc ? '<span class="badge badge-oshc">OSHC</span>' : ''}
+                                ${isOshc ? `<span class="badge badge-oshc" onclick="event.stopPropagation(); showOshcInfo(${i})">OSHC</span>` : ''}
                                 ${hasMedical ? `<span class="badge badge-medical" onclick="event.stopPropagation(); showMedical(${i})">Medical</span>` : ''}
                             </div>
                         </div>
@@ -920,6 +938,24 @@
 
         function closeMedicalModal() {
             document.getElementById('medicalModal').classList.remove('show');
+        }
+
+        // ── OSHC Info ──
+
+        function showOshcInfo(idx) {
+            const r = rollStudents[idx];
+            const sf = r.student.fields;
+            const venueIds = currentClass.fields.Venue || [];
+            const notes = venueIds
+                .map(id => (venueMap[id] || {}).oshcNotes)
+                .filter(Boolean)
+                .join('; ');
+
+            document.getElementById('medicalTitle').textContent =
+                `${sf.Name || 'Student'} — OSHC`;
+            document.getElementById('medicalDetail').innerHTML =
+                `<dd>${escapeHtml(notes || 'OSHC student — check with admin for arrangement details.')}</dd>`;
+            document.getElementById('medicalModal').classList.add('show');
         }
 
         // ── Camera ──
@@ -1066,6 +1102,33 @@
             cameraStudentIdx = null;
         }
 
+        // ── Back to class selection ──
+
+        async function backToClasses() {
+            const anyMarked = rollStudents.some(r => r.attendance.status);
+            if (anyMarked && !confirm('Attendance has been marked. Go back without saving?')) return;
+
+            // Revert session status to Scheduled if online
+            if (navigator.onLine && currentSession) {
+                try {
+                    await fetch(`${API_BASE}/Sessions/${currentSession.id}`, {
+                        method: 'PATCH',
+                        headers: {
+                            'Authorization': `Bearer ${AIRTABLE_API_KEY}`,
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ fields: { Status: 'Scheduled' } }),
+                    });
+                } catch (e) { /* best effort */ }
+            }
+
+            await dbClear('rollState');
+            currentClass = null;
+            currentSession = null;
+            rollStudents = [];
+            showScreen('classScreen');
+        }
+
         // ── Close Session ──
 
         async function closeSession() {
@@ -1076,31 +1139,28 @@
             showLoading('Saving attendance...');
 
             try {
-                // Build attendance records
-                const records = rollStudents
-                    .filter(r => r.attendance.status)
-                    .map(r => ({
-                        fields: {
-                            'Student': [r.student.id],
-                            'Class': [currentClass.id],
-                            'Date': currentSession.fields['Session Date'],
-                            'Status': 'Present',
-                        }
-                    }));
-
-                // Also create records for absent students
-                const absentRecords = rollStudents
-                    .filter(r => !r.attendance.status)
-                    .map(r => ({
-                        fields: {
-                            'Student': [r.student.id],
-                            'Class': [currentClass.id],
-                            'Date': currentSession.fields['Session Date'],
-                            'Status': 'Absent',
-                        }
-                    }));
-
-                const allRecords = [...records, ...absentRecords];
+                // Build attendance records matching Airtable schema
+                // Booking link (Student/Class are lookups through Booking)
+                // Sign-in Time / Sign-out Time are dateTime fields
+                const sessionDate = currentSession.fields['Session Date']; // e.g. "2026-03-09"
+                const allRecords = rollStudents.map(r => {
+                    const att = r.attendance;
+                    const fields = {
+                        'Booking': [r.booking.id],
+                        'Session': [currentSession.id],
+                        'Date': sessionDate,
+                        'Status': att.status === 'present' || att.status === 'departed' ? 'Present' : 'Absent',
+                    };
+                    // Convert time strings (e.g. "09:15") to full ISO dateTime
+                    if (att.arrivedAt) {
+                        fields['Sign-in Time'] = `${sessionDate}T${to24h(att.arrivedAt)}:00.000Z`;
+                    }
+                    if (att.departedAt) {
+                        fields['Sign-out Time'] = `${sessionDate}T${to24h(att.departedAt)}:00.000Z`;
+                    }
+                    if (att.collectedBy) fields['Collected By'] = att.collectedBy;
+                    return { fields };
+                });
 
                 if (navigator.onLine) {
                     // Batch create attendance records
@@ -1141,6 +1201,12 @@
                     });
                     await dbClear('rollState');
                     alert('Saved offline. Attendance will sync when connection returns.');
+                }
+
+                // Check for pending photos
+                const pendingPhotos = await dbGetAll('pendingPhotos');
+                if (pendingPhotos.length > 0) {
+                    alert(`Session saved. ${pendingPhotos.length} photo(s) queued for upload.`);
                 }
 
                 // Return to class selection
