@@ -125,12 +125,24 @@
         .badge { font-size: 11px; padding: 2px 8px; border-radius: 4px; font-weight: 600; }
         .badge-oshc { background: #dbeafe; color: #1d4ed8; cursor: pointer; }
         .badge-medical { background: #fef2f2; color: #dc2626; cursor: pointer; }
-        .btn-artwork {
-            padding: 4px 10px; border-radius: 6px; border: 1px solid #d1d5db;
-            background: #f9fafb; font-size: 12px; cursor: pointer; color: #555;
-            display: inline-flex; align-items: center; gap: 4px;
+        .btn-cog {
+            width: 36px; height: 36px; border-radius: 50%; border: 1px solid #d1d5db;
+            background: #f9fafb; font-size: 18px; cursor: pointer; color: #888;
+            display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+            -webkit-tap-highlight-color: transparent;
         }
-        .btn-artwork:active { background: #eff6ff; border-color: #93c5fd; }
+        .btn-cog:active { background: #eff6ff; border-color: #93c5fd; }
+        .action-sheet { padding: 0; }
+        .action-sheet-item {
+            padding: 14px 16px; border-bottom: 1px solid #f0f0f0;
+            cursor: pointer; font-size: 15px; display: flex; align-items: center; gap: 12px;
+        }
+        .action-sheet-item:last-child { border-bottom: none; }
+        .action-sheet-item:active { background: #f0f7ff; }
+        .action-sheet-item .action-icon { font-size: 18px; width: 24px; text-align: center; }
+        .action-sheet-item .action-label { flex: 1; }
+        .action-sheet-item .action-meta { font-size: 12px; color: #888; }
+        .action-sheet-item.destructive { color: #dc2626; }
         .photo-permission-note {
             font-size: 13px; color: #666; background: #fefce8; border: 1px solid #fde68a;
             border-radius: 6px; padding: 8px 12px; margin-bottom: 12px;
@@ -335,6 +347,19 @@
             </div>
             <div class="modal-actions" style="margin-top:12px;">
                 <button class="btn btn-secondary" onclick="closeCameraModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Student Action Sheet -->
+    <div class="modal-overlay" id="actionSheet">
+        <div class="modal" style="padding:0; overflow:hidden;">
+            <div style="padding:16px 16px 8px; border-bottom:1px solid #e5e7eb;">
+                <h3 id="actionSheetTitle" style="margin:0;">Student</h3>
+            </div>
+            <div class="action-sheet" id="actionSheetItems"></div>
+            <div style="padding:8px 16px 16px;">
+                <button class="btn btn-secondary" style="width:100%; padding:12px;" onclick="closeActionSheet()">Cancel</button>
             </div>
         </div>
     </div>
@@ -783,35 +808,33 @@
                 let statusHtml = '';
                 if (att.status === 'present') {
                     statusHtml = `<div class="time">${att.arrivedAt}</div>`;
-                    statusHtml += `<button class="btn-artwork" onclick="event.stopPropagation(); openArtworkCamera(${i})">📷${artworkCount ? ` <span class="photo-count">${artworkCount}</span>` : ''}</button>`;
+                    if (artworkCount) statusHtml += `<div style="font-size:11px;color:#2563eb;">${artworkCount} photo${artworkCount > 1 ? 's' : ''}</div>`;
                 } else if (att.status === 'departed') {
                     statusHtml = `<div class="departed-time">Left ${att.departedAt}</div><div>${escapeHtml(att.collectedBy || '')}</div>`;
                 } else {
                     statusHtml = '<div>Tap to arrive</div>';
                 }
 
-                const photoClass = photoUrl ? '' : (att.status === 'present' ? 'camera-prompt' : 'no-photo');
+                const photoClass = photoUrl ? '' : 'no-photo';
                 const photoContent = photoUrl
                     ? `<img src="${photoUrl}" alt="">`
                     : initials;
-                const photoClick = !photoUrl && att.status === 'present'
-                    ? `event.stopPropagation(); openCamera(${i})`
-                    : '';
 
                 html += `
                     <div class="student-card ${statusClass}" onclick="toggleAttendance(${i})">
-                        <div class="student-photo ${photoClass}" ${photoClick ? `onclick="${photoClick}"` : ''}>
+                        <div class="student-photo ${photoClass}">
                             ${photoContent}
                         </div>
                         <div class="student-info">
                             <div class="student-name">${escapeHtml(sf.Name || 'Unknown')}</div>
                             <div class="student-parent">${escapeHtml(pf.Name || '')}</div>
                             <div class="student-badges">
-                                ${isOshc ? `<span class="badge badge-oshc" onclick="event.stopPropagation(); showOshcInfo(${i})">OSHC</span>` : ''}
-                                ${hasMedical ? `<span class="badge badge-medical" onclick="event.stopPropagation(); showMedical(${i})">Medical</span>` : ''}
+                                ${isOshc ? '<span class="badge badge-oshc">OSHC</span>' : ''}
+                                ${hasMedical ? '<span class="badge badge-medical">Medical</span>' : ''}
                             </div>
                         </div>
                         <div class="student-status">${statusHtml}</div>
+                        <button class="btn-cog" onclick="event.stopPropagation(); openActions(${i})">⚙</button>
                     </div>`;
             }
 
@@ -832,6 +855,117 @@
                 showPickupModal(r);
             }
             // Departed students — no action
+        }
+
+        // ── Student Action Sheet ──
+
+        let actionStudentIdx = null;
+
+        function openActions(idx) {
+            actionStudentIdx = idx;
+            const r = rollStudents[idx];
+            const sf = r.student.fields;
+            const att = r.attendance;
+            const photoUrl = att.photoDataUrl || sf['Photo URL'] || null;
+            const isOshc = r.booking.fields['OSHC Collection'];
+            const hasMedical = (sf['Medical Notes'] && sf['Medical Notes'] !== 'No' && sf['Medical Notes'] !== 'None' && sf['Medical Notes'] !== 'N/A')
+                || sf['Allergy Information'] || sf['Dietary Notes'];
+            const pf = r.parent.fields;
+
+            document.getElementById('actionSheetTitle').textContent = sf.Name || 'Student';
+
+            let items = '';
+
+            // Photo actions
+            if (!photoUrl) {
+                items += actionItem('📷', 'Take enrollment photo', '', () => { closeActionSheet(); openCamera(idx); });
+            } else {
+                items += actionItem('📷', 'Update enrollment photo', '', () => { closeActionSheet(); openCamera(idx); });
+            }
+
+            // Artwork photo (only when present)
+            if (att.status === 'present' || att.status === 'departed') {
+                const count = (att.artworkPhotos || []).length;
+                const meta = count ? `${count} taken` : '';
+                items += actionItem('🖼', 'Take artwork photo', meta, () => { closeActionSheet(); openArtworkCamera(idx); });
+            }
+
+            // Medical info
+            if (hasMedical) {
+                items += actionItem('🏥', 'Medical information', '', () => { closeActionSheet(); showMedical(idx); });
+            }
+
+            // OSHC info
+            if (isOshc) {
+                items += actionItem('🏫', 'OSHC arrangement', '', () => { closeActionSheet(); showOshcInfo(idx); });
+            }
+
+            // Parent contact
+            if (pf.Name) {
+                const phone = pf.Phone || pf['Mobile Phone'] || '';
+                const email = pf.Email || '';
+                let contactMeta = [phone, email].filter(Boolean).join(' · ');
+                items += actionItem('👤', pf.Name, contactMeta, () => { closeActionSheet(); showParentContact(idx); });
+            }
+
+            // Undo actions
+            if (att.status === 'present') {
+                items += actionItem('↩', 'Undo arrival', '', () => {
+                    closeActionSheet();
+                    rollStudents[idx].attendance.status = null;
+                    rollStudents[idx].attendance.arrivedAt = null;
+                    renderRoll(); saveRollState();
+                }, true);
+            } else if (att.status === 'departed') {
+                items += actionItem('↩', 'Undo departure', '', () => {
+                    closeActionSheet();
+                    rollStudents[idx].attendance.status = 'present';
+                    rollStudents[idx].attendance.departedAt = null;
+                    rollStudents[idx].attendance.collectedBy = null;
+                    renderRoll(); saveRollState();
+                }, true);
+            }
+
+            document.getElementById('actionSheetItems').innerHTML = items;
+            document.getElementById('actionSheet').classList.add('show');
+        }
+
+        function actionItem(icon, label, meta, onclick, destructive) {
+            const id = 'action_' + Math.random().toString(36).slice(2);
+            setTimeout(() => {
+                const el = document.getElementById(id);
+                if (el) el.addEventListener('click', onclick);
+            }, 0);
+            return `<div class="action-sheet-item${destructive ? ' destructive' : ''}" id="${id}">
+                <span class="action-icon">${icon}</span>
+                <span class="action-label">${label}</span>
+                ${meta ? `<span class="action-meta">${escapeHtml(meta)}</span>` : ''}
+            </div>`;
+        }
+
+        function closeActionSheet() {
+            document.getElementById('actionSheet').classList.remove('show');
+            actionStudentIdx = null;
+        }
+
+        function showParentContact(idx) {
+            const pf = rollStudents[idx].parent.fields;
+            const sf = rollStudents[idx].student.fields;
+            let html = '';
+            html += `<dt>Parent</dt><dd>${escapeHtml(pf.Name || 'Unknown')}</dd>`;
+            if (pf.Phone || pf['Mobile Phone']) {
+                const phone = pf.Phone || pf['Mobile Phone'];
+                html += `<dt>Phone</dt><dd><a href="tel:${escapeHtml(phone)}" style="color:#2563eb;">${escapeHtml(phone)}</a></dd>`;
+            }
+            if (pf.Email) {
+                html += `<dt>Email</dt><dd>${escapeHtml(pf.Email)}</dd>`;
+            }
+            if (pf['Communication Log']) {
+                html += `<dt>Notes</dt><dd>${escapeHtml(pf['Communication Log'])}</dd>`;
+            }
+            document.getElementById('medicalTitle').textContent = `${sf.Name || 'Student'} — Parent Contact`;
+            document.getElementById('medicalDetail').innerHTML = html;
+            document.getElementById('medicalModal').classList.add('show');
         }
 
         // ── Pickup Modal ──
