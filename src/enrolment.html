@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KAF Art & Craft School - Enrollment</title>
+    <title>KAF Art & Craft School - Enrolment</title>
 
     <!-- SurveyJS Modern Theme CSS -->
     <link href="https://unpkg.com/survey-core@1.9.131/defaultV2.min.css" rel="stylesheet">
@@ -58,7 +58,7 @@
 <body>
     <div class="header">
         <h1>🎨 Kids Art Fun</h1>
-        <p class="subtitle" id="formSubtitle">Student Enrollment Form</p>
+        <p class="subtitle" id="formSubtitle">Student Enrolment Form</p>
     </div>
 
     <div class="container">
@@ -79,7 +79,7 @@
 
         // Survey Definition
         const surveyJson = {
-            title: "Student Enrollment",
+            title: "Student Enrolment",
             description: "Please complete all sections to enroll your child(ren) in our classes.",
             showProgressBar: "top",
             progressBarType: "buttons",
@@ -282,7 +282,7 @@
                     ]
                 },
 
-                // Page 4: Enrollment Details (removed class selection page)
+                // Page 4: Enrolment Details (removed class selection page)
                 {
                     name: "enrollmentDetails",
                     title: "Additional Details",
@@ -333,7 +333,7 @@
                         {
                             type: "html",
                             name: "enrollmentPhotoNotice",
-                            html: "<strong>Enrollment Photo Notice</strong><br>We take a photo of each child on their first day for our class roll. This helps relief teachers identify students and is used for administration purposes only. These photos are stored securely in our system and are not shared or published."
+                            html: "<strong>Enrolment Photo Notice</strong><br>We take a photo of each child on their first day for our class roll. This helps relief teachers identify students and is used for administration purposes only. These photos are stored securely in our system and are not shared or published."
                         },
                         {
                             type: "radiogroup",
@@ -361,8 +361,8 @@
                     ]
                 }
             ],
-            completedHtml: "<div style='text-align: center;'><h2>🎉 Thank you for enrolling!</h2><p>We've received your enrollment and will send you a confirmation email shortly.</p><p>You'll receive a personalized link to view and update your enrollment details anytime.</p></div>",
-            completeText: "Submit Enrollment"
+            completedHtml: "<div style='text-align: center;'><h2>🎉 Thank you for enrolling!</h2><p>We've received your enrolment and will send you a confirmation email shortly.</p><p>You'll receive a personalised link to view and update your enrolment details anytime.</p></div>",
+            completeText: "Submit Enrolment"
         };
 
         // Create the Survey
@@ -383,8 +383,8 @@
             console.log('Edit mode: Loading existing enrollment for', parentRecordId);
 
             // Update UI to show edit mode
-            document.getElementById('formSubtitle').textContent = 'Update Your Enrollment';
-            survey.description = 'Update your enrollment details. Changes are saved automatically as you go.';
+            document.getElementById('formSubtitle').textContent = 'Update Your Enrolment';
+            survey.description = 'Update your enrolment details. Changes are saved automatically as you go.';
 
             loadExistingEnrollment(parentRecordId);
         }
@@ -403,7 +403,7 @@
                 );
 
                 if (!parentResponse.ok) {
-                    showStatus('❌ Could not load enrollment. Please check your link.', 'error');
+                    showStatus('❌ Could not load enrolment. Please check your link.', 'error');
                     return;
                 }
 
@@ -484,7 +484,7 @@
 
             } catch (error) {
                 console.error('Error loading enrollment:', error);
-                showStatus('❌ Error loading enrollment data. Please try again.', 'error');
+                showStatus('❌ Error loading enrolment data. Please try again.', 'error');
             }
         }
 
@@ -772,18 +772,18 @@
                 console.log('✓ Audit log and emails sent');
 
                 const message = isEditMode
-                    ? `✅ Success! Your enrollment has been updated.
+                    ? `✅ Success! Your enrolment has been updated.
 
 Your link to view/edit anytime:
-http://app.sonzai.com/kaf/enrollment.html?parent=${parentRecordId}
+http://app.sonzai.com/kaf/enrolment.html?parent=${parentRecordId}
 
 Changes saved: ${new Date().toLocaleString()}
 
 📧 Confirmation email sent to ${formData.parentEmail}`
-                    : `✅ Success! Your enrollment is complete!
+                    : `✅ Success! Your enrolment is complete!
 
 Your link to view/edit anytime:
-http://app.sonzai.com/kaf/enrollment.html?parent=${parentRecordId}
+http://app.sonzai.com/kaf/enrolment.html?parent=${parentRecordId}
 
 📧 Confirmation email sent to ${formData.parentEmail}
 (Check your spam folder if you don't see it)`;
@@ -791,7 +791,7 @@ http://app.sonzai.com/kaf/enrollment.html?parent=${parentRecordId}
                 // Check for return URL (e.g. from class registration flow)
                 const returnUrl = urlParams.get('return');
                 if (returnUrl && !isEditMode) {
-                    showStatus('✅ Enrollment complete! Redirecting to class registration...', 'success');
+                    showStatus('✅ Enrolment complete! Redirecting to class registration...', 'success');
                     setTimeout(() => {
                         window.location.href = returnUrl;
                     }, 1500);
@@ -802,7 +802,7 @@ http://app.sonzai.com/kaf/enrollment.html?parent=${parentRecordId}
             } catch (error) {
                 console.error('Submission error:', error);
                 console.error('Full error:', error);
-                showStatus('❌ Error submitting enrollment: ' + error.message, 'error');
+                showStatus('❌ Error submitting enrolment: ' + error.message, 'error');
             }
         });
 

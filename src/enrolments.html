@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KAF - Enrollments</title>
+    <title>KAF - Enrolments</title>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -128,7 +128,7 @@
     </div>
 
     <div id="content">
-        <div class="loading">Loading enrollments...</div>
+        <div class="loading">Loading enrolments...</div>
     </div>
 
     <script>
@@ -198,7 +198,7 @@
                 renderCards(parents, students, studentsByParent);
 
             } catch (err) {
-                content.innerHTML = `<div class="error">Error loading enrollments: ${escapeHtml(err.message)}</div>`;
+                content.innerHTML = `<div class="error">Error loading enrolments: ${escapeHtml(err.message)}</div>`;
                 console.error(err);
             }
         }
@@ -233,7 +233,7 @@
                 for (const parent of sorted) {
                     const p = parent.fields;
                     const kids = studentsByParent[parent.id] || [];
-                    const editUrl = `enrollment.html?parent=${parent.id}&editor=admin`;
+                    const editUrl = `enrolment.html?parent=${parent.id}&editor=admin`;
                     const enrolled = formatDate(parent.createdTime);
 
                     html += `<div class="family-card">`;
