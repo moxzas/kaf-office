@@ -690,7 +690,7 @@
                 } else {
                     html += `
                         <div class="student-option" onclick="toggleStudent(this, '${student.id}')">
-                            <input type="checkbox" data-student-id="${student.id}" onclick="event.stopPropagation(); toggleStudent(this.parentElement, '${student.id}')">
+                            <input type="checkbox" data-student-id="${student.id}" onclick="event.stopPropagation(); toggleCheckbox(this)">
                             <div>
                                 <div class="student-name">${escapeHtml(s.Name)}</div>
                                 ${age ? `<div class="student-age">${age}</div>` : ''}
@@ -710,20 +710,21 @@
         async function fetchExistingBookings() {
             existingBookings = new Set();
             try {
-                const filter = encodeURIComponent(`AND({Class}='${classId}')`);
-                let offset = null;
-                do {
-                    let url = `${API_BASE}/Bookings?filterByFormula=${filter}`;
-                    if (offset) url += `&offset=${offset}`;
-                    const resp = await fetch(url);
-                    if (!resp.ok) break;
+                // Fetch bookings for each of the parent's students and check
+                // if any are linked to this class. Airtable linked record
+                // filters don't work by record ID, so we fetch per-student.
+                for (const student of studentRecords) {
+                    const filter = encodeURIComponent(`{Student}='${student.fields.Name}'`);
+                    const resp = await fetch(`${API_BASE}/Bookings?filterByFormula=${filter}`);
+                    if (!resp.ok) continue;
                     const data = await resp.json();
                     for (const rec of data.records) {
-                        const studentIds = rec.fields.Student || [];
-                        for (const sid of studentIds) existingBookings.add(sid);
+                        const classes = rec.fields.Class || [];
+                        if (classes.includes(classId)) {
+                            existingBookings.add(student.id);
+                        }
                     }
-                    offset = data.offset || null;
-                } while (offset);
+                }
             } catch (e) {
                 console.error('Failed to fetch existing bookings:', e);
             }
@@ -733,6 +734,13 @@
             if (el.classList.contains('already-enrolled')) return;
             const checkbox = el.querySelector('input[type="checkbox"]');
             checkbox.checked = !checkbox.checked;
+            el.classList.toggle('selected', checkbox.checked);
+            updateOshcSection();
+        }
+
+        // Called when checkbox is clicked directly (browser already toggled it)
+        function toggleCheckbox(checkbox) {
+            const el = checkbox.closest('.student-option');
             el.classList.toggle('selected', checkbox.checked);
             updateOshcSection();
         }
