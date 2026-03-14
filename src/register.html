@@ -56,10 +56,6 @@
         .spots-low { color: #d97706; }
         .spots-full { color: #dc2626; }
 
-        /* Steps */
-        .step { display: none; }
-        .step.active { display: block; }
-
         /* Form elements */
         .form-group { margin-bottom: 16px; }
         .form-group label {
@@ -69,7 +65,10 @@
             color: #555;
             margin-bottom: 6px;
         }
-        .form-group input[type="email"] {
+        .form-group input[type="text"],
+        .form-group input[type="email"],
+        .form-group input[type="tel"],
+        .form-group input[type="number"] {
             width: 100%;
             padding: 12px;
             border: 1px solid #d1d5db;
@@ -105,14 +104,16 @@
         }
         .btn-outline:hover { background: #eff6ff; }
 
-        /* Student selection */
-        .welcome-msg {
-            font-size: 18px;
-            font-weight: 500;
+        /* Section labels */
+        .section-label {
+            font-size: 15px;
+            font-weight: 600;
             color: #333;
-            margin-bottom: 16px;
+            margin-bottom: 12px;
         }
-        .student-list { margin-bottom: 20px; }
+
+        /* Student selection */
+        .student-list { margin-bottom: 16px; }
         .student-option {
             display: flex;
             align-items: center;
@@ -141,12 +142,98 @@
         .student-age { font-size: 14px; color: #888; }
         .already-text { font-size: 13px; color: #16a34a; font-weight: 500; }
 
-        /* Not found prompt */
-        .not-found-msg {
-            font-size: 16px;
-            color: #555;
-            margin-bottom: 20px;
-            line-height: 1.6;
+        /* Add child rows */
+        .add-child-row {
+            display: flex;
+            gap: 10px;
+            align-items: flex-start;
+            margin-bottom: 10px;
+        }
+        .add-child-row input[type="text"] {
+            flex: 2;
+            padding: 10px 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 15px;
+            font-family: inherit;
+        }
+        .add-child-row input[type="number"] {
+            flex: 0 0 70px;
+            padding: 10px 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 15px;
+            font-family: inherit;
+        }
+        .add-child-row input:focus {
+            outline: none;
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37,99,235,0.15);
+        }
+        .btn-remove-child {
+            flex: 0 0 36px;
+            height: 42px;
+            border: none;
+            background: #fee2e2;
+            color: #dc2626;
+            border-radius: 6px;
+            font-size: 18px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .btn-remove-child:hover { background: #fecaca; }
+        .btn-add-child {
+            display: inline-block;
+            padding: 8px 16px;
+            border: 2px dashed #d1d5db;
+            border-radius: 8px;
+            background: transparent;
+            color: #2563eb;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            margin-bottom: 16px;
+        }
+        .btn-add-child:hover { border-color: #2563eb; background: #eff6ff; }
+
+        /* OSHC */
+        .oshc-section {
+            padding: 16px;
+            background: #fef3c7;
+            border-radius: 8px;
+            margin-bottom: 16px;
+        }
+        .oshc-section .section-label { color: #92400e; }
+        .oshc-note { font-size: 13px; color: #92400e; margin-bottom: 12px; }
+        .oshc-child {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 8px;
+        }
+        .oshc-child input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            accent-color: #d97706;
+        }
+        .oshc-child label {
+            font-size: 15px;
+            color: #333;
+            cursor: pointer;
+        }
+
+        /* Welcome banner */
+        .welcome-banner {
+            padding: 12px 16px;
+            background: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            font-size: 15px;
+            color: #166534;
+            font-weight: 500;
         }
 
         /* Confirmation */
@@ -173,6 +260,19 @@
             color: #92400e;
             text-align: center;
         }
+        .enrolment-nudge {
+            margin-top: 16px;
+            padding: 16px;
+            background: #eff6ff;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .enrolment-nudge p {
+            font-size: 14px;
+            color: #1e40af;
+            margin: 0 0 12px 0;
+            line-height: 1.5;
+        }
 
         /* Error/loading states */
         .loading { text-align: center; padding: 40px; color: #888; }
@@ -186,7 +286,9 @@
         .error-card .error-icon { font-size: 48px; margin-bottom: 12px; }
         .error-card h2 { color: #333; margin-bottom: 8px; }
         .error-card p { color: #666; margin-bottom: 20px; }
-        .form-error { color: #dc2626; font-size: 13px; margin-top: 8px; }
+        .form-error { color: #dc2626; font-size: 13px; margin-top: 8px; display: none; }
+
+        .hidden { display: none !important; }
     </style>
 </head>
 <body>
@@ -198,58 +300,76 @@
     <!-- Loading state -->
     <div id="loadingState" class="loading">Loading class details...</div>
 
-    <!-- Error: no class param or class not found -->
+    <!-- Error state -->
     <div id="errorState" style="display:none;"></div>
 
-    <!-- Main content (shown after class loads) -->
+    <!-- Main content -->
     <div id="mainContent" style="display:none;">
 
         <!-- Class info card (always visible) -->
         <div id="classInfo" class="card class-info"></div>
 
-        <!-- Step 1: Email entry -->
-        <div id="step1" class="step active">
-            <div class="card">
-                <div class="form-group">
-                    <label for="emailInput">Enter your email to register</label>
-                    <input type="email" id="emailInput" placeholder="your@email.com" autocomplete="email">
-                    <div id="emailError" class="form-error" style="display:none;"></div>
-                </div>
-                <button class="btn btn-primary" id="continueBtn" onclick="lookupEmail()">Continue</button>
+        <!-- Registration form -->
+        <div id="formSection" class="card">
+            <!-- Parent details -->
+            <div class="section-label">Your details</div>
+
+            <div class="form-group">
+                <label for="parentEmail">Email</label>
+                <input type="email" id="parentEmail" placeholder="your@email.com" autocomplete="email">
+                <div id="emailError" class="form-error"></div>
+                <div id="emailLookupStatus" style="font-size:13px; color:#888; margin-top:4px; display:none;"></div>
             </div>
+
+            <div class="form-group">
+                <label for="parentName">Name</label>
+                <input type="text" id="parentName" placeholder="Your full name" autocomplete="name">
+                <div id="nameError" class="form-error"></div>
+            </div>
+
+            <div class="form-group">
+                <label for="parentMobile">Mobile</label>
+                <input type="tel" id="parentMobile" placeholder="0400 000 000" autocomplete="tel">
+                <div id="mobileError" class="form-error"></div>
+            </div>
+
+            <div id="welcomeBanner" class="welcome-banner hidden"></div>
+
+            <!-- Children section -->
+            <div style="margin-top: 20px;">
+                <div class="section-label">Children to register</div>
+
+                <!-- Existing children (shown for returning parents) -->
+                <div id="existingChildren" class="student-list hidden"></div>
+
+                <!-- Add new children -->
+                <div id="newChildrenContainer"></div>
+                <button type="button" class="btn-add-child" id="addChildBtn" onclick="addChildRow()">+ Add a child</button>
+            </div>
+
+            <!-- OSHC section (conditional) -->
+            <div id="oshcSection" class="oshc-section hidden">
+                <div class="section-label">OSHC Collection</div>
+                <div id="oshcNote" class="oshc-note"></div>
+                <div id="oshcChildren"></div>
+            </div>
+
+            <div id="formError" class="form-error"></div>
+
+            <button class="btn btn-primary" id="registerBtn" onclick="submitRegistration()" style="margin-top: 8px;">Register</button>
         </div>
 
-        <!-- Step 2a: Family found, select children -->
-        <div id="step2a" class="step">
-            <div class="card">
-                <div id="welcomeMsg" class="welcome-msg"></div>
-                <p style="color:#666; margin-bottom:16px;">Select which children to register:</p>
-                <div id="studentList" class="student-list"></div>
-                <div id="registerError" class="form-error" style="display:none;"></div>
-                <button class="btn btn-primary" id="registerBtn" onclick="registerStudents()">Register</button>
+        <!-- Confirmation -->
+        <div id="confirmationSection" class="card hidden">
+            <div class="success-icon">&#10003;</div>
+            <div id="successTitle" class="success-title"></div>
+            <div id="successDetail" class="success-detail"></div>
+            <div class="payment-note">
+                Payment: We'll be in touch about payment shortly.
             </div>
-        </div>
-
-        <!-- Step 2b: Family not found -->
-        <div id="step2b" class="step">
-            <div class="card">
-                <div class="not-found-msg">
-                    We don't have your details yet.<br>
-                    Please complete our enrolment form first, then come back to register for this class.
-                </div>
-                <a id="enrollLink" class="btn btn-primary" href="#">Enrol Now</a>
-            </div>
-        </div>
-
-        <!-- Step 3: Confirmation -->
-        <div id="step3" class="step">
-            <div class="card">
-                <div class="success-icon">&#10003;</div>
-                <div id="successTitle" class="success-title"></div>
-                <div id="successDetail" class="success-detail"></div>
-                <div class="payment-note">
-                    Payment: We'll be in touch about payment shortly.
-                </div>
+            <div id="enrolmentNudge" class="enrolment-nudge hidden">
+                <p>One more thing — please complete your enrolment details so we have medical and emergency info before the first class.</p>
+                <a id="enrolmentLink" class="btn btn-primary" href="#" style="display:inline-block; width:auto; padding:10px 20px;">Complete Enrolment</a>
             </div>
         </div>
     </div>
@@ -258,21 +378,89 @@
         const AIRTABLE_API_KEY = 'patYJhlgK2q6sAnyZ.8c3945853082593f6ec6cc6d12a0cd863a13a912a067dfd99c75a0ff95ae4e06';
         const AIRTABLE_BASE_ID = 'appNuMdxaiSYdgxJS';
         const API_BASE = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}`;
-        const ENROLLMENT_URL = 'https://app.sonzai.com/kaf/enrolment.html';
+        const ENROLMENT_URL = 'https://app.sonzai.com/kaf/enrolment.html';
 
         let classRecord = null;
+        let venueRecord = null;
         let parentRecord = null;
         let studentRecords = [];
+        let existingBookings = new Set();
+        let emailLookupDone = false;
+        let isNewParent = false;
+        let newChildCounter = 0;
 
-        // ── URL params ──
         const urlParams = new URLSearchParams(window.location.search);
         const classId = urlParams.get('class');
+
+        // ── Helpers ──
 
         function escapeHtml(str) {
             if (!str) return '';
             const div = document.createElement('div');
             div.textContent = str;
             return div.innerHTML;
+        }
+
+        function formatDate(iso) {
+            if (!iso) return '';
+            const d = new Date(iso + 'T00:00:00');
+            return d.toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' });
+        }
+
+        function showError(title, message) {
+            document.getElementById('loadingState').style.display = 'none';
+            const el = document.getElementById('errorState');
+            el.style.display = 'block';
+            el.innerHTML = `
+                <div class="error-card">
+                    <div class="error-icon">&#9888;</div>
+                    <h2>${escapeHtml(title)}</h2>
+                    <p>${escapeHtml(message)}</p>
+                </div>
+            `;
+        }
+
+        function showFieldError(id, msg) {
+            const el = document.getElementById(id);
+            el.textContent = msg;
+            el.style.display = 'block';
+        }
+
+        function clearFieldError(id) {
+            const el = document.getElementById(id);
+            el.textContent = '';
+            el.style.display = 'none';
+        }
+
+        function clearAllErrors() {
+            clearFieldError('emailError');
+            clearFieldError('nameError');
+            clearFieldError('mobileError');
+            clearFieldError('formError');
+        }
+
+        async function airtableGet(path) {
+            const resp = await fetch(`${API_BASE}/${path}`, {
+                headers: { 'Authorization': `Bearer ${AIRTABLE_API_KEY}` }
+            });
+            if (!resp.ok) throw new Error(`Airtable GET ${path} failed: ${resp.status}`);
+            return resp.json();
+        }
+
+        async function airtablePost(table, records) {
+            const resp = await fetch(`${API_BASE}/${table}`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${AIRTABLE_API_KEY}`,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ records }),
+            });
+            if (!resp.ok) {
+                const errText = await resp.text();
+                throw new Error(`Failed to create records in ${table}: ${errText}`);
+            }
+            return resp.json();
         }
 
         // ── Load class ──
@@ -300,13 +488,12 @@
                 classRecord = await resp.json();
                 const f = classRecord.fields;
 
-                // Check if class is active
                 if (f.Status && f.Status !== 'Active') {
                     showError('Registration closed', `This class is currently ${f.Status.toLowerCase()}. Please check with your teacher for available classes.`);
                     return;
                 }
 
-                // Resolve venue name
+                // Fetch venue record (need OSHC fields)
                 let venueName = '';
                 if (f.Venue && f.Venue.length > 0) {
                     try {
@@ -314,17 +501,27 @@
                             headers: { 'Authorization': `Bearer ${AIRTABLE_API_KEY}` }
                         });
                         if (vResp.ok) {
-                            const vData = await vResp.json();
-                            venueName = vData.fields.Name || '';
+                            venueRecord = await vResp.json();
+                            venueName = venueRecord.fields.Name || '';
                         }
                     } catch (e) { /* ignore venue resolve failure */ }
                 }
 
-                // Render class info
                 renderClassInfo(f, venueName);
+
+                // If class is full, show error instead of form
+                const enrolled = f['Current Bookings'] || 0;
+                const capacity = f.Capacity || 0;
+                if (capacity > 0 && enrolled >= capacity) {
+                    showError('Class is full', 'Sorry, this class has reached its capacity. Please check with your teacher for other available classes.');
+                    return;
+                }
 
                 document.getElementById('loadingState').style.display = 'none';
                 document.getElementById('mainContent').style.display = 'block';
+
+                // Start with one empty child row
+                addChildRow();
 
             } catch (err) {
                 showError('Connection error', 'Could not load class details. Please check your internet connection and try again.');
@@ -379,128 +576,118 @@
             `;
         }
 
-        function formatDate(iso) {
-            if (!iso) return '';
-            const d = new Date(iso + 'T00:00:00');
-            return d.toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' });
-        }
+        // ── Email lookup on blur ──
 
-        function showError(title, message) {
-            document.getElementById('loadingState').style.display = 'none';
-            document.getElementById('errorState').style.display = 'block';
-            document.getElementById('errorState').innerHTML = `
-                <div class="error-card">
-                    <div class="error-icon">&#9888;</div>
-                    <h2>${escapeHtml(title)}</h2>
-                    <p>${escapeHtml(message)}</p>
-                </div>
-            `;
-        }
+        document.addEventListener('DOMContentLoaded', () => {
+            const emailInput = document.getElementById('parentEmail');
 
-        function showStep(stepId) {
-            document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
-            document.getElementById(stepId).classList.add('active');
-        }
+            emailInput.addEventListener('blur', () => {
+                const email = emailInput.value.trim().toLowerCase();
+                if (email && email.includes('@') && email.includes('.')) {
+                    doEmailLookup(email);
+                }
+            });
 
-        // ── Step 1: Email lookup ──
+            emailInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    emailInput.blur();
+                    document.getElementById('parentName').focus();
+                }
+            });
+        });
 
-        async function lookupEmail() {
-            const emailInput = document.getElementById('emailInput');
-            const email = emailInput.value.trim().toLowerCase();
-            const errorEl = document.getElementById('emailError');
-            const btn = document.getElementById('continueBtn');
-
-            errorEl.style.display = 'none';
-
-            if (!email || !email.includes('@')) {
-                errorEl.textContent = 'Please enter a valid email address.';
-                errorEl.style.display = 'block';
-                return;
+        async function doEmailLookup(email) {
+            if (emailLookupDone && parentRecord && parentRecord.fields.Email && parentRecord.fields.Email.toLowerCase() === email) {
+                return; // already looked up this exact email
             }
 
-            btn.disabled = true;
-            btn.textContent = 'Looking up...';
+            const statusEl = document.getElementById('emailLookupStatus');
+            statusEl.textContent = 'Checking...';
+            statusEl.style.display = 'block';
 
             try {
-                // Search Parents table by email
-                const filterFormula = encodeURIComponent(`{Email}='${email}'`);
+                const filterFormula = encodeURIComponent(`LOWER({Email})='${email.toLowerCase()}'`);
                 const resp = await fetch(`${API_BASE}/Parents?filterByFormula=${filterFormula}`, {
                     headers: { 'Authorization': `Bearer ${AIRTABLE_API_KEY}` }
                 });
-
-                if (!resp.ok) throw new Error('Failed to search');
-
+                if (!resp.ok) throw new Error('Lookup failed');
                 const data = await resp.json();
 
                 if (data.records.length > 0) {
-                    // Family found
+                    // Returning parent
                     parentRecord = data.records[0];
-                    await loadStudents(parentRecord);
+                    isNewParent = false;
+                    emailLookupDone = true;
+
+                    const pf = parentRecord.fields;
+                    if (pf.Name) document.getElementById('parentName').value = pf.Name;
+                    if (pf.Mobile) document.getElementById('parentMobile').value = pf.Mobile;
+
+                    const firstName = (pf.Name || '').split(' ')[0] || 'there';
+                    const banner = document.getElementById('welcomeBanner');
+                    banner.textContent = `Welcome back, ${firstName}!`;
+                    banner.classList.remove('hidden');
+
+                    statusEl.style.display = 'none';
+
+                    await loadExistingChildren();
                 } else {
-                    // Family not found
-                    showNotFound(email);
+                    // New parent
+                    parentRecord = null;
+                    isNewParent = true;
+                    emailLookupDone = true;
+
+                    document.getElementById('welcomeBanner').classList.add('hidden');
+                    document.getElementById('existingChildren').classList.add('hidden');
+                    document.getElementById('existingChildren').innerHTML = '';
+                    studentRecords = [];
+                    existingBookings = new Set();
+
+                    statusEl.style.display = 'none';
+                    updateOshcSection();
                 }
             } catch (err) {
-                errorEl.textContent = 'Something went wrong. Please try again.';
-                errorEl.style.display = 'block';
+                statusEl.textContent = 'Could not verify email. You can still register.';
+                emailLookupDone = false;
                 console.error(err);
-            } finally {
-                btn.disabled = false;
-                btn.textContent = 'Continue';
             }
         }
 
-        // Allow Enter key to submit email
-        document.getElementById('emailInput').addEventListener('keydown', function(e) {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                lookupEmail();
-            }
-        });
+        // ── Existing children ──
 
-        // ── Step 2a: Show students ──
-
-        async function loadStudents(parent) {
-            const studentIds = parent.fields.Students || [];
+        async function loadExistingChildren() {
+            const studentIds = parentRecord.fields.Students || [];
+            studentRecords = [];
 
             if (studentIds.length === 0) {
-                showNotFound(parent.fields.Email);
+                document.getElementById('existingChildren').classList.add('hidden');
+                updateOshcSection();
                 return;
             }
 
-            // Fetch student records
-            studentRecords = [];
             for (const sid of studentIds) {
                 try {
-                    const resp = await fetch(`${API_BASE}/Students/${sid}`, {
-                        headers: { 'Authorization': `Bearer ${AIRTABLE_API_KEY}` }
-                    });
-                    if (resp.ok) {
-                        studentRecords.push(await resp.json());
-                    }
-                } catch (e) { /* skip failed fetches */ }
+                    const student = await airtableGet(`Students/${sid}`);
+                    studentRecords.push(student);
+                } catch (e) { /* skip */ }
             }
 
             if (studentRecords.length === 0) {
-                showNotFound(parent.fields.Email);
+                document.getElementById('existingChildren').classList.add('hidden');
+                updateOshcSection();
                 return;
             }
 
-            // Check which students are already enrolled in this class
-            const existingBookings = await fetchExistingBookings();
+            await fetchExistingBookings();
 
-            // Get parent's first name
-            const firstName = (parent.fields.Name || '').split(' ')[0] || 'there';
-            document.getElementById('welcomeMsg').textContent = `Welcome back, ${firstName}!`;
-
-            // Render student checkboxes
-            let html = '';
+            let html = '<div style="font-size:14px; color:#666; margin-bottom:8px;">Your children:</div>';
             for (const student of studentRecords) {
                 const s = student.fields;
                 const age = s.Age != null ? `Age ${s.Age}` : '';
-                const alreadyEnrolled = existingBookings.has(student.id);
+                const alreadyBooked = existingBookings.has(student.id);
 
-                if (alreadyEnrolled) {
+                if (alreadyBooked) {
                     html += `
                         <div class="student-option already-enrolled">
                             <input type="checkbox" disabled checked>
@@ -524,68 +711,224 @@
                 }
             }
 
-            document.getElementById('studentList').innerHTML = html;
-            showStep('step2a');
+            const container = document.getElementById('existingChildren');
+            container.innerHTML = html;
+            container.classList.remove('hidden');
+
+            updateOshcSection();
         }
 
         async function fetchExistingBookings() {
-            const enrolled = new Set();
+            existingBookings = new Set();
             try {
-                // Find bookings for this class (filter client-side since ARRAYJOIN on link fields returns names, not IDs)
-                const resp = await fetch(`${API_BASE}/Bookings`, {
-                    headers: { 'Authorization': `Bearer ${AIRTABLE_API_KEY}` }
-                });
-                if (resp.ok) {
+                const filter = encodeURIComponent(`AND({Class}='${classId}')`);
+                let offset = null;
+                do {
+                    let url = `${API_BASE}/Bookings?filterByFormula=${filter}`;
+                    if (offset) url += `&offset=${offset}`;
+                    const resp = await fetch(url, {
+                        headers: { 'Authorization': `Bearer ${AIRTABLE_API_KEY}` }
+                    });
+                    if (!resp.ok) break;
                     const data = await resp.json();
                     for (const rec of data.records) {
-                        if (!(rec.fields.Class || []).includes(classId)) continue;
                         const studentIds = rec.fields.Student || [];
-                        for (const sid of studentIds) enrolled.add(sid);
+                        for (const sid of studentIds) existingBookings.add(sid);
                     }
-                }
-            } catch (e) { /* ignore */ }
-            return enrolled;
+                    offset = data.offset || null;
+                } while (offset);
+            } catch (e) {
+                console.error('Failed to fetch existing bookings:', e);
+            }
         }
 
         function toggleStudent(el, studentId) {
-            const checkbox = el.querySelector('input[type="checkbox"]');
             if (el.classList.contains('already-enrolled')) return;
+            const checkbox = el.querySelector('input[type="checkbox"]');
             checkbox.checked = !checkbox.checked;
             el.classList.toggle('selected', checkbox.checked);
+            updateOshcSection();
         }
 
-        // ── Step 2b: Not found ──
+        // ── Add child rows ──
 
-        function showNotFound(email) {
-            const returnParam = encodeURIComponent(`register.html?class=${classId}`);
-            document.getElementById('enrollLink').href = `${ENROLLMENT_URL}?return=${returnParam}`;
-            showStep('step2b');
+        function addChildRow() {
+            newChildCounter++;
+            const id = newChildCounter;
+            const container = document.getElementById('newChildrenContainer');
+            const row = document.createElement('div');
+            row.className = 'add-child-row';
+            row.id = `newChild-${id}`;
+            row.innerHTML = `
+                <input type="text" placeholder="Child's name" data-child-name="${id}" onchange="updateOshcSection()" oninput="updateOshcSection()">
+                <input type="number" placeholder="Age" min="3" max="18" data-child-age="${id}" style="width:70px;">
+                <button type="button" class="btn-remove-child" onclick="removeChildRow(${id})" title="Remove">&times;</button>
+            `;
+            container.appendChild(row);
+            row.querySelector(`input[data-child-name="${id}"]`).focus();
+            updateOshcSection();
         }
 
-        // ── Step 2a: Register ──
+        function removeChildRow(id) {
+            const row = document.getElementById(`newChild-${id}`);
+            if (row) row.remove();
 
-        async function registerStudents() {
-            const checkboxes = document.querySelectorAll('#studentList input[data-student-id]:checked');
-            const errorEl = document.getElementById('registerError');
-            const btn = document.getElementById('registerBtn');
-            errorEl.style.display = 'none';
+            // Keep at least one row if no existing children to select
+            const hasExistingSelectable = document.querySelectorAll('#existingChildren input[data-student-id]').length > 0;
+            const remainingRows = document.querySelectorAll('#newChildrenContainer .add-child-row');
+            if (!hasExistingSelectable && remainingRows.length === 0) {
+                addChildRow();
+            }
+            updateOshcSection();
+        }
 
-            if (checkboxes.length === 0) {
-                errorEl.textContent = 'Please select at least one child to register.';
-                errorEl.style.display = 'block';
+        // ── OSHC ──
+
+        function updateOshcSection() {
+            const section = document.getElementById('oshcSection');
+            const childrenContainer = document.getElementById('oshcChildren');
+
+            if (!venueRecord || !venueRecord.fields['OSHC Available']) {
+                section.classList.add('hidden');
                 return;
             }
 
-            // Check spots
-            const f = classRecord.fields;
-            const enrolled = f['Current Bookings'] || 0;
-            const capacity = f.Capacity || 0;
-            if (capacity > 0 && enrolled + checkboxes.length > capacity) {
+            const children = getAllSelectedChildren();
+            if (children.length === 0) {
+                section.classList.add('hidden');
+                return;
+            }
+
+            section.classList.remove('hidden');
+
+            const fee = venueRecord.fields['OSHC Fee'];
+            const notes = venueRecord.fields['OSHC Notes'] || '';
+            let noteText = '';
+            if (fee) noteText += `OSHC fee: $${Number(fee).toFixed(0)}. `;
+            if (notes) noteText += notes;
+            document.getElementById('oshcNote').textContent = noteText;
+
+            // Preserve existing OSHC checkbox states
+            const previousStates = {};
+            const existingOshcCbs = document.querySelectorAll('input[data-oshc-child]');
+            for (const cb of existingOshcCbs) {
+                previousStates[cb.dataset.oshcChild] = cb.checked;
+            }
+
+            let html = '';
+            for (const child of children) {
+                const safeId = child.id.replace(/[^a-zA-Z0-9_-]/g, '_');
+                const wasChecked = previousStates[child.id] ? 'checked' : '';
+                html += `
+                    <div class="oshc-child">
+                        <input type="checkbox" id="oshc-${safeId}" data-oshc-child="${child.id}" ${wasChecked}>
+                        <label for="oshc-${safeId}">Will ${escapeHtml(child.name)} be attending from OSHC?</label>
+                    </div>
+                `;
+            }
+            childrenContainer.innerHTML = html;
+        }
+
+        function getAllSelectedChildren() {
+            const children = [];
+
+            // Existing children (checked)
+            const existingChecked = document.querySelectorAll('#existingChildren input[data-student-id]:checked');
+            for (const cb of existingChecked) {
+                const student = studentRecords.find(s => s.id === cb.dataset.studentId);
+                if (student) {
+                    children.push({ id: student.id, name: student.fields.Name, type: 'existing' });
+                }
+            }
+
+            // New children with name filled in
+            const newRows = document.querySelectorAll('#newChildrenContainer .add-child-row');
+            for (const row of newRows) {
+                const nameInput = row.querySelector('input[type="text"]');
+                const name = nameInput.value.trim();
+                if (name) {
+                    children.push({ id: `new-${nameInput.dataset.childName}`, name, type: 'new' });
+                }
+            }
+
+            return children;
+        }
+
+        // ── Submit ──
+
+        async function submitRegistration() {
+            clearAllErrors();
+            const btn = document.getElementById('registerBtn');
+            let hasError = false;
+
+            const email = document.getElementById('parentEmail').value.trim().toLowerCase();
+            const name = document.getElementById('parentName').value.trim();
+            const mobile = document.getElementById('parentMobile').value.trim();
+
+            if (!email || !email.includes('@') || !email.includes('.')) {
+                showFieldError('emailError', 'Please enter a valid email address.');
+                hasError = true;
+            }
+            if (!name) {
+                showFieldError('nameError', 'Please enter your name.');
+                hasError = true;
+            }
+            if (!mobile) {
+                showFieldError('mobileError', 'Please enter your mobile number.');
+                hasError = true;
+            }
+
+            if (hasError) return;
+
+            // Do email lookup if not done yet
+            if (!emailLookupDone) {
+                await doEmailLookup(email);
+            }
+
+            // Gather children
+            const selectedExisting = [];
+            const existingChecked = document.querySelectorAll('#existingChildren input[data-student-id]:checked');
+            for (const cb of existingChecked) {
+                selectedExisting.push(cb.dataset.studentId);
+            }
+
+            const newChildren = [];
+            const newRows = document.querySelectorAll('#newChildrenContainer .add-child-row');
+            for (const row of newRows) {
+                const childName = row.querySelector('input[type="text"]').value.trim();
+                const childAge = row.querySelector('input[type="number"]').value.trim();
+                // Only validate rows that have any content
+                if (childName || childAge) {
+                    if (!childName) {
+                        showFieldError('formError', 'Please enter a name for each child.');
+                        return;
+                    }
+                    if (!childAge || isNaN(childAge) || Number(childAge) < 3 || Number(childAge) > 18) {
+                        showFieldError('formError', `Please enter a valid age (3\u201318) for ${childName}.`);
+                        return;
+                    }
+                    newChildren.push({
+                        name: childName,
+                        age: parseInt(childAge),
+                        rowId: row.querySelector('input[type="text"]').dataset.childName
+                    });
+                }
+            }
+
+            if (selectedExisting.length === 0 && newChildren.length === 0) {
+                showFieldError('formError', 'Please select or add at least one child to register.');
+                return;
+            }
+
+            // Capacity check
+            const totalToRegister = selectedExisting.length + newChildren.length;
+            const enrolled = classRecord.fields['Current Bookings'] || 0;
+            const capacity = classRecord.fields.Capacity || 0;
+            if (capacity > 0 && enrolled + totalToRegister > capacity) {
                 const available = Math.max(0, capacity - enrolled);
-                errorEl.textContent = available === 0
+                showFieldError('formError', available === 0
                     ? 'Sorry, this class is full.'
-                    : `Sorry, only ${available} spot${available === 1 ? '' : 's'} remaining.`;
-                errorEl.style.display = 'block';
+                    : `Sorry, only ${available} spot${available === 1 ? '' : 's'} remaining.`);
                 return;
             }
 
@@ -593,47 +936,102 @@
             btn.textContent = 'Registering...';
 
             try {
-                const today = new Date().toISOString().split('T')[0];
-                const records = [];
+                let parentId;
+                let parentIsNew = false;
 
-                for (const cb of checkboxes) {
-                    records.push({
+                // 1. Create or use existing parent
+                if (parentRecord) {
+                    parentId = parentRecord.id;
+                    // Nudge if enrolment looks incomplete (no DOB on any child, no address, etc.)
+                    const pf = parentRecord.fields;
+                    parentIsNew = !pf['Enrolment Status'] || pf['Enrolment Status'] !== 'Complete';
+                } else {
+                    // Create stub parent record
+                    const parentData = await airtablePost('Parents', [{
                         fields: {
-                            "Student": [cb.dataset.studentId],
-                            "Class": [classId],
-                            "Booking Date": today,
-                            "Payment Status": "Pending",
+                            'Name': name,
+                            'Email': email,
+                            'Mobile': mobile,
                         }
-                    });
+                    }]);
+                    parentId = parentData.records[0].id;
+                    parentRecord = parentData.records[0];
+                    parentIsNew = true;
                 }
 
-                // Batch create (up to 10)
-                const resp = await fetch(`${API_BASE}/Bookings`, {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${AIRTABLE_API_KEY}`,
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ records }),
-                });
-
-                if (!resp.ok) {
-                    const errText = await resp.text();
-                    throw new Error(`Registration failed: ${errText}`);
+                // 2. Create stub students for new children
+                const newStudentIds = [];
+                if (newChildren.length > 0) {
+                    const studentRecordsToCreate = newChildren.map(child => ({
+                        fields: {
+                            'Name': child.name,
+                            'Parents': [parentId],
+                            'General Notes': `Age at booking: ${child.age}. Full enrolment pending.`,
+                        }
+                    }));
+                    const studentData = await airtablePost('Students', studentRecordsToCreate);
+                    for (const rec of studentData.records) {
+                        newStudentIds.push(rec.id);
+                    }
                 }
 
-                // Show confirmation
-                const registeredNames = [];
-                for (const cb of checkboxes) {
-                    const student = studentRecords.find(s => s.id === cb.dataset.studentId);
-                    if (student) registeredNames.push(student.fields.Name);
+                // 3. Gather OSHC selections
+                const oshcSelections = {};
+                if (venueRecord && venueRecord.fields['OSHC Available']) {
+                    const oshcCheckboxes = document.querySelectorAll('input[data-oshc-child]');
+                    for (const cb of oshcCheckboxes) {
+                        oshcSelections[cb.dataset.oshcChild] = cb.checked;
+                    }
                 }
 
-                showConfirmation(registeredNames);
+                // 4. Create booking records
+                const today = new Date().toISOString().split('T')[0];
+                const bookingRecords = [];
+                const allNames = [];
+
+                for (const sid of selectedExisting) {
+                    const student = studentRecords.find(s => s.id === sid);
+                    if (student) allNames.push(student.fields.Name);
+                    const booking = {
+                        'Student': [sid],
+                        'Class': [classId],
+                        'Booking Date': today,
+                        'Payment Status': 'Pending',
+                    };
+                    if (venueRecord && venueRecord.fields['OSHC Available']) {
+                        booking['OSHC Collection'] = !!oshcSelections[sid];
+                    }
+                    bookingRecords.push({ fields: booking });
+                }
+
+                for (let i = 0; i < newChildren.length; i++) {
+                    const child = newChildren[i];
+                    allNames.push(child.name);
+                    const studentId = newStudentIds[i];
+                    const oshcKey = `new-${child.rowId}`;
+                    const booking = {
+                        'Student': [studentId],
+                        'Class': [classId],
+                        'Booking Date': today,
+                        'Payment Status': 'Pending',
+                    };
+                    if (venueRecord && venueRecord.fields['OSHC Available']) {
+                        booking['OSHC Collection'] = !!oshcSelections[oshcKey];
+                    }
+                    bookingRecords.push({ fields: booking });
+                }
+
+                // Batch create bookings (max 10 per request)
+                for (let i = 0; i < bookingRecords.length; i += 10) {
+                    const batch = bookingRecords.slice(i, i + 10);
+                    await airtablePost('Bookings', batch);
+                }
+
+                // 5. Show confirmation
+                showConfirmation(allNames, parentId, parentIsNew);
 
             } catch (err) {
-                errorEl.textContent = err.message;
-                errorEl.style.display = 'block';
+                showFieldError('formError', err.message);
                 console.error(err);
             } finally {
                 btn.disabled = false;
@@ -641,10 +1039,11 @@
             }
         }
 
-        // ── Step 3: Confirmation ──
+        // ── Confirmation ──
 
-        function showConfirmation(names) {
+        function showConfirmation(names, parentId, showEnrolmentNudge) {
             const className = classRecord.fields.Name || 'this class';
+
             if (names.length === 1) {
                 document.getElementById('successTitle').textContent = `${names[0]} is registered!`;
                 document.getElementById('successDetail').textContent = `Successfully registered for ${className}.`;
@@ -653,7 +1052,14 @@
                 document.getElementById('successTitle').textContent = 'Registration complete!';
                 document.getElementById('successDetail').textContent = `${nameList} are registered for ${className}.`;
             }
-            showStep('step3');
+
+            if (showEnrolmentNudge) {
+                document.getElementById('enrolmentNudge').classList.remove('hidden');
+                document.getElementById('enrolmentLink').href = `${ENROLMENT_URL}?parent=${parentId}`;
+            }
+
+            document.getElementById('formSection').classList.add('hidden');
+            document.getElementById('confirmationSection').classList.remove('hidden');
         }
 
         // ── Init ──
