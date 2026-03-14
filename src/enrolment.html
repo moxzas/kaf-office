@@ -53,6 +53,20 @@
         .status.show {
             display: block;
         }
+        /* Completion banner */
+        .completion-banner {
+            padding: 16px 20px;
+            margin-bottom: 20px;
+            background: #eff6ff;
+            border: 1px solid #bfdbfe;
+            border-radius: 8px;
+            color: #1e40af;
+            font-size: 15px;
+            line-height: 1.5;
+            display: none;
+        }
+        .completion-banner.show { display: block; }
+        .completion-banner strong { color: #1e3a5f; }
     </style>
 </head>
 <body>
@@ -62,6 +76,7 @@
     </div>
 
     <div class="container">
+        <div id="completionBanner" class="completion-banner"></div>
         <div id="statusMessage" class="status"></div>
         <div id="surveyContainer"></div>
     </div>
@@ -377,6 +392,8 @@
         const urlParams = new URLSearchParams(window.location.search);
         const parentIdFromUrl = urlParams.get('parent');
 
+        let isIncompleteEnrolment = false;
+
         if (parentIdFromUrl) {
             parentRecordId = parentIdFromUrl;
             isEditMode = true;
@@ -387,6 +404,17 @@
             survey.description = 'Update your enrolment details. Changes are saved automatically as you go.';
 
             loadExistingEnrollment(parentRecordId);
+        }
+
+        // Check if enrolment is complete (used for status tracking)
+        function isEnrolmentComplete(parentFields, studentsData) {
+            if (!parentFields.Address || !parentFields.Suburb || !parentFields.Postcode) return false;
+            if (!parentFields.Mobile) return false;
+            for (const s of studentsData) {
+                if (!s.fields['Date of Birth']) return false;
+                if (!s.fields['School Attended']) return false;
+            }
+            return true;
         }
 
         // Load existing enrollment data for editing
@@ -482,10 +510,129 @@
                     students: studentsData
                 };
 
+                // Store raw student records for completion check on submit
+                window._rawStudentRecords = [];
+                for (const studentId of studentIds) {
+                    try {
+                        const sResp = await fetch(
+                            `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Students/${studentId}`,
+                            { headers: { 'Authorization': `Bearer ${AIRTABLE_API_KEY}` } }
+                        );
+                        if (sResp.ok) window._rawStudentRecords.push(await sResp.json());
+                    } catch(e) { /* already fetched above, just re-fetch for raw fields */ }
+                }
+                // Use already-fetched data if re-fetch failed
+                if (window._rawStudentRecords.length === 0) {
+                    // Build from studentsData
+                    window._rawStudentRecords = studentsData.map((sd, i) => ({
+                        id: studentRecordIds[i],
+                        fields: {
+                            'Date of Birth': sd.studentDOB || '',
+                            'School Attended': sd.studentSchoolAttended || ''
+                        }
+                    }));
+                }
+
+                // Detect incomplete enrolment
+                const missingFields = [];
+                if (!parentData.fields.Address) missingFields.push('address');
+                if (!parentData.fields.Suburb) missingFields.push('suburb');
+                if (!parentData.fields.Postcode) missingFields.push('postcode');
+
+                for (const sd of studentsData) {
+                    const sName = sd.studentName || 'a child';
+                    if (!sd.studentDOB) missingFields.push(`date of birth for ${sName}`);
+                    if (!sd.studentSchoolAttended) missingFields.push(`school for ${sName}`);
+                }
+
+                if (missingFields.length > 0) {
+                    isIncompleteEnrolment = true;
+
+                    // Find a child name for the banner
+                    const childName = (studentsData.length > 0 && studentsData[0].studentName)
+                        ? studentsData[0].studentName.split(' ')[0]
+                        : 'your child';
+
+                    const banner = document.getElementById('completionBanner');
+                    banner.innerHTML = `<strong>Thanks for booking!</strong> Please fill in the remaining details below so we have everything we need before ${escapeHtml(childName)}'s first class.`;
+                    banner.classList.add('show');
+
+                    document.getElementById('formSubtitle').textContent = 'Complete Your Enrolment';
+                    survey.description = 'Please fill in the missing details below.';
+
+                    // Skip to page 2 if page 1 (name/email/mobile) is already filled
+                    if (formData.parentFirstName && formData.parentLastName &&
+                        formData.parentEmail && formData.parentMobile) {
+                        // Wait for SurveyJS to render, then advance
+                        setTimeout(() => {
+                            survey.currentPageNo = 1; // page 2 (address)
+                            console.log('Auto-advanced to page 2 (address) for incomplete enrolment');
+                        }, 100);
+                    }
+
+                    // Highlight incomplete fields with CSS
+                    setTimeout(() => highlightMissingFields(formData, studentsData), 200);
+                }
+
             } catch (error) {
                 console.error('Error loading enrollment:', error);
                 showStatus('❌ Error loading enrolment data. Please try again.', 'error');
             }
+        }
+
+        function highlightMissingFields(formData, studentsData) {
+            // Add highlight styles
+            const style = document.createElement('style');
+            style.textContent = `
+                .sd-question.highlight-missing {
+                    background: #fefce8 !important;
+                    border-left: 3px solid #eab308 !important;
+                    padding-left: 12px !important;
+                    border-radius: 4px;
+                }
+            `;
+            document.head.appendChild(style);
+
+            // Map form field names to missing check
+            const fieldsToHighlight = [];
+            if (!formData.parentAddress) fieldsToHighlight.push('parentAddress');
+            if (!formData.parentSuburb) fieldsToHighlight.push('parentSuburb');
+            if (!formData.parentPostcode) fieldsToHighlight.push('parentPostcode');
+
+            // Highlight parent fields
+            for (const fieldName of fieldsToHighlight) {
+                const question = survey.getQuestionByName(fieldName);
+                if (question) {
+                    question.cssClasses.mainRoot = (question.cssClasses.mainRoot || '') + ' highlight-missing';
+                }
+            }
+
+            // For student fields, highlight via panel dynamic
+            for (let i = 0; i < studentsData.length; i++) {
+                const sd = studentsData[i];
+                const panel = survey.getQuestionByName('students');
+                if (panel && panel.panels && panel.panels[i]) {
+                    const p = panel.panels[i];
+                    if (!sd.studentDOB) {
+                        const q = p.getQuestionByName('studentDOB');
+                        if (q) q.cssClasses.mainRoot = (q.cssClasses.mainRoot || '') + ' highlight-missing';
+                    }
+                    if (!sd.studentSchoolAttended) {
+                        const q = p.getQuestionByName('studentSchoolAttended');
+                        if (q) q.cssClasses.mainRoot = (q.cssClasses.mainRoot || '') + ' highlight-missing';
+                    }
+                }
+            }
+
+            // Force re-render
+            survey.render();
+        }
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
         }
 
         // Track page 1 completion for incomplete submissions
@@ -587,6 +734,24 @@
                     const parentResult = await parentResponse.json();
                     parentRecordId = parentResult.records[0].id;
                     console.log('✓ Parent created:', parentRecordId);
+
+                    // Set Enrolment Status to Complete for new full enrolments
+                    try {
+                        await fetch(
+                            `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Parents/${parentRecordId}`,
+                            {
+                                method: 'PATCH',
+                                headers: {
+                                    'Authorization': `Bearer ${AIRTABLE_API_KEY}`,
+                                    'Content-Type': 'application/json'
+                                },
+                                body: JSON.stringify({
+                                    fields: { 'Enrolment Status': 'Complete' }
+                                })
+                            }
+                        );
+                        console.log('✓ Enrolment Status set to Complete (new enrolment)');
+                    } catch (e) { /* non-critical */ }
                 } else {
                     console.log('Updating parent record...');
 
@@ -725,6 +890,48 @@
                 console.log('✓ All records saved!');
                 console.log('Parent ID:', parentRecordId);
                 console.log('Student IDs:', studentRecordIds);
+
+                // STEP 2.5: Update Enrolment Status if in edit mode
+                if (isEditMode) {
+                    try {
+                        // Re-fetch parent + students to check completeness
+                        const parentCheck = await fetch(
+                            `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Parents/${parentRecordId}`,
+                            { headers: { 'Authorization': `Bearer ${AIRTABLE_API_KEY}` } }
+                        );
+                        const parentCheckData = await parentCheck.json();
+
+                        const studentChecks = [];
+                        for (const sid of studentRecordIds) {
+                            const sResp = await fetch(
+                                `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Students/${sid}`,
+                                { headers: { 'Authorization': `Bearer ${AIRTABLE_API_KEY}` } }
+                            );
+                            if (sResp.ok) studentChecks.push(await sResp.json());
+                        }
+
+                        const complete = isEnrolmentComplete(parentCheckData.fields, studentChecks);
+                        const statusValue = complete ? 'Complete' : 'Incomplete';
+
+                        await fetch(
+                            `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Parents/${parentRecordId}`,
+                            {
+                                method: 'PATCH',
+                                headers: {
+                                    'Authorization': `Bearer ${AIRTABLE_API_KEY}`,
+                                    'Content-Type': 'application/json'
+                                },
+                                body: JSON.stringify({
+                                    fields: { 'Enrolment Status': statusValue }
+                                })
+                            }
+                        );
+                        console.log(`✓ Enrolment Status set to: ${statusValue}`);
+                    } catch (statusErr) {
+                        console.error('Failed to update Enrolment Status:', statusErr);
+                        // Don't block — status update is non-critical
+                    }
+                }
 
                 // STEP 3: Send audit log and emails
                 const afterState = {

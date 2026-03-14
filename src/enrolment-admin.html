@@ -119,6 +119,43 @@
         .sort-btn { color: #2563eb; text-decoration: none; font-size: 14px; }
         .sort-btn:hover { text-decoration: underline; }
         .sort-btn.sort-active { font-weight: 600; color: #333; }
+
+        /* Incomplete badge */
+        .incomplete-badge {
+            display: inline-block;
+            background: #fef3c7;
+            color: #92400e;
+            font-size: 12px;
+            font-weight: 600;
+            padding: 2px 8px;
+            border-radius: 4px;
+            margin-left: 8px;
+            vertical-align: middle;
+        }
+        .missing-list {
+            font-size: 12px;
+            color: #92400e;
+            margin-top: 6px;
+            line-height: 1.5;
+        }
+        .copy-link-btn {
+            display: inline-block;
+            margin-top: 8px;
+            padding: 4px 10px;
+            background: #eff6ff;
+            border: 1px solid #bfdbfe;
+            border-radius: 4px;
+            color: #2563eb;
+            font-size: 12px;
+            cursor: pointer;
+            text-decoration: none;
+        }
+        .copy-link-btn:hover { background: #dbeafe; }
+
+        /* Filter controls */
+        .filter-btn { color: #2563eb; text-decoration: none; font-size: 14px; }
+        .filter-btn:hover { text-decoration: underline; }
+        .filter-btn.filter-active { font-weight: 600; color: #333; }
     </style>
 </head>
 <body>
@@ -173,6 +210,7 @@
         }
 
         let currentSort = 'name'; // 'name' or 'date'
+        let currentFilter = 'all'; // 'all' or 'incomplete'
 
         async function loadEnrollments() {
             const content = document.getElementById('content');
@@ -203,11 +241,51 @@
             }
         }
 
+        function isEnrolmentIncomplete(parent, kids) {
+            // Explicit Incomplete status
+            if (parent.fields['Enrolment Status'] === 'Incomplete') return true;
+            // No status and missing key fields = incomplete (from booking stub)
+            if (!parent.fields['Enrolment Status']) {
+                // Legacy records (pre-feature) without status: treat as complete
+                // But if they're missing address + students missing DOB, they're stubs
+                const missingAddress = !parent.fields.Address || !parent.fields.Suburb || !parent.fields.Postcode;
+                const missingStudentInfo = kids.some(k =>
+                    !k.fields['Date of Birth'] || !k.fields['School Attended']
+                );
+                if (missingAddress && missingStudentInfo) return true;
+            }
+            return false;
+        }
+
+        function getMissingInfo(parent, kids) {
+            const missing = [];
+            const p = parent.fields;
+            if (!p.Address && !p.Suburb && !p.Postcode) {
+                missing.push('address');
+            }
+            for (const kid of kids) {
+                const s = kid.fields;
+                const name = (s.Name || '').split(' ')[0] || 'child';
+                if (!s['Date of Birth']) missing.push(`DOB for ${name}`);
+                if (!s['School Attended']) missing.push(`school for ${name}`);
+            }
+            return missing;
+        }
+
         function renderCards(parents, students, studentsByParent) {
             const content = document.getElementById('content');
 
+            // Filter
+            let filtered = [...parents];
+            if (currentFilter === 'incomplete') {
+                filtered = filtered.filter(p => {
+                    const kids = studentsByParent[p.id] || [];
+                    return isEnrolmentIncomplete(p, kids);
+                });
+            }
+
             // Sort
-            const sorted = [...parents];
+            const sorted = filtered;
             if (currentSort === 'name') {
                 sorted.sort((a, b) => getLastName(a.fields.Name).localeCompare(getLastName(b.fields.Name)));
             } else {
@@ -216,18 +294,31 @@
 
             const totalFamilies = parents.length;
             const totalStudents = students.length;
+            const incompleteCount = parents.filter(p => {
+                const kids = studentsByParent[p.id] || [];
+                return isEnrolmentIncomplete(p, kids);
+            }).length;
 
             const nameActive = currentSort === 'name' ? 'sort-active' : '';
             const dateActive = currentSort === 'date' ? 'sort-active' : '';
+            const allActive = currentFilter === 'all' ? 'filter-active' : '';
+            const incActive = currentFilter === 'incomplete' ? 'filter-active' : '';
 
             let html = `<div class="summary">
                     <div><span class="stat">${totalFamilies}</span> families</div>
                     <div><span class="stat">${totalStudents}</span> students</div>
+                    ${incompleteCount > 0 ? `<div><span class="stat" style="color:#d97706;">${incompleteCount}</span> incomplete</div>` : ''}
                     <div style="margin-left:auto;">
-                        Sort: <a href="#" class="sort-btn ${nameActive}" onclick="setSort('name');return false;">Last Name</a>
+                        Show: <a href="#" class="filter-btn ${allActive}" onclick="setFilter('all');return false;">All</a>
+                        | <a href="#" class="filter-btn ${incActive}" onclick="setFilter('incomplete');return false;">Incomplete only</a>
+                        &nbsp; Sort: <a href="#" class="sort-btn ${nameActive}" onclick="setSort('name');return false;">Last Name</a>
                         | <a href="#" class="sort-btn ${dateActive}" onclick="setSort('date');return false;">Newest First</a>
                     </div>
                 </div>`;
+
+                if (sorted.length === 0 && currentFilter === 'incomplete') {
+                    html += `<div style="text-align:center; padding:40px; color:#888;">No incomplete enrolments found.</div>`;
+                }
 
                 // Render each family
                 for (const parent of sorted) {
@@ -235,18 +326,31 @@
                     const kids = studentsByParent[parent.id] || [];
                     const editUrl = `enrolment.html?parent=${parent.id}&editor=admin`;
                     const enrolled = formatDate(parent.createdTime);
+                    const incomplete = isEnrolmentIncomplete(parent, kids);
+                    const missingInfo = incomplete ? getMissingInfo(parent, kids) : [];
 
                     html += `<div class="family-card">`;
                     html += `<div class="parent-section">`;
                     html += `<a href="${editUrl}" class="edit-link">Edit</a>`;
-                    html += `<div class="parent-name">${escapeHtml(p.Name)}</div>`;
+                    html += `<div class="parent-name">${escapeHtml(p.Name)}`;
+                    if (incomplete) {
+                        html += `<span class="incomplete-badge">Enrolment incomplete</span>`;
+                    }
+                    html += `</div>`;
                     if (enrolled) html += `<div class="enrolled-date">Enrolled ${enrolled}</div>`;
                     html += `<div class="parent-details">`;
                     if (p.Email) html += `<div><a href="mailto:${escapeHtml(p.Email)}">${escapeHtml(p.Email)}</a></div>`;
                     if (p.Mobile) html += `<div>${escapeHtml(p.Mobile)}</div>`;
                     if (p.Phone) html += `<div>${escapeHtml(p.Phone)}</div>`;
                     if (p.Address) html += `<div><span class="detail-label">Address:</span> ${escapeHtml(p.Address)}, ${escapeHtml(p.Suburb || '')} ${escapeHtml(p.Postcode || '')}</div>`;
-                    html += `</div></div>`;
+                    html += `</div>`;
+
+                    if (incomplete && missingInfo.length > 0) {
+                        html += `<div class="missing-list">Missing: ${missingInfo.map(m => escapeHtml(m)).join(', ')}</div>`;
+                        html += `<button class="copy-link-btn" onclick="copyEnrolmentLink('${parent.id}', this); return false;">Copy enrolment link</button>`;
+                    }
+
+                    html += `</div>`;
 
                     if (kids.length === 0) {
                         html += `<div class="no-students">No students linked</div>`;
@@ -275,8 +379,25 @@
                 content.innerHTML = html;
         }
 
+        function copyEnrolmentLink(parentId, btn) {
+            const url = `https://app.sonzai.com/kaf/enrolment.html?parent=${parentId}`;
+            navigator.clipboard.writeText(url).then(() => {
+                const originalText = btn.textContent;
+                btn.textContent = 'Copied!';
+                setTimeout(() => { btn.textContent = originalText; }, 1500);
+            }).catch(() => {
+                // Fallback
+                prompt('Copy this link:', url);
+            });
+        }
+
         function setSort(mode) {
             currentSort = mode;
+            renderCards(window._parents, window._students, window._studentsByParent);
+        }
+
+        function setFilter(mode) {
+            currentFilter = mode;
             renderCards(window._parents, window._students, window._studentsByParent);
         }
 
