@@ -610,8 +610,10 @@
                     emailLookupDone = true;
 
                     const pf = parentRecord.fields;
-                    if (pf.Name) document.getElementById('parentName').value = pf.Name;
-                    if (pf.Mobile) document.getElementById('parentMobile').value = pf.Mobile;
+                    if (pf.Name) { document.getElementById('parentName').value = pf.Name; document.getElementById('parentName').readOnly = true; document.getElementById('parentName').style.background = '#f3f4f6'; }
+                    if (pf.Mobile) { document.getElementById('parentMobile').value = pf.Mobile; document.getElementById('parentMobile').readOnly = true; document.getElementById('parentMobile').style.background = '#f3f4f6'; }
+                    document.getElementById('parentEmail').readOnly = true;
+                    document.getElementById('parentEmail').style.background = '#f3f4f6';
 
                     const firstName = (pf.Name || '').split(' ')[0] || 'there';
                     const banner = document.getElementById('welcomeBanner');
@@ -630,6 +632,10 @@
                     document.getElementById('welcomeBanner').classList.add('hidden');
                     document.getElementById('existingChildren').classList.add('hidden');
                     document.getElementById('existingChildren').innerHTML = '';
+                    document.getElementById('parentName').readOnly = false;
+                    document.getElementById('parentName').style.background = '';
+                    document.getElementById('parentMobile').readOnly = false;
+                    document.getElementById('parentMobile').style.background = '';
                     studentRecords = [];
                     existingBookings = new Set();
 
