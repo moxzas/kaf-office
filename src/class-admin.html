@@ -302,66 +302,9 @@
             font-weight: 600;
         }
         .oshc-toggle:hover { background: #eff6ff; }
-
-        /* ── PIN Login Overlay ── */
-        #loginOverlay {
-            position: fixed; inset: 0; z-index: 9999;
-            background: linear-gradient(135deg, #1e40af, #3b82f6);
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            color: white; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-        }
-        #loginOverlay.hidden { display: none; }
-        .login-title { font-size: 28px; font-weight: 700; margin-bottom: 8px; }
-        .login-subtitle { font-size: 16px; opacity: 0.8; margin-bottom: 40px; }
-        .pin-display { display: flex; gap: 12px; margin-bottom: 30px; }
-        .pin-dot {
-            width: 18px; height: 18px; border-radius: 50%;
-            border: 2px solid rgba(255,255,255,0.6);
-            background: transparent; transition: background 0.15s;
-        }
-        .pin-dot.filled { background: white; border-color: white; }
-        .pin-pad { display: grid; grid-template-columns: repeat(3, 80px); gap: 12px; }
-        .pin-btn {
-            width: 80px; height: 80px; border-radius: 50%;
-            border: 2px solid rgba(255,255,255,0.4);
-            background: rgba(255,255,255,0.1);
-            color: white; font-size: 28px; font-weight: 500;
-            cursor: pointer; display: flex; align-items: center; justify-content: center;
-        }
-        .pin-btn:active { background: rgba(255,255,255,0.3); }
-        .pin-btn.fn { font-size: 14px; border-color: transparent; background: transparent; }
-        .pin-error { color: #fca5a5; font-size: 14px; margin-top: 16px; min-height: 20px; }
     </style>
 </head>
 <body>
-    <div id="loginOverlay">
-        <div class="login-title">Kids Art Fun</div>
-        <div class="login-subtitle">Class Management</div>
-        <div class="pin-display">
-            <div class="pin-dot" id="dot0"></div>
-            <div class="pin-dot" id="dot1"></div>
-            <div class="pin-dot" id="dot2"></div>
-            <div class="pin-dot" id="dot3"></div>
-            <div class="pin-dot" id="dot4"></div>
-            <div class="pin-dot" id="dot5"></div>
-        </div>
-        <div class="pin-pad">
-            <button class="pin-btn" onclick="pinPress('1')">1</button>
-            <button class="pin-btn" onclick="pinPress('2')">2</button>
-            <button class="pin-btn" onclick="pinPress('3')">3</button>
-            <button class="pin-btn" onclick="pinPress('4')">4</button>
-            <button class="pin-btn" onclick="pinPress('5')">5</button>
-            <button class="pin-btn" onclick="pinPress('6')">6</button>
-            <button class="pin-btn" onclick="pinPress('7')">7</button>
-            <button class="pin-btn" onclick="pinPress('8')">8</button>
-            <button class="pin-btn" onclick="pinPress('9')">9</button>
-            <button class="pin-btn fn"></button>
-            <button class="pin-btn" onclick="pinPress('0')">0</button>
-            <button class="pin-btn fn" onclick="pinDelete()">Del</button>
-        </div>
-        <div class="pin-error" id="pinError"></div>
-    </div>
-
     <div class="header">
         <h1>Kids Art Fun</h1>
         <p class="subtitle">Class Management</p>
@@ -522,49 +465,6 @@
     <script>
         const API_BASE = '/api/kaf/db';
         const REG_BASE_URL = 'https://app.sonzai.com/kaf/register.html';
-
-        // ── PIN Gate ──
-        let pinEntry = '';
-        const PIN_LENGTH = 6;
-
-        function pinPress(digit) {
-            if (pinEntry.length >= PIN_LENGTH) return;
-            pinEntry += digit;
-            updatePinDots();
-            if (pinEntry.length === PIN_LENGTH) setTimeout(validatePin, 150);
-        }
-        function pinDelete() {
-            pinEntry = pinEntry.slice(0, -1);
-            updatePinDots();
-            document.getElementById('pinError').textContent = '';
-        }
-        function updatePinDots() {
-            for (let i = 0; i < PIN_LENGTH; i++)
-                document.getElementById('dot' + i).classList.toggle('filled', i < pinEntry.length);
-        }
-        async function validatePin() {
-            try {
-                const resp = await fetch(`${API_BASE}/Admins?filterByFormula=AND(Active%3DTRUE())`);
-                const data = await resp.json();
-                const match = (data.records || []).find(a => a.fields.PIN === pinEntry);
-                if (match) {
-                    sessionStorage.setItem('kaf_admin', match.fields.Name);
-                    document.getElementById('loginOverlay').classList.add('hidden');
-                } else {
-                    document.getElementById('pinError').textContent = 'Incorrect PIN';
-                    pinEntry = '';
-                    updatePinDots();
-                }
-            } catch (err) {
-                document.getElementById('pinError').textContent = 'Connection error';
-                pinEntry = '';
-                updatePinDots();
-            }
-        }
-        // Skip login if already authenticated this session
-        if (sessionStorage.getItem('kaf_admin')) {
-            document.getElementById('loginOverlay').classList.add('hidden');
-        }
 
         const DAY_ORDER = { Monday: 1, Tuesday: 2, Wednesday: 3, Thursday: 4, Friday: 5, Saturday: 6, Sunday: 7 };
 

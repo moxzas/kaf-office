@@ -11,3 +11,4 @@
 library kaf_server;
 
 export 'src/kaf_router.dart' show kafApiRouter;
+export 'src/auth_handler.dart' show validateKafSession, kafLoginPageHtml;
