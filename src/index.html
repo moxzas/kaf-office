@@ -63,9 +63,7 @@
     <script src="https://unpkg.com/survey-jquery@1.9.131/survey.jquery.min.js"></script>
 
     <script>
-        // Airtable Configuration
-        const AIRTABLE_API_KEY = 'patYJhlgK2q6sAnyZ.8c3945853082593f6ec6cc6d12a0cd863a13a912a067dfd99c75a0ff95ae4e06';
-        const AIRTABLE_BASE_ID = 'appNuMdxaiSYdgxJS';
+        const API_BASE = '/api/kaf/db';
         const AIRTABLE_TABLE_NAME = 'Parents';
 
         // Survey Definition
@@ -186,11 +184,10 @@
 
                 // Submit to Airtable
                 const response = await fetch(
-                    `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_TABLE_NAME}`,
+                    `${API_BASE}/${AIRTABLE_TABLE_NAME}`,
                     {
                         method: 'POST',
                         headers: {
-                            'Authorization': `Bearer ${AIRTABLE_API_KEY}`,
                             'Content-Type': 'application/json'
                         },
                         body: JSON.stringify(airtableData)

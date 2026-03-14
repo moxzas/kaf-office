@@ -1,0 +1,11 @@
+name: kaf_server
+description: KAF (Kids Art Fun) server-side handlers for the Sonzai Shelf server.
+version: 1.0.0
+
+environment:
+  sdk: ^3.8.0
+
+dependencies:
+  shelf: ^1.4.1
+  shelf_router: ^1.1.4
+  http: ^1.1.0

@@ -26,8 +26,8 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
     const url = new URL(event.request.url);
 
-    // Don't cache Airtable API calls
-    if (url.hostname === 'api.airtable.com') return;
+    // Don't cache API calls
+    if (url.pathname.startsWith('/api/')) return;
 
     // For app assets: try network first, fall back to cache
     event.respondWith(

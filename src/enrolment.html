@@ -88,9 +88,7 @@
     <script src="https://unpkg.com/survey-jquery@1.9.131/survey.jquery.min.js"></script>
 
     <script>
-        // Airtable Configuration (will be moved to server-side later)
-        const AIRTABLE_API_KEY = 'patYJhlgK2q6sAnyZ.8c3945853082593f6ec6cc6d12a0cd863a13a912a067dfd99c75a0ff95ae4e06';
-        const AIRTABLE_BASE_ID = 'appNuMdxaiSYdgxJS';
+        const API_BASE = '/api/kaf/db';
 
         // Survey Definition
         const surveyJson = {
@@ -422,12 +420,7 @@
             try {
                 // Fetch parent record
                 const parentResponse = await fetch(
-                    `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Parents/${recordId}`,
-                    {
-                        headers: {
-                            'Authorization': `Bearer ${AIRTABLE_API_KEY}`
-                        }
-                    }
+                    `${API_BASE}/Parents/${recordId}`
                 );
 
                 if (!parentResponse.ok) {
@@ -465,12 +458,7 @@
 
                 for (const studentId of studentIds) {
                     const studentResponse = await fetch(
-                        `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Students/${studentId}`,
-                        {
-                            headers: {
-                                'Authorization': `Bearer ${AIRTABLE_API_KEY}`
-                            }
-                        }
+                        `${API_BASE}/Students/${studentId}`
                     );
 
                     if (studentResponse.ok) {
@@ -515,8 +503,7 @@
                 for (const studentId of studentIds) {
                     try {
                         const sResp = await fetch(
-                            `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Students/${studentId}`,
-                            { headers: { 'Authorization': `Bearer ${AIRTABLE_API_KEY}` } }
+                            `${API_BASE}/Students/${studentId}`
                         );
                         if (sResp.ok) window._rawStudentRecords.push(await sResp.json());
                     } catch(e) { /* already fetched above, just re-fetch for raw fields */ }
@@ -714,11 +701,10 @@
                     };
 
                     const parentResponse = await fetch(
-                        `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Parents`,
+                        `${API_BASE}/Parents`,
                         {
                             method: 'POST',
                             headers: {
-                                'Authorization': `Bearer ${AIRTABLE_API_KEY}`,
                                 'Content-Type': 'application/json'
                             },
                             body: JSON.stringify(parentData)
@@ -738,11 +724,10 @@
                     // Set Enrolment Status to Complete for new full enrolments
                     try {
                         await fetch(
-                            `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Parents/${parentRecordId}`,
+                            `${API_BASE}/Parents/${parentRecordId}`,
                             {
                                 method: 'PATCH',
                                 headers: {
-                                    'Authorization': `Bearer ${AIRTABLE_API_KEY}`,
                                     'Content-Type': 'application/json'
                                 },
                                 body: JSON.stringify({
@@ -771,11 +756,10 @@
                     };
 
                     const response = await fetch(
-                        `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Parents/${parentRecordId}`,
+                        `${API_BASE}/Parents/${parentRecordId}`,
                         {
                             method: 'PATCH',
                             headers: {
-                                'Authorization': `Bearer ${AIRTABLE_API_KEY}`,
                                 'Content-Type': 'application/json'
                             },
                             body: JSON.stringify(updateData)
@@ -814,11 +798,10 @@
                         console.log('Updating student:', existingStudentId);
 
                         const response = await fetch(
-                            `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Students/${existingStudentId}`,
+                            `${API_BASE}/Students/${existingStudentId}`,
                             {
                                 method: 'PATCH',
                                 headers: {
-                                    'Authorization': `Bearer ${AIRTABLE_API_KEY}`,
                                     'Content-Type': 'application/json'
                                 },
                                 body: JSON.stringify({ fields: studentFields })
@@ -843,11 +826,10 @@
                         };
 
                         const response = await fetch(
-                            `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Students`,
+                            `${API_BASE}/Students`,
                             {
                                 method: 'POST',
                                 headers: {
-                                    'Authorization': `Bearer ${AIRTABLE_API_KEY}`,
                                     'Content-Type': 'application/json'
                                 },
                                 body: JSON.stringify(studentData)
@@ -873,12 +855,9 @@
                         if (!newStudentRecordIds.includes(oldStudentId)) {
                             console.log('Deleting removed student:', oldStudentId);
                             await fetch(
-                                `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Students/${oldStudentId}`,
+                                `${API_BASE}/Students/${oldStudentId}`,
                                 {
                                     method: 'DELETE',
-                                    headers: {
-                                        'Authorization': `Bearer ${AIRTABLE_API_KEY}`
-                                    }
                                 }
                             );
                         }
@@ -896,16 +875,14 @@
                     try {
                         // Re-fetch parent + students to check completeness
                         const parentCheck = await fetch(
-                            `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Parents/${parentRecordId}`,
-                            { headers: { 'Authorization': `Bearer ${AIRTABLE_API_KEY}` } }
+                            `${API_BASE}/Parents/${parentRecordId}`
                         );
                         const parentCheckData = await parentCheck.json();
 
                         const studentChecks = [];
                         for (const sid of studentRecordIds) {
                             const sResp = await fetch(
-                                `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Students/${sid}`,
-                                { headers: { 'Authorization': `Bearer ${AIRTABLE_API_KEY}` } }
+                                `${API_BASE}/Students/${sid}`
                             );
                             if (sResp.ok) studentChecks.push(await sResp.json());
                         }
@@ -914,11 +891,10 @@
                         const statusValue = complete ? 'Complete' : 'Incomplete';
 
                         await fetch(
-                            `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Parents/${parentRecordId}`,
+                            `${API_BASE}/Parents/${parentRecordId}`,
                             {
                                 method: 'PATCH',
                                 headers: {
-                                    'Authorization': `Bearer ${AIRTABLE_API_KEY}`,
                                     'Content-Type': 'application/json'
                                 },
                                 body: JSON.stringify({

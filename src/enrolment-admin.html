@@ -169,9 +169,7 @@
     </div>
 
     <script>
-        const AIRTABLE_API_KEY = 'patYJhlgK2q6sAnyZ.8c3945853082593f6ec6cc6d12a0cd863a13a912a067dfd99c75a0ff95ae4e06';
-        const AIRTABLE_BASE_ID = 'appNuMdxaiSYdgxJS';
-        const API_BASE = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}`;
+        const API_BASE = '/api/kaf/db';
 
         async function fetchAll(table, params = '') {
             const records = [];
@@ -179,9 +177,7 @@
             do {
                 const sep = params ? '&' : '?';
                 const url = `${API_BASE}/${encodeURIComponent(table)}?${params}${offset ? `${sep}offset=${offset}` : ''}`;
-                const resp = await fetch(url, {
-                    headers: { 'Authorization': `Bearer ${AIRTABLE_API_KEY}` }
-                });
+                const resp = await fetch(url);
                 if (!resp.ok) throw new Error(`Failed to fetch ${table}: ${resp.status}`);
                 const data = await resp.json();
                 records.push(...data.records);

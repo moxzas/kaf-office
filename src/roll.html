@@ -371,9 +371,7 @@
     </div>
 
     <script>
-        const AIRTABLE_API_KEY = 'patYJhlgK2q6sAnyZ.8c3945853082593f6ec6cc6d12a0cd863a13a912a067dfd99c75a0ff95ae4e06';
-        const AIRTABLE_BASE_ID = 'appNuMdxaiSYdgxJS';
-        const API_BASE = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}`;
+        const API_BASE = '/api/kaf/db';
         const DB_NAME = 'kaf-roll';
         const DB_VERSION = 1;
 
@@ -509,9 +507,7 @@
             do {
                 const sep = params ? '&' : '';
                 const url = `${API_BASE}/${encodeURIComponent(table)}${params ? '?' + params : ''}${offset ? `${sep ? '&' : '?'}offset=${offset}` : ''}`;
-                const resp = await fetch(url, {
-                    headers: { 'Authorization': `Bearer ${AIRTABLE_API_KEY}` }
-                });
+                const resp = await fetch(url);
                 if (!resp.ok) throw new Error(`Failed to fetch ${table}: ${resp.status}`);
                 const data = await resp.json();
                 records.push(...data.records);
@@ -752,7 +748,6 @@
                 await fetch(`${API_BASE}/Sessions/${currentSession.id}`, {
                     method: 'PATCH',
                     headers: {
-                        'Authorization': `Bearer ${AIRTABLE_API_KEY}`,
                         'Content-Type': 'application/json',
                     },
                     body: JSON.stringify({ fields: { Status: 'In Progress' } }),
@@ -878,9 +873,9 @@
 
             // Photo actions
             if (!photoUrl) {
-                items += actionItem('📷', 'Take enrollment photo', '', () => { closeActionSheet(); openCamera(idx); });
+                items += actionItem('📷', 'Take enrolment photo', '', () => { closeActionSheet(); openCamera(idx); });
             } else {
-                items += actionItem('📷', 'Update enrollment photo', '', () => { closeActionSheet(); openCamera(idx); });
+                items += actionItem('📷', 'Update enrolment photo', '', () => { closeActionSheet(); openCamera(idx); });
             }
 
             // Artwork photo (only when present)
@@ -1094,12 +1089,12 @@
 
         // ── Camera ──
 
-        let cameraMode = 'enrollment'; // 'enrollment' or 'artwork'
+        let cameraMode = 'enrolment'; // 'enrolment' or 'artwork'
 
         function getPermissionNote(idx) {
             const bf = rollStudents[idx].booking.fields;
             const perm = bf['Photo Permission'] || '';
-            if (cameraMode === 'enrollment') {
+            if (cameraMode === 'enrolment') {
                 return '<strong>Admin photo</strong> — for class roll identification only. Not published.';
             }
             if (perm === 'Yes - child & artwork') {
@@ -1116,8 +1111,8 @@
             cameraStudentIdx = idx;
             cameraMode = mode;
             const studentName = rollStudents[idx].student.fields.Name || 'Student';
-            const title = mode === 'enrollment'
-                ? `Enrollment Photo — ${studentName}`
+            const title = mode === 'enrolment'
+                ? `Enrolment Photo — ${studentName}`
                 : `Artwork Photo — ${studentName}`;
             document.getElementById('cameraTitle').textContent = title;
 
@@ -1144,7 +1139,7 @@
         }
 
         function openCamera(idx) {
-            startCamera(idx, 'enrollment');
+            startCamera(idx, 'enrolment');
         }
 
         function openArtworkCamera(idx) {
@@ -1186,15 +1181,15 @@
             const r = rollStudents[cameraStudentIdx];
             const photoPermission = r.booking.fields['Photo Permission'] || '';
 
-            if (cameraMode === 'enrollment') {
-                // Store enrollment photo on the roll student for display
+            if (cameraMode === 'enrolment') {
+                // Store enrolment photo on the roll student for display
                 r.attendance.photoDataUrl = dataUrl;
 
                 await dbPut('pendingPhotos', {
                     id: r.student.id,
                     studentId: r.student.id,
                     studentName: r.student.fields.Name,
-                    type: 'enrollment',
+                    type: 'enrolment',
                     dataUrl: dataUrl,
                     takenAt: new Date().toISOString(),
                 });
@@ -1248,7 +1243,6 @@
                     await fetch(`${API_BASE}/Sessions/${currentSession.id}`, {
                         method: 'PATCH',
                         headers: {
-                            'Authorization': `Bearer ${AIRTABLE_API_KEY}`,
                             'Content-Type': 'application/json',
                         },
                         body: JSON.stringify({ fields: { Status: 'Scheduled' } }),
@@ -1303,7 +1297,6 @@
                         const resp = await fetch(`${API_BASE}/Attendance`, {
                             method: 'POST',
                             headers: {
-                                'Authorization': `Bearer ${AIRTABLE_API_KEY}`,
                                 'Content-Type': 'application/json',
                             },
                             body: JSON.stringify({ records: batch }),
@@ -1317,7 +1310,6 @@
                     await fetch(`${API_BASE}/Sessions/${currentSession.id}`, {
                         method: 'PATCH',
                         headers: {
-                            'Authorization': `Bearer ${AIRTABLE_API_KEY}`,
                             'Content-Type': 'application/json',
                         },
                         body: JSON.stringify({ fields: { Status: 'Complete' } }),
@@ -1373,7 +1365,6 @@
                             await fetch(`${API_BASE}/Attendance`, {
                                 method: 'POST',
                                 headers: {
-                                    'Authorization': `Bearer ${AIRTABLE_API_KEY}`,
                                     'Content-Type': 'application/json',
                                 },
                                 body: JSON.stringify({ records: batch }),
@@ -1385,7 +1376,6 @@
                         await fetch(`${API_BASE}/Sessions/${item.sessionId}`, {
                             method: 'PATCH',
                             headers: {
-                                'Authorization': `Bearer ${AIRTABLE_API_KEY}`,
                                 'Content-Type': 'application/json',
                             },
                             body: JSON.stringify({ fields: { Status: 'Complete' } }),

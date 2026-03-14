@@ -375,9 +375,7 @@
     </div>
 
     <script>
-        const AIRTABLE_API_KEY = 'patYJhlgK2q6sAnyZ.8c3945853082593f6ec6cc6d12a0cd863a13a912a067dfd99c75a0ff95ae4e06';
-        const AIRTABLE_BASE_ID = 'appNuMdxaiSYdgxJS';
-        const API_BASE = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}`;
+        const API_BASE = '/api/kaf/db';
         const ENROLMENT_URL = 'https://app.sonzai.com/kaf/enrolment.html';
 
         let classRecord = null;
@@ -440,9 +438,7 @@
         }
 
         async function airtableGet(path) {
-            const resp = await fetch(`${API_BASE}/${path}`, {
-                headers: { 'Authorization': `Bearer ${AIRTABLE_API_KEY}` }
-            });
+            const resp = await fetch(`${API_BASE}/${path}`);
             if (!resp.ok) throw new Error(`Airtable GET ${path} failed: ${resp.status}`);
             return resp.json();
         }
@@ -451,7 +447,6 @@
             const resp = await fetch(`${API_BASE}/${table}`, {
                 method: 'POST',
                 headers: {
-                    'Authorization': `Bearer ${AIRTABLE_API_KEY}`,
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({ records }),
@@ -472,9 +467,7 @@
             }
 
             try {
-                const resp = await fetch(`${API_BASE}/Classes/${classId}`, {
-                    headers: { 'Authorization': `Bearer ${AIRTABLE_API_KEY}` }
-                });
+                const resp = await fetch(`${API_BASE}/Classes/${classId}`);
 
                 if (!resp.ok) {
                     if (resp.status === 404) {
@@ -497,9 +490,7 @@
                 let venueName = '';
                 if (f.Venue && f.Venue.length > 0) {
                     try {
-                        const vResp = await fetch(`${API_BASE}/Venues/${f.Venue[0]}`, {
-                            headers: { 'Authorization': `Bearer ${AIRTABLE_API_KEY}` }
-                        });
+                        const vResp = await fetch(`${API_BASE}/Venues/${f.Venue[0]}`);
                         if (vResp.ok) {
                             venueRecord = await vResp.json();
                             venueName = venueRecord.fields.Name || '';
@@ -608,9 +599,7 @@
 
             try {
                 const filterFormula = encodeURIComponent(`LOWER({Email})='${email.toLowerCase()}'`);
-                const resp = await fetch(`${API_BASE}/Parents?filterByFormula=${filterFormula}`, {
-                    headers: { 'Authorization': `Bearer ${AIRTABLE_API_KEY}` }
-                });
+                const resp = await fetch(`${API_BASE}/Parents?filterByFormula=${filterFormula}`);
                 if (!resp.ok) throw new Error('Lookup failed');
                 const data = await resp.json();
 
@@ -726,9 +715,7 @@
                 do {
                     let url = `${API_BASE}/Bookings?filterByFormula=${filter}`;
                     if (offset) url += `&offset=${offset}`;
-                    const resp = await fetch(url, {
-                        headers: { 'Authorization': `Bearer ${AIRTABLE_API_KEY}` }
-                    });
+                    const resp = await fetch(url);
                     if (!resp.ok) break;
                     const data = await resp.json();
                     for (const rec of data.records) {
