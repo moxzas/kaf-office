@@ -55,19 +55,20 @@ Future<Response> kafAirtableProxyHandler(Request request) async {
       );
     }
 
-    // Parse the path: /api/kaf/db/<table>[/<recordId>]
-    // shelf_router gives us the path after the mount point
+    // Parse the path: db/<table>[/<recordId>]
+    // request.url is relative to the mount point (/api/kaf/)
+    // so pathSegments = ['db', '<table>'] or ['db', '<table>', '<recordId>']
     final segments = request.url.pathSegments;
 
-    if (segments.isEmpty) {
+    if (segments.length < 2) {
       return Response(400,
         body: jsonEncode({'error': 'Missing table name'}),
         headers: {'Content-Type': 'application/json'},
       );
     }
 
-    final table = segments[0];
-    final recordId = segments.length > 1 ? segments[1] : null;
+    final table = segments[1];
+    final recordId = segments.length > 2 ? segments[2] : null;
     final method = request.method.toUpperCase();
 
     // Check allowlist
