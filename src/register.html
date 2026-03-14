@@ -368,8 +368,8 @@
                 Payment: We'll be in touch about payment shortly.
             </div>
             <div id="enrolmentNudge" class="enrolment-nudge hidden">
-                <p>One more thing — please update your enrolment details so we have medical and emergency info before the first class.</p>
-                <a id="enrolmentLink" class="btn btn-primary" href="#" style="display:inline-block; width:auto; padding:10px 20px;">Update Enrolment Details</a>
+                <p>One more thing — please complete your enrolment details so we have medical and emergency info before the first class.</p>
+                <a id="enrolmentLink" class="btn btn-primary" href="#" style="display:inline-block; width:auto; padding:10px 20px;">Complete Enrolment</a>
             </div>
         </div>
     </div>
@@ -1063,6 +1063,10 @@
             if (showEnrolmentNudge) {
                 document.getElementById('enrolmentNudge').classList.remove('hidden');
                 document.getElementById('enrolmentLink').href = `${ENROLMENT_URL}?parent=${parentId}`;
+                if (!isNewParent) {
+                    document.querySelector('#enrolmentNudge p').textContent = 'Please check your enrolment details are up to date so we have current medical and emergency info.';
+                    document.getElementById('enrolmentLink').textContent = 'Update Enrolment Details';
+                }
             }
 
             document.getElementById('formSection').classList.add('hidden');
