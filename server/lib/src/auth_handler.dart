@@ -187,7 +187,7 @@ String kafLoginPageHtml(String redirectPath) {
     </style>
 </head>
 <body>
-    <div class="login-title">Kids Art Fun</div>
+    <img src="/kaf/logo.png" alt="Kids Art Fun" style="width:120px;height:120px;margin-bottom:16px;border-radius:50%;">
     <div class="login-subtitle">Admin Login</div>
     <div class="pin-display">
         <div class="pin-dot" id="dot0"></div>
