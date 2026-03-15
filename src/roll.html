@@ -331,9 +331,10 @@
     <!-- Roll Call Screen -->
     <div id="rollScreen" class="screen">
         <div class="roll-header" id="rollHeader">
-            <div class="roll-class-name" id="rollClassName"></div>
-            <div class="roll-session-info" id="rollSessionInfo"></div>
-            <div class="roll-stats">
+            <img src="logo.png" alt="Kids Art Fun" id="rollLogo" style="width:44px;height:44px;border-radius:50%;position:absolute;top:12px;left:16px;">
+            <div class="roll-class-name" id="rollClassName" style="margin-left:52px;">
+            <div class="roll-session-info" id="rollSessionInfo" style="margin-left:52px;"></div>
+            <div class="roll-stats" style="margin-left:52px;">
                 <div class="roll-stat"><strong id="statPresent">0</strong> present</div>
                 <div class="roll-stat"><strong id="statTotal">0</strong> total</div>
                 <div class="roll-stat"><strong id="statDeparted">0</strong> departed</div>
@@ -1369,39 +1370,39 @@
         let longPressTimer = null;
 
         function setupLongPress() {
-            const header = document.getElementById('rollHeader');
+            const logo = document.getElementById('rollLogo');
 
-            header.addEventListener('touchstart', (e) => {
+            logo.addEventListener('touchstart', (e) => {
                 if (!isStaffLocked) return;
                 longPressTimer = setTimeout(() => {
                     showUnlockModal();
                 }, 2000);
             }, { passive: true });
 
-            header.addEventListener('touchend', () => {
+            logo.addEventListener('touchend', () => {
                 clearTimeout(longPressTimer);
                 longPressTimer = null;
             });
 
-            header.addEventListener('touchcancel', () => {
+            logo.addEventListener('touchcancel', () => {
                 clearTimeout(longPressTimer);
                 longPressTimer = null;
             });
 
             // Mouse support for testing
-            header.addEventListener('mousedown', (e) => {
+            logo.addEventListener('mousedown', (e) => {
                 if (!isStaffLocked) return;
                 longPressTimer = setTimeout(() => {
                     showUnlockModal();
                 }, 2000);
             });
 
-            header.addEventListener('mouseup', () => {
+            logo.addEventListener('mouseup', () => {
                 clearTimeout(longPressTimer);
                 longPressTimer = null;
             });
 
-            header.addEventListener('mouseleave', () => {
+            logo.addEventListener('mouseleave', () => {
                 clearTimeout(longPressTimer);
                 longPressTimer = null;
             });
