@@ -91,9 +91,55 @@
 
         /* ── Roll Screen ── */
         #rollScreen { flex-direction: column; background: #f5f5f5; }
-        .roll-header { background: #1e40af; color: white; padding: 16px 20px; }
+        .roll-header { background: #1e40af; color: white; padding: 16px 20px; position: relative; }
         .roll-class-name { font-size: 20px; font-weight: 700; }
         .roll-session-info { font-size: 14px; opacity: 0.85; margin-top: 4px; }
+
+        /* ── Settings cog on roll header ── */
+        .settings-cog {
+            position: absolute; top: 14px; right: 16px;
+            width: 40px; height: 40px; border: none; background: none;
+            color: white; font-size: 28px; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            -webkit-tap-highlight-color: transparent; opacity: 0.9;
+        }
+        .settings-cog:active { opacity: 1; }
+        .settings-cog.hidden { display: none; }
+        .settings-menu {
+            display: none; position: absolute; top: 54px; right: 16px;
+            background: white; border-radius: 10px; box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+            min-width: 180px; z-index: 50; overflow: hidden;
+        }
+        .settings-menu.show { display: block; }
+        .settings-menu-item {
+            padding: 14px 16px; cursor: pointer; font-size: 15px; color: #333;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        .settings-menu-item:last-child { border-bottom: none; }
+        .settings-menu-item:active { background: #f0f7ff; }
+
+        /* ── Unlock modal ── */
+        .unlock-pin-display { display: flex; gap: 12px; justify-content: center; margin: 20px 0; }
+        .unlock-pin-dot {
+            width: 16px; height: 16px; border-radius: 50%;
+            border: 2px solid #d1d5db; background: transparent; transition: background 0.15s;
+        }
+        .unlock-pin-dot.filled { background: #2563eb; border-color: #2563eb; }
+        .unlock-pin-pad { display: grid; grid-template-columns: repeat(3, 64px); gap: 10px; justify-content: center; }
+        .unlock-pin-btn {
+            width: 64px; height: 64px; border-radius: 50%;
+            border: 2px solid #d1d5db; background: #f9fafb;
+            color: #333; font-size: 24px; font-weight: 500;
+            cursor: pointer; display: flex; align-items: center; justify-content: center;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .unlock-pin-btn:active { background: #eff6ff; border-color: #93c5fd; }
+        .unlock-pin-btn.fn { font-size: 13px; border-color: transparent; background: transparent; }
+        .unlock-warning {
+            text-align: center; color: #dc2626; font-weight: 600; font-size: 14px;
+            margin-bottom: 8px;
+        }
+        .unlock-error { color: #dc2626; font-size: 13px; text-align: center; min-height: 18px; margin-top: 8px; }
         .roll-stats { display: flex; gap: 20px; margin-top: 10px; }
         .roll-stat { font-size: 14px; }
         .roll-stat strong { font-size: 20px; }
@@ -284,7 +330,7 @@
 
     <!-- Roll Call Screen -->
     <div id="rollScreen" class="screen">
-        <div class="roll-header">
+        <div class="roll-header" id="rollHeader">
             <div class="roll-class-name" id="rollClassName"></div>
             <div class="roll-session-info" id="rollSessionInfo"></div>
             <div class="roll-stats">
@@ -292,6 +338,11 @@
                 <div class="roll-stat"><strong id="statTotal">0</strong> total</div>
                 <div class="roll-stat"><strong id="statDeparted">0</strong> departed</div>
                 <div class="roll-stat"><strong id="statPhotos">0</strong> photos</div>
+            </div>
+            <button class="settings-cog" id="settingsCog" onclick="toggleSettingsMenu(event)">⚙</button>
+            <div class="settings-menu" id="settingsMenu">
+                <div class="settings-menu-item" onclick="settingsMenuAction('switchClass')">Switch Class</div>
+                <div class="settings-menu-item" onclick="settingsMenuAction('lockForStaff')">Lock for Staff</div>
             </div>
         </div>
         <div class="roll-list" id="rollList"></div>
@@ -362,6 +413,40 @@
             <div class="action-sheet" id="actionSheetItems"></div>
             <div style="padding:8px 16px 16px;">
                 <button class="btn btn-secondary" style="width:100%; padding:12px;" onclick="closeActionSheet()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Emergency Unlock Modal -->
+    <div class="modal-overlay" id="unlockModal">
+        <div class="modal">
+            <h3>Emergency Unlock</h3>
+            <div class="unlock-warning">Emergency unlock. Usage is recorded.</div>
+            <div class="unlock-pin-display">
+                <div class="unlock-pin-dot" id="unlockDot0"></div>
+                <div class="unlock-pin-dot" id="unlockDot1"></div>
+                <div class="unlock-pin-dot" id="unlockDot2"></div>
+                <div class="unlock-pin-dot" id="unlockDot3"></div>
+                <div class="unlock-pin-dot" id="unlockDot4"></div>
+                <div class="unlock-pin-dot" id="unlockDot5"></div>
+            </div>
+            <div class="unlock-pin-pad">
+                <button class="unlock-pin-btn" onclick="unlockPinPress('1')">1</button>
+                <button class="unlock-pin-btn" onclick="unlockPinPress('2')">2</button>
+                <button class="unlock-pin-btn" onclick="unlockPinPress('3')">3</button>
+                <button class="unlock-pin-btn" onclick="unlockPinPress('4')">4</button>
+                <button class="unlock-pin-btn" onclick="unlockPinPress('5')">5</button>
+                <button class="unlock-pin-btn" onclick="unlockPinPress('6')">6</button>
+                <button class="unlock-pin-btn" onclick="unlockPinPress('7')">7</button>
+                <button class="unlock-pin-btn" onclick="unlockPinPress('8')">8</button>
+                <button class="unlock-pin-btn" onclick="unlockPinPress('9')">9</button>
+                <button class="unlock-pin-btn fn"></button>
+                <button class="unlock-pin-btn" onclick="unlockPinPress('0')">0</button>
+                <button class="unlock-pin-btn fn" onclick="unlockPinDelete()">Del</button>
+            </div>
+            <div class="unlock-error" id="unlockError"></div>
+            <div class="modal-actions" style="margin-top:16px;">
+                <button class="btn btn-secondary" onclick="closeUnlockModal()">Cancel</button>
             </div>
         </div>
     </div>
@@ -1233,6 +1318,173 @@
             cameraStudentIdx = null;
         }
 
+        // ── Staff Lock ──
+
+        let isStaffLocked = false;
+
+        function toggleSettingsMenu(e) {
+            e.stopPropagation();
+            const menu = document.getElementById('settingsMenu');
+            menu.classList.toggle('show');
+        }
+
+        // Close settings menu when tapping elsewhere
+        document.addEventListener('click', () => {
+            document.getElementById('settingsMenu').classList.remove('show');
+        });
+
+        function settingsMenuAction(action) {
+            document.getElementById('settingsMenu').classList.remove('show');
+            if (action === 'switchClass') {
+                backToClasses();
+            } else if (action === 'lockForStaff') {
+                enterStaffLock();
+            }
+        }
+
+        function enterStaffLock() {
+            isStaffLocked = true;
+            applyStaffLockUI();
+        }
+
+        function exitStaffLock() {
+            isStaffLocked = false;
+            applyStaffLockUI();
+        }
+
+        function applyStaffLockUI() {
+            const cog = document.getElementById('settingsCog');
+            const backBtn = document.querySelector('.session-actions .btn-secondary');
+            if (isStaffLocked) {
+                cog.classList.add('hidden');
+                if (backBtn) backBtn.style.display = 'none';
+            } else {
+                cog.classList.remove('hidden');
+                if (backBtn) backBtn.style.display = '';
+            }
+        }
+
+        // ── Emergency Unlock (long-press on roll header) ──
+
+        let longPressTimer = null;
+
+        function setupLongPress() {
+            const header = document.getElementById('rollHeader');
+
+            header.addEventListener('touchstart', (e) => {
+                if (!isStaffLocked) return;
+                longPressTimer = setTimeout(() => {
+                    showUnlockModal();
+                }, 2000);
+            }, { passive: true });
+
+            header.addEventListener('touchend', () => {
+                clearTimeout(longPressTimer);
+                longPressTimer = null;
+            });
+
+            header.addEventListener('touchcancel', () => {
+                clearTimeout(longPressTimer);
+                longPressTimer = null;
+            });
+
+            // Mouse support for testing
+            header.addEventListener('mousedown', (e) => {
+                if (!isStaffLocked) return;
+                longPressTimer = setTimeout(() => {
+                    showUnlockModal();
+                }, 2000);
+            });
+
+            header.addEventListener('mouseup', () => {
+                clearTimeout(longPressTimer);
+                longPressTimer = null;
+            });
+
+            header.addEventListener('mouseleave', () => {
+                clearTimeout(longPressTimer);
+                longPressTimer = null;
+            });
+        }
+
+        let unlockPinEntry = '';
+
+        function showUnlockModal() {
+            unlockPinEntry = '';
+            updateUnlockDots();
+            document.getElementById('unlockError').textContent = '';
+            document.getElementById('unlockModal').classList.add('show');
+        }
+
+        function closeUnlockModal() {
+            unlockPinEntry = '';
+            updateUnlockDots();
+            document.getElementById('unlockModal').classList.remove('show');
+        }
+
+        function unlockPinPress(digit) {
+            if (unlockPinEntry.length >= 6) return;
+            unlockPinEntry += digit;
+            updateUnlockDots();
+            // Try validation at 4+ digits (staff PINs may be shorter than admin PINs)
+            if (unlockPinEntry.length >= 4) {
+                setTimeout(() => validateUnlockPin(), 150);
+            }
+        }
+
+        function unlockPinDelete() {
+            unlockPinEntry = unlockPinEntry.slice(0, -1);
+            updateUnlockDots();
+            document.getElementById('unlockError').textContent = '';
+        }
+
+        function updateUnlockDots() {
+            for (let i = 0; i < 6; i++) {
+                document.getElementById('unlockDot' + i).classList.toggle('filled', i < unlockPinEntry.length);
+            }
+        }
+
+        async function validateUnlockPin() {
+            try {
+                const admins = await fetchAll('Admins', 'filterByFormula=AND(Active%3DTRUE())');
+                const match = admins.find(a => a.fields.PIN === unlockPinEntry);
+                if (match) {
+                    // Log the unlock event
+                    const className = currentClass ? (currentClass.fields.Name || 'Unknown') : 'Unknown';
+                    try {
+                        await fetch(`${API_BASE}/Audit%20Log`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                records: [{
+                                    fields: {
+                                        'Action': 'Emergency Unlock',
+                                        'Details': `Unlocked by ${match.fields.Name} for class ${className}`,
+                                        'Timestamp': new Date().toISOString(),
+                                    }
+                                }]
+                            }),
+                        });
+                    } catch (e) {
+                        console.error('Failed to log unlock:', e);
+                    }
+
+                    closeUnlockModal();
+                    exitStaffLock();
+                } else if (unlockPinEntry.length >= 6) {
+                    // Only show error and reset after max PIN length reached
+                    document.getElementById('unlockError').textContent = 'Incorrect PIN';
+                    unlockPinEntry = '';
+                    updateUnlockDots();
+                }
+                // < 6 digits and no match: keep waiting for more digits
+            } catch (err) {
+                document.getElementById('unlockError').textContent = 'Connection error';
+                unlockPinEntry = '';
+                updateUnlockDots();
+            }
+        }
+
         // ── Back to class selection ──
 
         async function backToClasses() {
@@ -1405,6 +1657,7 @@
         async function init() {
             await openDB();
             updateOnlineStatus();
+            setupLongPress();
 
             // Check for in-progress roll (app was closed during session)
             const restored = await restoreRollState();
