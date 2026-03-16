@@ -3,6 +3,7 @@ import 'audit_handler.dart';
 import 'session_handler.dart';
 import 'airtable_proxy_handler.dart';
 import 'auth_handler.dart';
+import 'stripe_handler.dart';
 
 /// All KAF API routes. Mount at /api/kaf/ in the host server.
 ///
@@ -15,6 +16,10 @@ final kafApiRouter = Router()
   ..post('/audit', kafAuditHandler)
   ..post('/sessions/generate', kafSessionGenerateHandler)
   ..post('/sessions/generate-term', kafSessionGenerateTermHandler)
+  // Stripe Checkout
+  ..post('/checkout/create-session', kafCheckoutCreateSessionHandler)
+  ..post('/checkout/webhook', kafCheckoutWebhookHandler)
+  ..get('/checkout/success', kafCheckoutSuccessHandler)
   // Airtable proxy — keeps API key server-side
   ..get('/db/<table>', kafAirtableProxyHandler)
   ..post('/db/<table>', kafAirtableProxyHandler)
