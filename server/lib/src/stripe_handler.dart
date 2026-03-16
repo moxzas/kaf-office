@@ -18,7 +18,7 @@ Future<http.Response> _stripeRequest(
   String path, {
   Map<String, String>? params,
 }) async {
-  final stripeKey = Platform.environment['STRIPE_SECRET_KEY']!;
+  final stripeKey = Platform.environment['KAF_STRIPE_SECRET_KEY']!;
   final uri = Uri.parse('https://api.stripe.com$path');
   final headers = {
     'Authorization': 'Bearer $stripeKey',
@@ -138,7 +138,7 @@ Response _jsonResponse(int status, Object body) {
 Future<Response> kafCheckoutCreateSessionHandler(Request request) async {
   try {
     // --- Validate environment ---
-    final stripeKey = Platform.environment['STRIPE_SECRET_KEY'];
+    final stripeKey = Platform.environment['KAF_STRIPE_SECRET_KEY'];
     final airtableKey = Platform.environment['AIRTABLE_API_KEY'];
     final airtableBase = Platform.environment['AIRTABLE_BASE_ID'];
 
@@ -257,9 +257,9 @@ Future<Response> kafCheckoutCreateSessionHandler(Request request) async {
 /// Handles Stripe webhook events (raw POST body, signature verified).
 Future<Response> kafCheckoutWebhookHandler(Request request) async {
   try {
-    final webhookSecret = Platform.environment['STRIPE_WEBHOOK_SECRET'];
+    final webhookSecret = Platform.environment['KAF_STRIPE_WEBHOOK_SECRET'];
     if (webhookSecret == null) {
-      print('ERROR: Missing STRIPE_WEBHOOK_SECRET');
+      print('ERROR: Missing KAF_STRIPE_WEBHOOK_SECRET');
       return _jsonResponse(500, {'error': 'Server configuration error'});
     }
 
@@ -380,7 +380,7 @@ Future<Response> kafCheckoutWebhookHandler(Request request) async {
 /// Returns the status and metadata of a completed Stripe Checkout Session.
 Future<Response> kafCheckoutSuccessHandler(Request request) async {
   try {
-    final stripeKey = Platform.environment['STRIPE_SECRET_KEY'];
+    final stripeKey = Platform.environment['KAF_STRIPE_SECRET_KEY'];
     if (stripeKey == null) {
       return _jsonResponse(500, {'error': 'Server configuration error'});
     }
