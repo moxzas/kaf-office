@@ -196,6 +196,31 @@ Future<Response> kafCheckoutCreateSessionHandler(Request request) async {
     // Price is stored as dollars (e.g. 150), convert to cents
     final unitAmount = ((price as num) * 100).round();
 
+    // --- Fetch venue OSHC fee if any students selected OSHC ---
+    final hasOshc = oshcSelections.values.any((v) => v == true);
+    int oshcAmountCents = 0;
+    if (hasOshc) {
+      final venueIds = classFields['Venue'] as List?;
+      if (venueIds != null && venueIds.isNotEmpty) {
+        final venueId = venueIds[0] as String;
+        final venueResp = await _airtableRequest('GET', 'Venues',
+            query: 'filterByFormula=RECORD_ID()%3D%22$venueId%22');
+        if (venueResp.statusCode == 200) {
+          final venueData =
+              jsonDecode(venueResp.body) as Map<String, dynamic>;
+          final venueRecords = venueData['records'] as List;
+          if (venueRecords.isNotEmpty) {
+            final venueFields =
+                venueRecords[0]['fields'] as Map<String, dynamic>;
+            final oshcFee = venueFields['OSHC Fee'];
+            if (oshcFee != null) {
+              oshcAmountCents = ((oshcFee as num) * 100).round();
+            }
+          }
+        }
+      }
+    }
+
     // --- Build Stripe form params ---
     final params = <String, String>{};
     params['mode'] = 'payment';
@@ -217,14 +242,28 @@ Future<Response> kafCheckoutCreateSessionHandler(Request request) async {
         .toList();
     params['metadata[oshc]'] = oshcPairs.join(',');
 
-    // Line items: one per student
+    // Line items: class fee per student + OSHC fee where selected
+    var lineIndex = 0;
     for (var i = 0; i < studentIds.length; i++) {
-      final prefix = 'line_items[$i]';
+      final prefix = 'line_items[$lineIndex]';
       params['$prefix[price_data][currency]'] = 'aud';
       params['$prefix[price_data][unit_amount]'] = unitAmount.toString();
       params['$prefix[price_data][product_data][name]'] =
           '$className \u2014 ${studentNames[i]}';
       params['$prefix[quantity]'] = '1';
+      lineIndex++;
+
+      // Add OSHC line item if selected for this student
+      if (oshcAmountCents > 0 && oshcSelections[studentIds[i]] == true) {
+        final oshcPrefix = 'line_items[$lineIndex]';
+        params['$oshcPrefix[price_data][currency]'] = 'aud';
+        params['$oshcPrefix[price_data][unit_amount]'] =
+            oshcAmountCents.toString();
+        params['$oshcPrefix[price_data][product_data][name]'] =
+            'OSHC Collection \u2014 ${studentNames[i]}';
+        params['$oshcPrefix[quantity]'] = '1';
+        lineIndex++;
+      }
     }
 
     // --- Create Stripe Checkout Session ---

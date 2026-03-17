@@ -919,6 +919,16 @@
                 `;
             }
             childrenContainer.innerHTML = html;
+
+            // Update button total when OSHC checkboxes change
+            for (const cb of childrenContainer.querySelectorAll('input[data-oshc-child]')) {
+                cb.addEventListener('change', () => {
+                    const regBtn = document.getElementById('registerBtn');
+                    if (regBtn && classRecord) {
+                        regBtn.textContent = getRegisterButtonText();
+                    }
+                });
+            }
         }
 
         function getAllSelectedChildren() {
@@ -1168,7 +1178,17 @@
             if (price <= 0) return 'Register';
             const children = getAllSelectedChildren();
             const count = children.length || 1;
-            const total = price * count;
+            let total = price * count;
+
+            // Add OSHC fees for checked children
+            if (venueRecord && venueRecord.fields['OSHC Available']) {
+                const oshcFee = venueRecord.fields['OSHC Fee'] || 0;
+                if (oshcFee > 0) {
+                    const oshcChecked = document.querySelectorAll('input[data-oshc-child]:checked').length;
+                    total += oshcFee * oshcChecked;
+                }
+            }
+
             return `Register & Pay — $${total}`;
         }
 
