@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KAF - Staff Management</title>
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            max-width: 960px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .header { text-align: center; margin-bottom: 30px; }
+
+        .summary {
+            background: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        .summary .stat { font-weight: 600; color: #333; }
+        .summary .stat-label { color: #555; }
+        .btn {
+            display: inline-block;
+            padding: 8px 16px;
+            border-radius: 6px;
+            border: none;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+        }
+        .btn-primary { background: #2563eb; color: white; }
+        .btn-primary:hover { background: #1d4ed8; }
+        .btn-secondary { background: #e5e7eb; color: #333; }
+        .btn-secondary:hover { background: #d1d5db; }
+        .btn-danger { background: #fee2e2; color: #991b1b; }
+        .btn-danger:hover { background: #fecaca; }
+        .btn-sm { padding: 5px 12px; font-size: 13px; }
+        .ml-auto { margin-left: auto; }
+
+        .staff-card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 16px;
+            padding: 20px;
+        }
+        .staff-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 8px;
+        }
+        .staff-name { font-size: 18px; font-weight: 600; color: #333; }
+        .staff-meta { font-size: 14px; color: #555; margin-bottom: 4px; }
+        .staff-meta .separator { color: #ccc; margin: 0 6px; }
+        .staff-classes { font-size: 13px; color: #888; margin-top: 8px; }
+
+        .status-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        .status-active { background: #dcfce7; color: #166534; }
+        .status-inactive { background: #f3f4f6; color: #6b7280; }
+
+        .bluecard-ok { color: #16a34a; }
+        .bluecard-expiring { color: #d97706; }
+        .bluecard-expired { color: #dc2626; }
+        .bluecard-missing { color: #dc2626; font-style: italic; }
+
+        /* Form panel */
+        .form-panel {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            overflow: hidden;
+            display: none;
+        }
+        .form-panel.show { display: block; }
+        .form-header {
+            padding: 15px 20px;
+            background: #f8fafc;
+            border-bottom: 1px solid #e5e7eb;
+            font-weight: 600;
+            font-size: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .form-body { padding: 20px; }
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+        .form-group label {
+            display: block;
+            font-size: 13px;
+            font-weight: 500;
+            color: #555;
+            margin-bottom: 4px;
+        }
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 14px;
+            font-family: inherit;
+        }
+        .form-group textarea { resize: vertical; min-height: 60px; }
+        .form-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            padding-top: 12px;
+            border-top: 1px solid #f0f0f0;
+        }
+
+        .loading { text-align: center; padding: 40px; color: #888; }
+        .error-msg { background: #fee2e2; color: #991b1b; padding: 12px 16px; border-radius: 8px; margin-bottom: 16px; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <img src="/kaf/logo.png" alt="Kids Art Fun" style="width:80px;height:80px;margin-bottom:12px;">
+        <div style="color:#666; font-size:18px;">Staff Management</div>
+    </div>
+
+    <div id="errorMsg" class="error-msg" style="display:none;"></div>
+
+    <div class="summary">
+        <div>
+            <span class="stat" id="staffCount">—</span>
+            <span class="stat-label"> staff</span>
+        </div>
+        <div>
+            <span class="stat bluecard-expiring" id="expiringCount" style="display:none;"></span>
+        </div>
+        <button class="btn btn-primary ml-auto" onclick="showAddForm()">+ Add Staff</button>
+    </div>
+
+    <div id="formPanel" class="form-panel">
+        <div class="form-header">
+            <span id="formTitle">Add Staff Member</span>
+            <button class="btn btn-sm btn-secondary" onclick="hideForm()">Cancel</button>
+        </div>
+        <div class="form-body">
+            <input type="hidden" id="editRecordId">
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Name *</label>
+                    <input type="text" id="fieldName" required>
+                </div>
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" id="fieldEmail">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Phone</label>
+                    <input type="tel" id="fieldPhone">
+                </div>
+                <div class="form-group">
+                    <label>Status</label>
+                    <select id="fieldStatus">
+                        <option value="Active">Active</option>
+                        <option value="Inactive">Inactive</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Blue Card Number</label>
+                    <input type="text" id="fieldBlueCard">
+                </div>
+                <div class="form-group">
+                    <label>Blue Card Expiry</label>
+                    <input type="date" id="fieldBlueCardExpiry">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Address</label>
+                    <input type="text" id="fieldAddress">
+                </div>
+                <div class="form-group">
+                    <label>Suburb</label>
+                    <input type="text" id="fieldSuburb">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Postcode</label>
+                    <input type="text" id="fieldPostcode" style="max-width:120px;">
+                </div>
+                <div class="form-group"></div>
+            </div>
+            <div class="form-group" style="margin-bottom:16px;">
+                <label>Notes</label>
+                <textarea id="fieldNotes"></textarea>
+            </div>
+            <div class="form-actions">
+                <button class="btn btn-secondary" onclick="hideForm()">Cancel</button>
+                <button class="btn btn-primary" id="saveBtn" onclick="saveStaff()">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="staffList" class="loading">Loading staff...</div>
+
+    <script>
+        const API_BASE = '/api/kaf/db';
+        let staffRecords = [];
+        let classRecords = [];
+
+        async function airtableGet(path) {
+            const resp = await fetch(`${API_BASE}/${path}`);
+            if (!resp.ok) throw new Error(`GET ${path}: ${resp.status}`);
+            return resp.json();
+        }
+
+        async function airtablePost(table, records) {
+            const resp = await fetch(`${API_BASE}/${table}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ records }),
+            });
+            if (!resp.ok) throw new Error(`POST ${table}: ${resp.status}`);
+            return resp.json();
+        }
+
+        async function airtablePatch(table, recordId, fields) {
+            const resp = await fetch(`${API_BASE}/${table}/${recordId}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ fields }),
+            });
+            if (!resp.ok) throw new Error(`PATCH ${table}/${recordId}: ${resp.status}`);
+            return resp.json();
+        }
+
+        function escapeHtml(s) {
+            const div = document.createElement('div');
+            div.textContent = s;
+            return div.innerHTML;
+        }
+
+        function blueCardStatus(expiry) {
+            if (!expiry) return { text: 'No blue card', cls: 'bluecard-missing' };
+            const exp = new Date(expiry);
+            const now = new Date();
+            const daysUntil = Math.ceil((exp - now) / (1000 * 60 * 60 * 24));
+            if (daysUntil < 0) return { text: `Expired ${Math.abs(daysUntil)} days ago`, cls: 'bluecard-expired' };
+            if (daysUntil <= 90) return { text: `Expires in ${daysUntil} days`, cls: 'bluecard-expiring' };
+            return { text: `Expires ${exp.toLocaleDateString('en-AU')}`, cls: 'bluecard-ok' };
+        }
+
+        async function loadData() {
+            try {
+                const [teacherData, classData] = await Promise.all([
+                    airtableGet('Teachers'),
+                    airtableGet('Classes'),
+                ]);
+
+                staffRecords = teacherData.records || [];
+                classRecords = classData.records || [];
+                render();
+            } catch (e) {
+                document.getElementById('staffList').innerHTML = `<div class="error-msg">${escapeHtml(e.message)}</div>`;
+            }
+        }
+
+        function getClassNames(classIds) {
+            if (!classIds || classIds.length === 0) return '';
+            return classIds
+                .map(id => {
+                    const cls = classRecords.find(c => c.id === id);
+                    return cls ? cls.fields.Name : '';
+                })
+                .filter(Boolean)
+                .join(', ');
+        }
+
+        function render() {
+            const active = staffRecords.filter(r => (r.fields.Status || 'Active') === 'Active');
+            const inactive = staffRecords.filter(r => r.fields.Status === 'Inactive');
+
+            // Count expiring/expired blue cards
+            let expiringCount = 0;
+            for (const r of active) {
+                const bc = blueCardStatus(r.fields['Blue Card Expiry']);
+                if (bc.cls === 'bluecard-expired' || bc.cls === 'bluecard-expiring' || bc.cls === 'bluecard-missing') {
+                    expiringCount++;
+                }
+            }
+
+            document.getElementById('staffCount').textContent = active.length;
+            const expiringEl = document.getElementById('expiringCount');
+            if (expiringCount > 0) {
+                expiringEl.textContent = `${expiringCount} need attention`;
+                expiringEl.style.display = '';
+            } else {
+                expiringEl.style.display = 'none';
+            }
+
+            // Sort: active first, then by name
+            const sorted = [...active.sort((a, b) => (a.fields.Name || '').localeCompare(b.fields.Name || '')),
+                            ...inactive.sort((a, b) => (a.fields.Name || '').localeCompare(b.fields.Name || ''))];
+
+            if (sorted.length === 0) {
+                document.getElementById('staffList').innerHTML = '<div style="text-align:center;color:#888;padding:40px;">No staff members yet</div>';
+                return;
+            }
+
+            let html = '';
+            for (const r of sorted) {
+                const f = r.fields;
+                const status = f.Status || 'Active';
+                const statusCls = status === 'Active' ? 'status-active' : 'status-inactive';
+                const bc = blueCardStatus(f['Blue Card Expiry']);
+                const classes = getClassNames(f.Classes);
+
+                html += `
+                <div class="staff-card">
+                    <div class="staff-card-header">
+                        <div>
+                            <span class="staff-name">${escapeHtml(f.Name || '')}</span>
+                            <span class="status-badge ${statusCls}" style="margin-left:8px;">${status}</span>
+                        </div>
+                        <button class="btn btn-sm btn-secondary" onclick="editStaff('${r.id}')">Edit</button>
+                    </div>
+                    <div class="staff-meta">
+                        ${f.Email ? escapeHtml(f.Email) : ''}
+                        ${f.Email && f.Phone ? '<span class="separator">|</span>' : ''}
+                        ${f.Phone ? escapeHtml(f.Phone) : ''}
+                    </div>
+                    <div class="staff-meta">
+                        <span class="${bc.cls}">${f['Blue Card Number'] ? escapeHtml(f['Blue Card Number']) + ' — ' : ''}${bc.text}</span>
+                    </div>
+                    ${classes ? `<div class="staff-classes">Classes: ${escapeHtml(classes)}</div>` : ''}
+                    ${f.Notes ? `<div style="font-size:13px;color:#888;margin-top:6px;">${escapeHtml(f.Notes)}</div>` : ''}
+                </div>`;
+            }
+
+            document.getElementById('staffList').innerHTML = html;
+        }
+
+        function showAddForm() {
+            document.getElementById('formTitle').textContent = 'Add Staff Member';
+            document.getElementById('editRecordId').value = '';
+            document.getElementById('fieldName').value = '';
+            document.getElementById('fieldEmail').value = '';
+            document.getElementById('fieldPhone').value = '';
+            document.getElementById('fieldStatus').value = 'Active';
+            document.getElementById('fieldBlueCard').value = '';
+            document.getElementById('fieldBlueCardExpiry').value = '';
+            document.getElementById('fieldAddress').value = '';
+            document.getElementById('fieldSuburb').value = '';
+            document.getElementById('fieldPostcode').value = '';
+            document.getElementById('fieldNotes').value = '';
+            document.getElementById('formPanel').classList.add('show');
+            document.getElementById('fieldName').focus();
+        }
+
+        function editStaff(id) {
+            const r = staffRecords.find(s => s.id === id);
+            if (!r) return;
+            const f = r.fields;
+            document.getElementById('formTitle').textContent = 'Edit Staff Member';
+            document.getElementById('editRecordId').value = id;
+            document.getElementById('fieldName').value = f.Name || '';
+            document.getElementById('fieldEmail').value = f.Email || '';
+            document.getElementById('fieldPhone').value = f.Phone || '';
+            document.getElementById('fieldStatus').value = f.Status || 'Active';
+            document.getElementById('fieldBlueCard').value = f['Blue Card Number'] || '';
+            document.getElementById('fieldBlueCardExpiry').value = f['Blue Card Expiry'] || '';
+            document.getElementById('fieldAddress').value = f.Address || '';
+            document.getElementById('fieldSuburb').value = f.Suburb || '';
+            document.getElementById('fieldPostcode').value = f.Postcode || '';
+            document.getElementById('fieldNotes').value = f.Notes || '';
+            document.getElementById('formPanel').classList.add('show');
+            document.getElementById('fieldName').focus();
+        }
+
+        function hideForm() {
+            document.getElementById('formPanel').classList.remove('show');
+        }
+
+        async function saveStaff() {
+            const name = document.getElementById('fieldName').value.trim();
+            if (!name) { alert('Name is required'); return; }
+
+            const fields = {
+                'Name': name,
+                'Email': document.getElementById('fieldEmail').value.trim() || undefined,
+                'Phone': document.getElementById('fieldPhone').value.trim() || undefined,
+                'Status': document.getElementById('fieldStatus').value,
+                'Blue Card Number': document.getElementById('fieldBlueCard').value.trim() || undefined,
+                'Blue Card Expiry': document.getElementById('fieldBlueCardExpiry').value || undefined,
+                'Address': document.getElementById('fieldAddress').value.trim() || undefined,
+                'Suburb': document.getElementById('fieldSuburb').value.trim() || undefined,
+                'Postcode': document.getElementById('fieldPostcode').value.trim() || undefined,
+                'Notes': document.getElementById('fieldNotes').value.trim() || undefined,
+            };
+
+            // Remove undefined values
+            for (const key of Object.keys(fields)) {
+                if (fields[key] === undefined) delete fields[key];
+            }
+
+            const btn = document.getElementById('saveBtn');
+            btn.disabled = true;
+            btn.textContent = 'Saving...';
+
+            try {
+                const recordId = document.getElementById('editRecordId').value;
+                if (recordId) {
+                    await airtablePatch('Teachers', recordId, fields);
+                } else {
+                    await airtablePost('Teachers', [{ fields }]);
+                }
+                hideForm();
+                await loadData();
+            } catch (e) {
+                document.getElementById('errorMsg').textContent = e.message;
+                document.getElementById('errorMsg').style.display = '';
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Save';
+            }
+        }
+
+        loadData();
+    </script>
+</body>
+</html>
