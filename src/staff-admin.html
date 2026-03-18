@@ -290,7 +290,15 @@
             return classIds
                 .map(id => {
                     const cls = classRecords.find(c => c.id === id);
-                    return cls ? cls.fields.Name : '';
+                    if (!cls) return '';
+                    // Show "Day Type" e.g. "Mon Art&Craft" instead of full name
+                    const f = cls.fields;
+                    const day = (f['Day of Week'] || '').substring(0, 3);
+                    const name = f.Name || '';
+                    // Extract the class type from name (after last space-separated day reference)
+                    const typeMatch = name.match(/(?:Art&Craft|Painting|Drawing|Clay|Sculpture|Mixed Media)(?:\s*Class)?(?:\s*\([^)]+\))?/i);
+                    const type = typeMatch ? typeMatch[0].replace(/\s*Class$/i, '') : name;
+                    return day ? `${day} ${type}` : type;
                 })
                 .filter(Boolean)
                 .join(', ');
