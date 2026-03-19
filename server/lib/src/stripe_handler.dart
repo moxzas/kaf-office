@@ -347,24 +347,44 @@ Future<Response> kafCheckoutWebhookHandler(Request request) async {
       }
     }
 
-    // --- Check for duplicate (idempotency) ---
+    // --- Check for existing bookings (idempotency) ---
+    // Fetch ALL existing bookings for this session to handle partial writes
     final dupCheckResp = await _airtableRequest('GET', 'Bookings',
         query:
-            'filterByFormula=%7BStripe%20Session%20ID%7D%3D%22$stripeSessionId%22&maxRecords=1');
+            'filterByFormula=%7BStripe%20Session%20ID%7D%3D%22$stripeSessionId%22');
 
+    final existingStudentIds = <String>{};
     if (dupCheckResp.statusCode == 200) {
       final dupData = jsonDecode(dupCheckResp.body) as Map<String, dynamic>;
       final dupRecords = dupData['records'] as List;
-      if (dupRecords.isNotEmpty) {
-        print('INFO: Duplicate webhook for session $stripeSessionId, skipping');
-        return _jsonResponse(200, {'received': true, 'skipped': 'duplicate'});
+      for (final rec in dupRecords) {
+        final fields = rec['fields'] as Map<String, dynamic>;
+        final stuList = fields['Student'] as List?;
+        if (stuList != null && stuList.isNotEmpty) {
+          existingStudentIds.add(stuList[0] as String);
+        }
       }
+    }
+
+    // Filter out students who already have bookings (partial retry)
+    final remainingStudentIds =
+        studentIds.where((id) => !existingStudentIds.contains(id)).toList();
+
+    if (remainingStudentIds.isEmpty) {
+      print('INFO: All bookings already exist for session $stripeSessionId, skipping');
+      return _jsonResponse(200, {'received': true, 'skipped': 'duplicate'});
+    }
+
+    if (existingStudentIds.isNotEmpty) {
+      print('INFO: Partial retry for session $stripeSessionId — '
+          '${existingStudentIds.length} existing, '
+          '${remainingStudentIds.length} remaining');
     }
 
     // --- Create Booking records in Airtable (batch of up to 10) ---
     final today = DateTime.now().toIso8601String().substring(0, 10);
 
-    final bookingRecords = studentIds.map((studentId) {
+    final bookingRecords = remainingStudentIds.map((studentId) {
       return {
         'fields': {
           'Student': [studentId],
@@ -386,15 +406,14 @@ Future<Response> kafCheckoutWebhookHandler(Request request) async {
               : i + 10);
       final batchBody = jsonEncode({'records': batch});
 
-      try {
-        final batchResp =
-            await _airtableRequest('POST', 'Bookings', body: batchBody);
-        if (batchResp.statusCode != 200) {
-          print(
-              'ERROR: Airtable booking batch failed (${batchResp.statusCode}): ${batchResp.body}');
-        }
-      } catch (e) {
-        print('ERROR: Airtable booking batch exception: $e');
+      final batchResp =
+          await _airtableRequest('POST', 'Bookings', body: batchBody);
+      if (batchResp.statusCode != 200) {
+        print(
+            'ERROR: Airtable booking batch failed (${batchResp.statusCode}): ${batchResp.body}');
+        // Return 500 so Stripe retries — partial writes are safe due to
+        // per-student idempotency check above
+        return _jsonResponse(500, {'error': 'Booking creation failed'});
       }
 
       // Respect Airtable rate limit (5 req/sec)
@@ -403,12 +422,11 @@ Future<Response> kafCheckoutWebhookHandler(Request request) async {
       }
     }
 
-    // Always return 200 to Stripe
     return _jsonResponse(200, {'received': true});
   } catch (e) {
     print('ERROR: checkout/webhook exception: $e');
-    // Always return 200 to Stripe even on errors
-    return _jsonResponse(200, {'received': true, 'error': e.toString()});
+    // Return 500 so Stripe retries the webhook
+    return _jsonResponse(500, {'error': 'Webhook processing failed'});
   }
 }
 
