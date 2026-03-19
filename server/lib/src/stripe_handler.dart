@@ -422,6 +422,74 @@ Future<Response> kafCheckoutWebhookHandler(Request request) async {
       }
     }
 
+    // --- Notify Sophia via email ---
+    try {
+      final resendApiKey = Platform.environment['RESEND_API_KEY'];
+      if (resendApiKey != null) {
+        // Fetch class name and student names for the email
+        final classResp = await _airtableRequest('GET', 'Classes',
+            query: 'filterByFormula=RECORD_ID()%3D%22$classId%22');
+        var className = 'Unknown class';
+        if (classResp.statusCode == 200) {
+          final classData = jsonDecode(classResp.body) as Map<String, dynamic>;
+          final classRecords = classData['records'] as List;
+          if (classRecords.isNotEmpty) {
+            className = (classRecords[0]['fields'] as Map<String, dynamic>)['Name'] as String? ?? className;
+          }
+        }
+
+        // Fetch student names
+        final studentNames = <String>[];
+        for (final studentId in remainingStudentIds) {
+          final stuResp = await _airtableRequest('GET', 'Students',
+              query: 'filterByFormula=RECORD_ID()%3D%22$studentId%22');
+          if (stuResp.statusCode == 200) {
+            final stuData = jsonDecode(stuResp.body) as Map<String, dynamic>;
+            final stuRecords = stuData['records'] as List;
+            if (stuRecords.isNotEmpty) {
+              final name = (stuRecords[0]['fields'] as Map<String, dynamic>)['Name'] as String?;
+              if (name != null) studentNames.add(name);
+            }
+          }
+        }
+
+        final parentEmail = sessionObj['customer_email'] as String? ?? 'unknown';
+        final amountTotal = sessionObj['amount_total'] as num? ?? 0;
+        final amountStr = '\$${(amountTotal / 100).toStringAsFixed(2)}';
+
+        final emailBody = {
+          'from': 'Kids Art Fun <onboarding@resend.dev>',
+          'to': ['kidsartfun@gmail.com'],
+          'subject': 'New Booking: ${studentNames.isNotEmpty ? studentNames.join(", ") : "New student"} — $className',
+          'html': '''
+            <h2>New Booking Received</h2>
+            <p><strong>Class:</strong> $className</p>
+            <p><strong>Students:</strong> ${studentNames.isNotEmpty ? studentNames.join(', ') : remainingStudentIds.join(', ')}</p>
+            <p><strong>Parent email:</strong> $parentEmail</p>
+            <p><strong>Amount paid:</strong> $amountStr</p>
+            <p><strong>OSHC:</strong> ${oshcMap.values.any((v) => v) ? 'Yes' : 'No'}</p>
+            <hr>
+            <p style="color: #666; font-size: 12px;">
+              Stripe Session: $stripeSessionId<br>
+              ${DateTime.now().toString()}
+            </p>
+          ''',
+        };
+
+        await http.post(
+          Uri.parse('https://api.resend.com/emails'),
+          headers: {
+            'Authorization': 'Bearer $resendApiKey',
+            'Content-Type': 'application/json',
+          },
+          body: jsonEncode(emailBody),
+        );
+      }
+    } catch (e) {
+      // Don't fail the webhook over a notification email
+      print('WARN: Failed to send booking notification email: $e');
+    }
+
     return _jsonResponse(200, {'received': true});
   } catch (e) {
     print('ERROR: checkout/webhook exception: $e');
