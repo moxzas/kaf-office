@@ -459,7 +459,7 @@ Future<Response> kafCheckoutWebhookHandler(Request request) async {
 
         final emailBody = {
           'from': 'Kids Art Fun <onboarding@resend.dev>',
-          'to': ['kidsartfun@gmail.com'],
+          'to': ['anthony.f.lee@gmail.com'],
           'subject': 'New Booking: ${studentNames.isNotEmpty ? studentNames.join(", ") : "New student"} — $className',
           'html': '''
             <h2>New Booking Received</h2>

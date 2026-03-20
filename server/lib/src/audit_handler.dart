@@ -201,7 +201,7 @@ Future<void> _sendNotificationEmails({
   // Email to Sophia (notification)
   final sophiaEmail = {
     'from': 'Kids Art Fun <onboarding@resend.dev>',
-    'to': ['kidsartfun@gmail.com'],
+    'to': ['anthony.f.lee@gmail.com'],
     'subject': action == 'Created'
         ? 'New Enrollment: $parentName'
         : 'Enrollment Updated: $parentName',
