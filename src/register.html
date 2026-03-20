@@ -616,7 +616,7 @@
             }
 
             const term = f.Term || '';
-            const holidayDate = f['Term Start Date'] && f.Type === 'Holiday Program' ? formatDate(f['Term Start Date']) : '';
+            const holidayDate = f['Term Start Date'] && f.Type === 'Holiday' ? formatDate(f['Term Start Date']) : '';
 
             let detailsHtml = '';
             if (venueName) detailsHtml += `<div class="class-detail"><span class="label">Venue</span> ${escapeHtml(venueName)}</div>`;

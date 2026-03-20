@@ -330,7 +330,7 @@
                     <label>Type</label>
                     <div class="radio-group">
                         <label><input type="radio" name="classType" value="Term" checked onchange="onTypeChange()"> Term</label>
-                        <label><input type="radio" name="classType" value="Holiday Program" onchange="onTypeChange()"> Holiday Program</label>
+                        <label><input type="radio" name="classType" value="Holiday" onchange="onTypeChange()"> Holiday Program</label>
                     </div>
                 </div>
                 <div class="form-group">
@@ -624,7 +624,7 @@
             const statusClass = `status-${(f.Status || 'active').toLowerCase()}`;
 
             const term = f.Term || '';
-            const holidayDate = f['Term Start Date'] && f.Type === 'Holiday Program' ? formatDateShort(f['Term Start Date']) : '';
+            const holidayDate = f['Term Start Date'] && f.Type === 'Holiday' ? formatDateShort(f['Term Start Date']) : '';
 
             const price = f.Price != null ? `$${Number(f.Price).toFixed(0)}` : '';
             const regUrl = `${REG_BASE_URL}?class=${cls.id}`;
@@ -687,7 +687,7 @@
         // ── Form: Type toggle ──
 
         function onTypeChange() {
-            const isHoliday = getRadio('classType') === 'Holiday Program';
+            const isHoliday = getRadio('classType') === 'Holiday';
             document.getElementById('sessionsGroup').style.display = isHoliday ? 'none' : '';
             document.getElementById('termRow').style.display = isHoliday ? 'none' : '';
             document.getElementById('holidayDateRow').style.display = isHoliday ? '' : 'none';
@@ -788,7 +788,7 @@
             }
 
             const classType = getRadio('classType');
-            const isHoliday = classType === 'Holiday Program';
+            const isHoliday = classType === 'Holiday';
 
             const fields = {
                 "Name": name,
