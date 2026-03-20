@@ -636,6 +636,10 @@
                 detailsHtml += `<div class="class-detail"><span class="label">Sessions</span> ${f['Sessions in Term']}</div>`;
             }
 
+            if (f['Minimum Age']) {
+                detailsHtml += `<div class="class-detail"><span class="label">Ages</span> ${f['Minimum Age']}+</div>`;
+            }
+
             const priceHtml = f.Price != null ? `<div class="class-price">$${Number(f.Price).toFixed(0)}</div>` : '';
 
             document.getElementById('classInfo').innerHTML = `
@@ -1020,6 +1024,24 @@
             if (selectedExisting.length === 0 && newChildren.length === 0) {
                 showFieldError('formError', 'Please select or add at least one child to register.');
                 return;
+            }
+
+            // Minimum age check
+            const minAge = classRecord.fields['Minimum Age'];
+            if (minAge) {
+                for (const child of newChildren) {
+                    if (child.age < minAge) {
+                        showFieldError('formError', `${child.name} (age ${child.age}) does not meet the minimum age requirement of ${minAge}+ for this class.`);
+                        return;
+                    }
+                }
+                for (const studentId of selectedExisting) {
+                    const student = studentRecords.find(s => s.id === studentId);
+                    if (student && student.fields.Age != null && student.fields.Age < minAge) {
+                        showFieldError('formError', `${student.fields.Name} (age ${student.fields.Age}) does not meet the minimum age requirement of ${minAge}+ for this class.`);
+                        return;
+                    }
+                }
             }
 
             // Capacity check

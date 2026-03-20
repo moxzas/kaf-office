@@ -413,6 +413,13 @@
                 </div>
             </div>
 
+            <div class="form-row three-col">
+                <div class="form-group">
+                    <label for="classMinAge">Minimum Age</label>
+                    <input type="number" id="classMinAge" min="3" max="18" placeholder="e.g. 7">
+                </div>
+            </div>
+
             <div class="form-row">
                 <div class="form-group">
                     <label for="classStatus">Status</label>
@@ -730,6 +737,7 @@
             document.getElementById('classTerm').value = f.Term || '';
             document.getElementById('classHolidayDate').value = f['Term Start Date'] || '';
             document.getElementById('classStatus').value = f.Status || 'Active';
+            document.getElementById('classMinAge').value = f['Minimum Age'] || '';
             onTypeChange();
 
             // Venue (single link shown as first element)
@@ -764,6 +772,7 @@
             document.getElementById('classStatus').value = 'Active';
             document.getElementById('classVenue').value = '';
             document.getElementById('classTeacher').value = '';
+            document.getElementById('classMinAge').value = '';
         }
 
         function setRadio(name, value) {
@@ -803,6 +812,7 @@
                 "Term": isHoliday ? null : (document.getElementById('classTerm').value || null),
                 "Term Start Date": isHoliday ? (document.getElementById('classHolidayDate').value || null) : null,
                 "Status": document.getElementById('classStatus').value || 'Active',
+                "Minimum Age": parseInt(document.getElementById('classMinAge').value) || null,
             };
 
             // Venue (link field, array of IDs)
